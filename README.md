@@ -2,6 +2,18 @@
 
 Three.js（背景の珈琲豆・金粉パーティクル）と GSAP ScrollTrigger（ピン留め・横スクロール・動画のフルスクリーン展開）、Lenis（慣性スクロール）で構成した、ワンページ完結型のサイトです。
 
+## 公開URL（本番）
+
+https://ginza-printemps.vercel.app
+
+Vercel にデプロイ済み。`index.html` / `css` / `js` / `assets` をそのまま配信する静的サイトです。
+
+再デプロイする場合（Vercel CLI・要トークン）：
+
+```
+npx vercel deploy --prod --yes
+```
+
 ## 構成
 
 ```
