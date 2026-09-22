@@ -12,7 +12,7 @@ stationery-shop/
 ├─ js/main.js          3Dシーン・モデル生成・スクロール連動
 ├─ assets/             シーンから書き出した画像と動画
 │   ├─ hero.jpg, gallery-01〜04.jpg, flatlay.jpg
-│   └─ film.webm       14秒のショートフィルム
+│   └─ film.webm       12秒のショートフィルム
 └─ tools/render.mjs    画像・動画を書き出すスクリプト（Playwright）
 ```
 
@@ -37,7 +37,7 @@ npx http-server -p 8123
 ```
 npx http-server -p 8123 &
 node tools/render.mjs stills assets 1600 1000   # 静止画
-SECS=14 node tools/render.mjs film assets 1280 720   # 動画（WebM）
+node tools/render.mjs film assets 960 540   # 動画（WebM, 12秒・20fps）
 ```
 
 `?capture` を付けて開くと UI が隠れ、`window.__renderAt(p, t)` で任意の場面を1フレームずつ描画できます。
