@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atelier Lumière 文具店</title>
+<meta name="description" content="鉛筆と色鉛筆が飛び出す、夜の文具店。Three.js と GSAP ScrollTrigger によるスクロール連動サンプルサイト。">
+<meta property="og:image" content="assets/hero.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;700;900&family=Zen+Kaku+Gothic+New:wght@400;500&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+<body>
+<canvas id="webgl" aria-hidden="true"></canvas>
+
+<div class="veil" aria-hidden="true">
+  <p class="veil__mark">Atelier Lumière</p>
+  <p class="veil__sub">灯りをともしています…</p>
+</div>
+
+<header class="top">
+  <a class="brand" href="#hero"><span class="brand__en">Atelier Lumière</span><span class="brand__ja">文具店 ルミエール</span></a>
+  <nav class="nav" aria-label="ページ内">
+    <a href="#pencil">鉛筆</a>
+    <a href="#colors">色鉛筆</a>
+    <a href="#tools">文房具</a>
+    <a href="#gallery">ギャラリー</a>
+    <a href="#visit">来店案内</a>
+  </nav>
+</header>
+
+<div class="rail" aria-hidden="true">
+  <span class="rail__track"><span class="rail__fill"></span></span>
+  <span class="rail__dot">0</span><span class="rail__dot">1</span><span class="rail__dot">2</span>
+  <span class="rail__dot">3</span><span class="rail__dot">4</span><span class="rail__dot">5</span>
+</div>
+
+<main>
+  <!-- 0 : hero -->
+  <section class="chapter" id="hero">
+    <div class="panel panel--hero">
+      <p class="eyebrow" data-reveal>Stationery &amp; Curiosities — since 1931</p>
+      <h1 class="display" data-reveal>書く、という<br>魔法。</h1>
+      <p class="lede" data-reveal>一本の鉛筆から、物語ははじまる。<br>夜にだけ灯る、小さな文具店へようこそ。</p>
+      <p class="scrollcue" data-reveal><span></span>スクロールすると、道具たちが目を覚まします</p>
+    </div>
+  </section>
+
+  <!-- 1 : pencils -->
+  <section class="chapter" id="pencil">
+    <div class="panel panel--left">
+      <p class="eyebrow" data-reveal>Chapter I · Graphite</p>
+      <h2 class="title" data-reveal>削るたび、<br>世界が尖る。</h2>
+      <p class="body" data-reveal>芯の硬さは 6B から 2H まで。やわらかな陰影を描く濃い芯も、設計図の細い線を引く硬い芯も、店主が一本ずつ試し書きしてから棚に並べます。</p>
+      <dl class="grades" data-reveal>
+        <div><dt>6B</dt><dd>デッサン</dd></div>
+        <div><dt>2B</dt><dd>日々のメモ</dd></div>
+        <div><dt>HB</dt><dd>いちばん人気</dd></div>
+        <div><dt>2H</dt><dd>製図・手帳</dd></div>
+      </dl>
+      <p class="price" data-reveal>ルミエール鉛筆 各 <b>¥180</b> ／ 6本箱 <b>¥1,050</b></p>
+    </div>
+  </section>
+
+  <!-- 2 : coloured pencils -->
+  <section class="chapter" id="colors">
+    <div class="panel panel--right">
+      <p class="eyebrow" data-reveal>Chapter II · Colour</p>
+      <h2 class="title" data-reveal>二十四色の、<br>ひかり。</h2>
+      <p class="body" data-reveal>油性顔料をたっぷり練り込んだ芯は、重ね塗りしても濁りません。夜明けの藍から、夕暮れの茜まで。缶を開けた瞬間の、あの高揚をもう一度。</p>
+      <ul class="swatches" data-reveal aria-label="色見本">
+        <li style="--c:#b8323a">茜</li><li style="--c:#d98a2b">琥珀</li><li style="--c:#c9b52d">菜の花</li>
+        <li style="--c:#3f8f4e">若竹</li><li style="--c:#2f7f9c">浅葱</li><li style="--c:#3a4aa8">瑠璃</li><li style="--c:#7a3fa0">菫</li>
+      </ul>
+      <p class="price" data-reveal>色鉛筆 24色缶 <b>¥3,960</b> ／ バラ売り 各 <b>¥165</b></p>
+    </div>
+  </section>
+
+  <!-- 3 : stationery -->
+  <section class="chapter" id="tools">
+    <div class="panel panel--left">
+      <p class="eyebrow" data-reveal>Chapter III · Tools</p>
+      <h2 class="title" data-reveal>ノートをひらけば、<br>道具が飛び出す。</h2>
+      <p class="body" data-reveal>革装のノートの中には、書く人のための小さな相棒たち。毎日つかうものだから、手に持ったときの重さと音まで選び抜きました。</p>
+      <ul class="catalog" data-reveal>
+        <li><span>万年筆 ミッドナイト／14K 細字</span><b>¥28,600</b></li>
+        <li><span>革装ノート A5・192ページ</span><b>¥4,400</b></li>
+        <li><span>アクリル定規 15cm</span><b>¥660</b></li>
+        <li><span>プラスチック消しゴム</span><b>¥120</b></li>
+        <li><span>マスキングテープ 15mm × 10m</span><b>¥330</b></li>
+        <li><span>ゼムクリップ 真鍮・色つき</span><b>¥220</b></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 : gallery -->
+  <section class="chapter" id="gallery">
+    <div class="panel panel--gallery">
+      <div class="gallery__head">
+        <p class="eyebrow" data-reveal>Chapter IV · Gallery</p>
+        <h2 class="title" data-reveal>魔法の瞬間を、<br>一枚に。</h2>
+      </div>
+      <div class="gallery__grid">
+        <figure class="shot shot--film" data-reveal>
+          <video src="assets/film.webm" poster="assets/gallery-01.jpg" autoplay muted loop playsinline preload="metadata"></video>
+          <figcaption>Film — 鉛筆が目を覚ます夜</figcaption>
+        </figure>
+        <figure class="shot" data-reveal><img src="assets/gallery-02.jpg" alt="ガラスのペン立てから鉛筆が飛び出す瞬間" loading="lazy"><figcaption>01 · 飛び立つ鉛筆</figcaption></figure>
+        <figure class="shot" data-reveal><img src="assets/gallery-03.jpg" alt="24色の色鉛筆が花のように開く" loading="lazy"><figcaption>02 · 色の花</figcaption></figure>
+        <figure class="shot" data-reveal><img src="assets/gallery-04.jpg" alt="開いたノートから文房具が飛び出す" loading="lazy"><figcaption>03 · ひらくノート</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 : visit -->
+  <section class="chapter chapter--last" id="visit">
+    <div class="panel panel--visit">
+      <div class="card" data-reveal>
+        <p class="eyebrow">Chapter V · Visit</p>
+        <h2 class="title title--sm">道具たちは、<br>机の上で待っています。</h2>
+        <dl class="info">
+          <div><dt>営業時間</dt><dd>17:00 – 23:00（月曜定休）</dd></div>
+          <div><dt>住所</dt><dd>東京都 灯り町 1-2-3 ルミエール小路</dd></div>
+          <div><dt>電話</dt><dd class="mono">03-0000-0000</dd></div>
+        </dl>
+        <p class="note">※ 本サイトは架空の文具店のサンプルです。店舗・住所・価格はすべて架空です。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p><span class="brand__en">Atelier Lumière</span> — Three.js × GSAP ScrollTrigger sample</p>
+  <p class="mono">© 2026 Atelier Lumière (fictional)</p>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
