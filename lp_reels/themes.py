@@ -125,3 +125,13 @@ THEMES["kebab_rec"] = dict(
         (16.5, 20.1, "04  MENU", "メニューが次々と現れる"),
     ],
 )
+THEMES["salon_rec"] = dict(
+    THEMES["salon"],
+    rec=dict(after="a434abb1", before="31284b49", offset=HOOK, hero_v=20.3, dend_v=23.6),
+    captions=[
+        (2.2, 6.2, "01  FIRST VIEW", "雫がはじける、ファーストビュー"),
+        (6.4, 9.3, "02  GLOSS", "髪の艶を、映像のように見せる"),
+        (9.5, 15.0, "03  MENU", "メニューがカードで流れる"),
+        (15.2, 20.1, "04  ATMOSPHERE", "光と刃の、シネマティック演出"),
+    ],
+)
