@@ -155,3 +155,23 @@ THEMES["gym_rec"] = dict(
         (17.0, 20.8, "04  PROOF", "こだわり・料金・FAQまで、テンポよく"),
     ],
 )
+
+# ---- 不動産（画面録画のみ） ----
+THEMES["estate_rec"] = dict(
+    src="", idx=5, music="701", drop_key="estate", hero=0,
+    base=(242, 237, 228), accent=(150, 110, 72), text=(40, 33, 27), sub=(118, 102, 88),
+    light=True, amb_bright=0.12, amb_sat=0.7,
+    f_en="Cormorant Garamond", f_jp="Shippori Mincho", f_lbl="Montserrat",
+    brand="Maison Akari", brand_font="Cormorant Garamond", brand_size=104, brand_sp=4, brand_italic=True,
+    category="REAL ESTATE",
+    hook=("間取り図だけでは、", "暮らしは伝わらない。"),
+    rec=dict(after="1fb50556", before="b355ab52", offset=HOOK, hero_v=20.0, dend_v=23.0),
+    captions=[
+        (2.2, 9.3, "01  WALK-THROUGH", "スクロールで、家の中を歩ける"),
+        (9.5, 13.3, "02  LIGHT", "光と余白で、世界観を伝える"),
+        (13.5, 17.4, "03  MATERIAL", "素材の写真が、美しく重なる"),
+        (17.6, 19.9, "04  FLOW", "間取りの“回遊”を、動きで見せる"),
+    ],
+    hero_copy=("内見の前に、", "“住みたい”をつくる。"),
+    sfx_reveal="2350", sfx_hero="1489",
+)

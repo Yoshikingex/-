@@ -401,8 +401,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 # ------------------------------------------------------------------ main
 def plan(t, srcs):
-    dr = DROPS[{"dff55191": "car", "717474a4": "kebab", "f0664387": "salon",
-                "b4302077": "ryokan", "24585873": "gym"}[t["src"]]]
+    dr = DROPS[t.get("drop_key") or {"dff55191": "car", "717474a4": "kebab", "f0664387": "salon",
+                                     "b4302077": "ryokan", "24585873": "gym"}[t["src"]]]
     start = dr["drop"] - HOOK
     beats = beats_of(t["music"], start)
     snap = lambda x, lim=0.35: float(beats[np.argmin(np.abs(beats - x))]) if np.min(np.abs(beats - x)) < lim else x
