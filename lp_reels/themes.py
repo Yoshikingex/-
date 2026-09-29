@@ -115,3 +115,13 @@ THEMES["car_rec"] = dict(
         (17.6, 21.3, "04  PERFORMANCE", "数値とボディカラーが動き出す"),
     ],
 )
+THEMES["kebab_rec"] = dict(
+    THEMES["kebab"],
+    rec=dict(after="316a4e2b", before="50b8f99f", offset=HOOK, hero_v=20.3, dend_v=23.6),
+    captions=[
+        (2.2, 6.2, "01  SPICE", "秘伝のスパイスが、舞い上がる"),
+        (6.4, 12.3, "02  SIZZLE", "肉と具材が、弾けて重なる"),
+        (12.5, 16.3, "03  JUICY", "流れる文字で、食欲を刺激"),
+        (16.5, 20.1, "04  MENU", "メニューが次々と現れる"),
+    ],
+)
