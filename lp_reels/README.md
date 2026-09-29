@@ -10,6 +10,14 @@
 
 仕様: 1080x1920 / 30fps / H.264 + AAC 192kbps / 約26秒 / 音量 -14 LUFS（Instagram・TikTok 推奨付近）
 
+## 画面録画版（推奨・`output/rec/`）
+AFTER/BEFORE を別々に画面録画した素材から作成（台形補正・色補正なし、16:9カード、キャプションはInstagramのUIに隠れない位置）。
+`themes.py` の `*_rec` テーマで素材ファイル名・ヒーロー開始秒・キャプションを指定する。
+
+```
+python3 build.py <素材mp4フォルダ> car_rec kebab_rec salon_rec ryokan_rec gym_rec
+```
+
 ## 構成（全5本共通）
 | 秒 | 内容 |
 |---|---|

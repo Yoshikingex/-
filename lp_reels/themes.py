@@ -145,3 +145,13 @@ THEMES["ryokan_rec"] = dict(
         (17.0, 20.1, "04  SILENCE", "文字が流れ、花びらが舞う"),
     ],
 )
+THEMES["gym_rec"] = dict(
+    THEMES["gym"],
+    rec=dict(after="e266aba8", before="b7040fab", offset=HOOK, hero_v=21.0, dend_v=24.2),
+    captions=[
+        (2.2, 7.3, "01  KINETIC COPY", "言葉が、次々と切り替わる"),
+        (7.5, 10.8, "02  MESSAGE", "ブランドの一言を、大きく刻む"),
+        (11.0, 16.8, "03  GALLERY", "写真が、横へ流れるギャラリー"),
+        (17.0, 20.8, "04  PROOF", "こだわり・料金・FAQまで、テンポよく"),
+    ],
+)
