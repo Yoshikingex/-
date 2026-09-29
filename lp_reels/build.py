@@ -28,6 +28,16 @@ A_Y, B_Y = 330, 1060            # AFTER / BEFORE カード上端
 HW, HH = 1040, 686              # ヒーロー（AFTER単独）カード
 HX, HY = 20, 540
 RADIUS = 26
+CAP_Y1, CAP_Y2 = 1786, 1846     # 見どころキャプション（英字 / 日本語）
+
+
+def use_rec_layout():
+    """画面録画(16:9)用レイアウト。キャプションはInstagramのUIに隠れない高さへ上げる"""
+    global CW, CH, CX, A_Y, B_Y, HW, HH, HX, HY, CAP_Y1, CAP_Y2
+    CW, CH, CX = 1040, 585, 20
+    A_Y, B_Y = 330, 990
+    HW, HH, HX, HY = 1040, 585, 20, 600
+    CAP_Y1, CAP_Y2 = 1650, 1712
 
 EDGES = json.load(open(os.path.join(HERE, "edges.json")))
 LEVELS = json.load(open(os.path.join(HERE, "levels.json")))
@@ -157,38 +167,57 @@ def grade(L, which):
             "eq=saturation=1.15,unsharp=5:5:0.7:3:3:0.0")
 
 
-def build_video(key, t, src, times, ass, d, out):
-    e = EDGES[str(t["idx"])]
-    L = LEVELS[str(t["idx"])]
+def build_video(key, t, srcs, times, ass, d, out):
     S, DEND, TOTAL = times["S"], times["DEND"], times["TOTAL"]
-    crop = "crop=iw*0.98:ih*0.94:iw*0.01:ih*0.025"
     img = lambda p: ["-loop", "1", "-t", f"{TOTAL:.3f}", "-framerate", str(FPS), "-i", f"{d}/{p}"]
-    inputs = ["-i", src] + img("tint.png") + img("shadow_split.png") + img("frame_split.png") + \
+    images = img("tint.png") + img("shadow_split.png") + img("frame_split.png") + \
         img("mask.png") + img("shadow_hero.png") + img("frame_hero.png") + img("mask_hero.png") + img("placeholder.png")
-    pad = TOTAL - duration(src) + 0.5
-    fc = [
-        f"[0:v]scale=in_color_matrix=bt2020:out_color_matrix=bt709,setsar=1,fps={FPS},"
-        f"tpad=stop_mode=clone:stop_duration={max(pad, 0.1):.2f},split=2[sa][sb]",
-        f"[sa]{quad(e, 't1', 'b1')},{crop},{grade(L, 'after')},split=3[a0][a1][a2]",
-        f"[sb]{quad(e, 't2', 'b2')},{crop},{grade(L, 'before')},scale={CW}:{CH}:flags=lanczos,format=rgba[b0]",
+    if "rec" in t:
+        # 画面録画: AFTER/BEFORE 別ファイル。補正不要、AFTERは HOOK 秒遅らせて冒頭から見せる
+        off = t["rec"]["offset"]
+        pa = TOTAL - off - duration(srcs["after"]) + 0.5
+        pb = TOTAL - duration(srcs["before"]) + 0.5
+        inputs = ["-i", srcs["after"], "-i", srcs["before"]] + images
+        n0 = 2
+        src_fc = [
+            f"[0:v]setsar=1,fps={FPS},tpad=start_mode=clone:start_duration={off:.2f}:"
+            f"stop_mode=clone:stop_duration={max(pa, 0.1):.2f},split=3[a0][a1][a2]",
+            f"[1:v]setsar=1,fps={FPS},tpad=stop_mode=clone:stop_duration={max(pb, 0.1):.2f},"
+            f"scale={CW}:{CH}:flags=lanczos,format=rgba[b0]",
+        ]
+    else:
+        e = EDGES[str(t["idx"])]
+        L = LEVELS[str(t["idx"])]
+        crop = "crop=iw*0.98:ih*0.94:iw*0.01:ih*0.025"
+        inputs = ["-i", srcs["src"]] + images
+        n0 = 1
+        pad = TOTAL - duration(srcs["src"]) + 0.5
+        src_fc = [
+            f"[0:v]scale=in_color_matrix=bt2020:out_color_matrix=bt709,setsar=1,fps={FPS},"
+            f"tpad=stop_mode=clone:stop_duration={max(pad, 0.1):.2f},split=2[sa][sb]",
+            f"[sa]{quad(e, 't1', 'b1')},{crop},{grade(L, 'after')},split=3[a0][a1][a2]",
+            f"[sb]{quad(e, 't2', 'b2')},{crop},{grade(L, 'before')},scale={CW}:{CH}:flags=lanczos,format=rgba[b0]",
+        ]
+    i = lambda k: f"[{n0 + k}:v]"   # 画像入力: 0 tint 1 shadow_split 2 frame_split 3 mask 4 shadow_hero 5 frame_hero 6 mask_hero 7 placeholder
+    fc = src_fc + [
         # 背景: AFTER映像を大きくぼかしたアンビエント光 + テーマ色
         f"[a2]scale=-2:192,crop=108:192,gblur=sigma=5,scale={W}:{H}:flags=bicubic,"
         f"eq=brightness={t['amb_bright']}:saturation={t['amb_sat']},format=rgba[amb]",
-        "[amb][1:v]overlay=format=auto,noise=alls=5:allf=t,format=rgba[bg]",
+        f"[amb]{i(0)}overlay=format=auto,noise=alls=5:allf=t,format=rgba[bg]",
         f"[a0]scale={CW}:{CH}:flags=lanczos,format=rgba[a0s]",
-        "[4:v]format=gray,split[m1][m2]",
+        f"{i(3)}format=gray,split[m1][m2]",
         f"[a0s][m1]alphamerge,fade=t=in:st={HOOK:.2f}:d=0.22:alpha=1[acard]",
         "[b0][m2]alphamerge[bcard]",
         f"[a1]scale={HW}:{HH}:flags=lanczos,format=rgba[a1s]",
-        "[7:v]format=gray[mh]", "[a1s][mh]alphamerge[hcard]",
-        f"[bg][2:v]overlay=enable='lt(t,{S:.3f})'[v1]",
-        f"[v1][8:v]overlay={CX}:{A_Y}:enable='lt(t,{HOOK + 0.2:.3f})'[v2]",
+        f"{i(6)}format=gray[mh]", "[a1s][mh]alphamerge[hcard]",
+        f"[bg]{i(1)}overlay=enable='lt(t,{S:.3f})'[v1]",
+        f"[v1]{i(7)}overlay={CX}:{A_Y}:enable='lt(t,{HOOK + 0.2:.3f})'[v2]",
         f"[v2][acard]overlay={CX}:{A_Y}:enable='lt(t,{S:.3f})'[v3]",
         f"[v3][bcard]overlay={CX}:{B_Y}:enable='lt(t,{S:.3f})'[v4]",
-        f"[v4][3:v]overlay=enable='lt(t,{S:.3f})'[v5]",
-        f"[v5][5:v]overlay=enable='between(t,{S:.3f},{DEND:.3f})'[v6]",
+        f"[v4]{i(2)}overlay=enable='lt(t,{S:.3f})'[v5]",
+        f"[v5]{i(4)}overlay=enable='between(t,{S:.3f},{DEND:.3f})'[v6]",
         f"[v6][hcard]overlay={HX}:{HY}:enable='between(t,{S:.3f},{DEND:.3f})'[v7]",
-        f"[v7][6:v]overlay=enable='between(t,{S:.3f},{DEND:.3f})'[v8]",
+        f"[v7]{i(5)}overlay=enable='between(t,{S:.3f},{DEND:.3f})'[v8]",
         f"[v8]subtitles={ass}:fontsdir={FONTS},trim=duration={TOTAL:.3f},setsar=1,format=yuv420p[out]",
     ]
     sh(["ffmpeg", "-y", "-v", "error", *inputs, "-filter_complex", ";".join(fc), "-map", "[out]",
@@ -334,8 +363,8 @@ def build_ass(key, t, times, path):
     # 見どころキャプション（下段）
     for (c0, c1, en, jp) in t["captions"]:
         c1 = min(c1, S - 0.1)
-        add(c0, c1, rf"{{{reveal(540, 1786, 400)}{txt(t['f_lbl'], 24, ACC, 10, 1)}}}{en}")
-        add(c0 + 0.1, c1, rf"{{{reveal(540, 1846, 450)}{txt(t['f_jp'], 46, TX, 3, 1)}}}{jp}")
+        add(c0, c1, rf"{{{reveal(540, CAP_Y1, 400)}{txt(t['f_lbl'], 24, ACC, 10, 1)}}}{en}")
+        add(c0 + 0.1, c1, rf"{{{reveal(540, CAP_Y2, 450)}{txt(t['f_jp'], 46, TX, 3, 1)}}}{jp}")
 
     # ヒーロー（AFTER単独）
     add(S, DEND, rf"{{\an1\pos({HX + 6},{HY - 16})\fad(250,0){txt(t['f_lbl'], 30, ACC, 8, 1)}}}AFTER")
@@ -371,16 +400,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 # ------------------------------------------------------------------ main
-def plan(t, src):
-    D = duration(src)
+def plan(t, srcs):
     dr = DROPS[{"dff55191": "car", "717474a4": "kebab", "f0664387": "salon",
                 "b4302077": "ryokan", "24585873": "gym"}[t["src"]]]
     start = dr["drop"] - HOOK
     beats = beats_of(t["music"], start)
     snap = lambda x, lim=0.35: float(beats[np.argmin(np.abs(beats - x))]) if np.min(np.abs(beats - x)) < lim else x
-    S = snap(t["hero"])
-    DEND = snap(D - 0.1)
-    return dict(S=S, DEND=DEND, TOTAL=DEND + END_LEN, music_start=start, src_dur=D)
+    if "rec" in t:
+        S, DEND = snap(t["rec"]["hero_v"]), snap(t["rec"]["dend_v"])
+    else:
+        S, DEND = snap(t["hero"]), snap(duration(srcs["src"]) - 0.1)
+    return dict(S=S, DEND=DEND, TOTAL=DEND + END_LEN, music_start=start)
 
 
 def main():
@@ -389,18 +419,25 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     for key in keys:
         t = THEMES[key]
-        src = glob.glob(os.path.join(src_dir, f"*{t['src']}*.mp4"))[0]
+        find = lambda tag: glob.glob(os.path.join(src_dir, f"*{tag}*.mp4"))[0]
+        if "rec" in t:
+            use_rec_layout()
+            srcs = dict(after=find(t["rec"]["after"]), before=find(t["rec"]["before"]))
+        else:
+            srcs = dict(src=find(t["src"]))
         d = os.path.join(CACHE, key)
         make_assets(key, t, d)
-        times = plan(t, src)
+        times = plan(t, srcs)
         print(key, {k: round(v, 2) for k, v in times.items()})
         ass = os.path.join(d, "telop.ass")
         build_ass(key, t, times, ass)
         vid = os.path.join(d, "video.mp4")
         wav = os.path.join(d, "audio.wav")
         build_audio(key, t, times, wav)
-        build_video(key, t, src, times, ass, d, vid)
-        final = os.path.join(OUT, f"{t['idx'] + 1:02d}_{key}.mp4")
+        build_video(key, t, srcs, times, ass, d, vid)
+        out_dir = os.path.join(OUT, "rec") if "rec" in t else OUT
+        os.makedirs(out_dir, exist_ok=True)
+        final = os.path.join(out_dir, f"{t['idx'] + 1:02d}_{key.replace('_rec', '')}.mp4")
         sh(["ffmpeg", "-y", "-v", "error", "-i", vid, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy",
             "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", final])
         print("wrote", final)

@@ -101,3 +101,17 @@ THEMES = {
         sfx_reveal="1143", sfx_hero="1492",
     ),
 }
+
+# ---- 画面録画版（AFTER/BEFORE を別々に録画した素材） ----
+# rec: after/before=ファイル名の一部, offset=AFTERを遅らせる秒数（=HOOK。AFTER冒頭から見せる）,
+#      hero_v/dend_v=ヒーロー開始/エンドカード開始（完成動画の秒数）
+THEMES["car_rec"] = dict(
+    THEMES["car"],
+    rec=dict(after="3b20a6ff", before="d3312809", offset=HOOK, hero_v=21.5, dend_v=25.0),
+    captions=[
+        (2.2, 5.4, "01  OPENING", "一瞬で世界観に引き込む"),
+        (5.6, 12.4, "02  ASSEMBLY", "スクロールで、車体が組み上がる"),
+        (12.6, 17.4, "03  LIFESTYLE", "写真がカードのように重なる"),
+        (17.6, 21.3, "04  PERFORMANCE", "数値とボディカラーが動き出す"),
+    ],
+)
