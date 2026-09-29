@@ -1,0 +1,110 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Base,Dela Gothic One,80,&H00FFFFFF,&H00FFFFFF,&H00000000,&H96000000,0,0,0,0,100,100,2,0,1,6,4,5,20,20,20,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 3,0:00:00.00,0:00:03.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H3A3A3A&\1a&H00&\p1}m 0 0 l 530 0 l 530 60 l 0 60{\p0}
+Dialogue: 4,0:00:00.00,0:00:03.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00FFFFFF&\bord0\shad0}BEFORE｜よくある静止LP
+Dialogue: 1,0:00:00.05,0:00:01.50,Base,,0,0,0,,{\an5\pos(540,270)\fs140\fscx135\fscy135\t(0,140,\fscx100\fscy100)}そのLP、
+Dialogue: 1,0:00:01.50,0:00:03.00,Base,,0,0,0,,{\an5\pos(540,270)\fs140\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}止まってない？
+Dialogue: 1,0:00:00.40,0:00:03.00,Base,,0,0,0,,{\an5\pos(540,1580)\fnNoto Sans JP Black\fs48\fad(150,0)}スクロールしても、何も起きない…
+Dialogue: 9,0:00:03.00,0:00:03.30,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,300)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 3,0:00:03.00,0:00:07.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H0000D4FF&\1a&H00&\p1}m 0 0 l 530 0 l 530 60 l 0 60{\p0}
+Dialogue: 4,0:00:03.00,0:00:07.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00000000&\bord0\shad0}AFTER｜スクロール連動LP
+Dialogue: 1,0:00:03.05,0:00:04.80,Base,,0,0,0,,{\an5\pos(540,190)\fnNoto Sans JP Black\fs64\fad(80,0)}スクロールするだけで
+Dialogue: 1,0:00:03.30,0:00:04.80,Base,,0,0,0,,{\an5\pos(540,330)\fs130\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}LPが動き出す。
+Dialogue: 1,0:00:04.80,0:00:07.00,Base,,0,0,0,,{\an5\pos(540,200)\fs96\fscx135\fscy135\t(0,140,\fscx100\fscy100)}静止LP ▶ 動くLP
+Dialogue: 1,0:00:04.80,0:00:07.00,Base,,0,0,0,,{\an5\pos(540,330)\fnNoto Sans JP Black\fs52\fad(100,0)}ビフォーアフター
+Dialogue: 1,0:00:05.00,0:00:07.00,Base,,0,0,0,,{\an5\pos(540,1600)\fnAnton\fs170\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}5 CASES
+Dialogue: 1,0:00:05.20,0:00:07.00,Base,,0,0,0,,{\an5\pos(540,1740)\fnNoto Sans JP Black\fs46\fad(100,0)}実例で、違いを見てください
+Dialogue: 9,0:00:07.00,0:00:07.22,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,220)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 0,0:00:07.00,0:00:15.00,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&H000000&\1a&H60&\p1}m 0 0 l 1080 0 l 1080 250 l 0 250{\p0}
+Dialogue: 1,0:00:07.00,0:00:15.00,Base,,0,0,0,,{\an7\fnAnton\fs92\1c&H0000D4FF&\move(-300,40,48,40,0,220)}CASE 01
+Dialogue: 1,0:00:07.08,0:00:15.00,Base,,0,0,0,,{\an7\fs68\move(-500,150,48,150,0,240)}高級車ブランド
+Dialogue: 1,0:00:07.00,0:00:15.00,Base,,0,0,0,,{\an9\pos(1032,48)\fnAnton\fs60\1a&H40&\3a&H40&}01/05
+Dialogue: 2,0:00:07.00,0:00:12.00,Base,,0,0,0,,{\an7\pos(0,932)\bord0\shad0\1c&H000000&\1a&H30&\p1}m 0 0 l 1080 0 l 1080 86 l 0 86{\p0}
+Dialogue: 3,0:00:07.10,0:00:12.00,Base,,0,0,0,,{\an4\pos(40,975)\fnNoto Sans JP Black\fs40\1c&H0000D4FF&\fad(120,0)}▲ AFTER：スクロール連動
+Dialogue: 3,0:00:07.10,0:00:12.00,Base,,0,0,0,,{\an6\pos(1040,975)\fnNoto Sans JP Black\fs40\1c&HDDDDDD&\fad(120,0)}BEFORE：静止 ▼
+Dialogue: 2,0:00:07.40,0:00:12.00,Base,,0,0,0,,{\an7\pos(0,1790)\bord0\shad0\1c&H000000&\1a&H40&\p1}m 0 0 l 1080 0 l 1080 100 l 0 100{\p0}
+Dialogue: 3,0:00:07.40,0:00:12.00,Base,,0,0,0,,{\an5\pos(540,1840)\fnNoto Sans JP Black\fs48\fad(150,0)}同じ情報でも、ここまで印象が変わる
+Dialogue: 9,0:00:12.00,0:00:12.18,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H60&\fad(0,180)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 3,0:00:12.00,0:00:15.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H0000D4FF&\1a&H00&\p1}m 0 0 l 190 0 l 190 60 l 0 60{\p0}
+Dialogue: 4,0:00:12.00,0:00:15.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00000000&\bord0\shad0}AFTER
+Dialogue: 1,0:00:12.05,0:00:15.00,Base,,0,0,0,,{\an5\pos(540,360)\fs76\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}メーター連動 × カラー切替
+Dialogue: 1,0:00:12.25,0:00:15.00,Base,,0,0,0,,{\an5\pos(540,1570)\fnNoto Sans JP Black\fs48\fad(150,0)}数値が動き、ボディカラーが切り替わる
+Dialogue: 9,0:00:15.00,0:00:15.22,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,220)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 0,0:00:15.00,0:00:23.00,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&H000000&\1a&H60&\p1}m 0 0 l 1080 0 l 1080 250 l 0 250{\p0}
+Dialogue: 1,0:00:15.00,0:00:23.00,Base,,0,0,0,,{\an7\fnAnton\fs92\1c&H0000D4FF&\move(-300,40,48,40,0,220)}CASE 02
+Dialogue: 1,0:00:15.08,0:00:23.00,Base,,0,0,0,,{\an7\fs68\move(-500,150,48,150,0,240)}ケバブ専門店
+Dialogue: 1,0:00:15.00,0:00:23.00,Base,,0,0,0,,{\an9\pos(1032,48)\fnAnton\fs60\1a&H40&\3a&H40&}02/05
+Dialogue: 2,0:00:15.00,0:00:20.00,Base,,0,0,0,,{\an7\pos(0,932)\bord0\shad0\1c&H000000&\1a&H30&\p1}m 0 0 l 1080 0 l 1080 86 l 0 86{\p0}
+Dialogue: 3,0:00:15.10,0:00:20.00,Base,,0,0,0,,{\an4\pos(40,975)\fnNoto Sans JP Black\fs40\1c&H0000D4FF&\fad(120,0)}▲ AFTER：スクロール連動
+Dialogue: 3,0:00:15.10,0:00:20.00,Base,,0,0,0,,{\an6\pos(1040,975)\fnNoto Sans JP Black\fs40\1c&HDDDDDD&\fad(120,0)}BEFORE：静止 ▼
+Dialogue: 2,0:00:15.40,0:00:20.00,Base,,0,0,0,,{\an7\pos(0,1790)\bord0\shad0\1c&H000000&\1a&H40&\p1}m 0 0 l 1080 0 l 1080 100 l 0 100{\p0}
+Dialogue: 3,0:00:15.40,0:00:20.00,Base,,0,0,0,,{\an5\pos(540,1840)\fnNoto Sans JP Black\fs48\fad(150,0)}“食べたい”を、スクロールで引き出す
+Dialogue: 9,0:00:20.00,0:00:20.18,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H60&\fad(0,180)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 3,0:00:20.00,0:00:23.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H0000D4FF&\1a&H00&\p1}m 0 0 l 190 0 l 190 60 l 0 60{\p0}
+Dialogue: 4,0:00:20.00,0:00:23.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00000000&\bord0\shad0}AFTER
+Dialogue: 1,0:00:20.05,0:00:23.00,Base,,0,0,0,,{\an5\pos(540,360)\fs76\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}具材が弾ける × 舞うスパイス
+Dialogue: 1,0:00:20.25,0:00:23.00,Base,,0,0,0,,{\an5\pos(540,1570)\fnNoto Sans JP Black\fs48\fad(150,0)}スクロールで“食べたい”が加速する
+Dialogue: 9,0:00:23.00,0:00:23.22,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,220)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 0,0:00:23.00,0:00:31.00,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&H000000&\1a&H60&\p1}m 0 0 l 1080 0 l 1080 250 l 0 250{\p0}
+Dialogue: 1,0:00:23.00,0:00:31.00,Base,,0,0,0,,{\an7\fnAnton\fs92\1c&H0000D4FF&\move(-300,40,48,40,0,220)}CASE 03
+Dialogue: 1,0:00:23.08,0:00:31.00,Base,,0,0,0,,{\an7\fs68\move(-500,150,48,150,0,240)}ヘアサロン
+Dialogue: 1,0:00:23.00,0:00:31.00,Base,,0,0,0,,{\an9\pos(1032,48)\fnAnton\fs60\1a&H40&\3a&H40&}03/05
+Dialogue: 2,0:00:23.00,0:00:28.00,Base,,0,0,0,,{\an7\pos(0,932)\bord0\shad0\1c&H000000&\1a&H30&\p1}m 0 0 l 1080 0 l 1080 86 l 0 86{\p0}
+Dialogue: 3,0:00:23.10,0:00:28.00,Base,,0,0,0,,{\an4\pos(40,975)\fnNoto Sans JP Black\fs40\1c&H0000D4FF&\fad(120,0)}▲ AFTER：スクロール連動
+Dialogue: 3,0:00:23.10,0:00:28.00,Base,,0,0,0,,{\an6\pos(1040,975)\fnNoto Sans JP Black\fs40\1c&HDDDDDD&\fad(120,0)}BEFORE：静止 ▼
+Dialogue: 2,0:00:23.40,0:00:28.00,Base,,0,0,0,,{\an7\pos(0,1790)\bord0\shad0\1c&H000000&\1a&H40&\p1}m 0 0 l 1080 0 l 1080 100 l 0 100{\p0}
+Dialogue: 3,0:00:23.40,0:00:28.00,Base,,0,0,0,,{\an5\pos(540,1840)\fnNoto Sans JP Black\fs48\fad(150,0)}世界観そのものが、ブランドになる
+Dialogue: 9,0:00:28.00,0:00:28.18,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H60&\fad(0,180)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 3,0:00:28.00,0:00:31.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H0000D4FF&\1a&H00&\p1}m 0 0 l 190 0 l 190 60 l 0 60{\p0}
+Dialogue: 4,0:00:28.00,0:00:31.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00000000&\bord0\shad0}AFTER
+Dialogue: 1,0:00:28.05,0:00:31.00,Base,,0,0,0,,{\an5\pos(540,360)\fs76\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}雫が舞う × 光の演出
+Dialogue: 1,0:00:28.25,0:00:31.00,Base,,0,0,0,,{\an5\pos(540,1570)\fnNoto Sans JP Black\fs48\fad(150,0)}世界観ごと、ブランドを伝える
+Dialogue: 9,0:00:31.00,0:00:31.22,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,220)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 0,0:00:31.00,0:00:39.00,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&H000000&\1a&H60&\p1}m 0 0 l 1080 0 l 1080 250 l 0 250{\p0}
+Dialogue: 1,0:00:31.00,0:00:39.00,Base,,0,0,0,,{\an7\fnAnton\fs92\1c&H0000D4FF&\move(-300,40,48,40,0,220)}CASE 04
+Dialogue: 1,0:00:31.08,0:00:39.00,Base,,0,0,0,,{\an7\fs68\move(-500,150,48,150,0,240)}高級旅館
+Dialogue: 1,0:00:31.00,0:00:39.00,Base,,0,0,0,,{\an9\pos(1032,48)\fnAnton\fs60\1a&H40&\3a&H40&}04/05
+Dialogue: 2,0:00:31.00,0:00:36.00,Base,,0,0,0,,{\an7\pos(0,932)\bord0\shad0\1c&H000000&\1a&H30&\p1}m 0 0 l 1080 0 l 1080 86 l 0 86{\p0}
+Dialogue: 3,0:00:31.10,0:00:36.00,Base,,0,0,0,,{\an4\pos(40,975)\fnNoto Sans JP Black\fs40\1c&H0000D4FF&\fad(120,0)}▲ AFTER：スクロール連動
+Dialogue: 3,0:00:31.10,0:00:36.00,Base,,0,0,0,,{\an6\pos(1040,975)\fnNoto Sans JP Black\fs40\1c&HDDDDDD&\fad(120,0)}BEFORE：静止 ▼
+Dialogue: 2,0:00:31.40,0:00:36.00,Base,,0,0,0,,{\an7\pos(0,1790)\bord0\shad0\1c&H000000&\1a&H40&\p1}m 0 0 l 1080 0 l 1080 100 l 0 100{\p0}
+Dialogue: 3,0:00:31.40,0:00:36.00,Base,,0,0,0,,{\an5\pos(540,1840)\fnNoto Sans JP Black\fs48\fad(150,0)}予約前から、体験は始まっている
+Dialogue: 9,0:00:36.00,0:00:36.18,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H60&\fad(0,180)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 3,0:00:36.00,0:00:39.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H0000D4FF&\1a&H00&\p1}m 0 0 l 190 0 l 190 60 l 0 60{\p0}
+Dialogue: 4,0:00:36.00,0:00:39.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00000000&\bord0\shad0}AFTER
+Dialogue: 1,0:00:36.05,0:00:39.00,Base,,0,0,0,,{\an5\pos(540,360)\fs76\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}灯り × 花びらの余韻
+Dialogue: 1,0:00:36.25,0:00:39.00,Base,,0,0,0,,{\an5\pos(540,1570)\fnNoto Sans JP Black\fs48\fad(150,0)}予約ボタンまで、静かに導く
+Dialogue: 9,0:00:39.00,0:00:39.22,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,220)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 0,0:00:39.00,0:00:47.00,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&H000000&\1a&H60&\p1}m 0 0 l 1080 0 l 1080 250 l 0 250{\p0}
+Dialogue: 1,0:00:39.00,0:00:47.00,Base,,0,0,0,,{\an7\fnAnton\fs92\1c&H0000D4FF&\move(-300,40,48,40,0,220)}CASE 05
+Dialogue: 1,0:00:39.08,0:00:47.00,Base,,0,0,0,,{\an7\fs68\move(-500,150,48,150,0,240)}パーソナルジム
+Dialogue: 1,0:00:39.00,0:00:47.00,Base,,0,0,0,,{\an9\pos(1032,48)\fnAnton\fs60\1a&H40&\3a&H40&}05/05
+Dialogue: 2,0:00:39.00,0:00:44.00,Base,,0,0,0,,{\an7\pos(0,932)\bord0\shad0\1c&H000000&\1a&H30&\p1}m 0 0 l 1080 0 l 1080 86 l 0 86{\p0}
+Dialogue: 3,0:00:39.10,0:00:44.00,Base,,0,0,0,,{\an4\pos(40,975)\fnNoto Sans JP Black\fs40\1c&H0000D4FF&\fad(120,0)}▲ AFTER：スクロール連動
+Dialogue: 3,0:00:39.10,0:00:44.00,Base,,0,0,0,,{\an6\pos(1040,975)\fnNoto Sans JP Black\fs40\1c&HDDDDDD&\fad(120,0)}BEFORE：静止 ▼
+Dialogue: 2,0:00:39.40,0:00:44.00,Base,,0,0,0,,{\an7\pos(0,1790)\bord0\shad0\1c&H000000&\1a&H40&\p1}m 0 0 l 1080 0 l 1080 100 l 0 100{\p0}
+Dialogue: 3,0:00:39.40,0:00:44.00,Base,,0,0,0,,{\an5\pos(540,1840)\fnNoto Sans JP Black\fs48\fad(150,0)}読ませるより、感じさせる
+Dialogue: 9,0:00:44.00,0:00:44.18,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H60&\fad(0,180)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 3,0:00:44.00,0:00:47.00,Base,,0,0,0,,{\an7\pos(40,470)\bord0\shad0\1c&H0000D4FF&\1a&H00&\p1}m 0 0 l 190 0 l 190 60 l 0 60{\p0}
+Dialogue: 4,0:00:44.00,0:00:47.00,Base,,0,0,0,,{\an4\pos(58,500)\fnNoto Sans JP Black\fs36\1c&H00000000&\bord0\shad0}AFTER
+Dialogue: 1,0:00:44.05,0:00:47.00,Base,,0,0,0,,{\an5\pos(540,360)\fs76\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}走る文字 × 力強いCTA
+Dialogue: 1,0:00:44.25,0:00:47.00,Base,,0,0,0,,{\an5\pos(540,1570)\fnNoto Sans JP Black\fs48\fad(150,0)}最後の一押しまで、テンポで魅せる
+Dialogue: 9,0:00:47.00,0:00:47.30,Base,,0,0,0,,{\an7\pos(0,0)\bord0\shad0\1c&HFFFFFF&\1a&H00&\fad(0,300)\p1}m 0 0 l 1080 0 l 1080 1920 l 0 1920{\p0}
+Dialogue: 1,0:00:47.05,0:00:53.00,Base,,0,0,0,,{\an5\pos(540,110)\fnNoto Sans JP Black\fs62\fad(120,0)}あなたのLPも、
+Dialogue: 1,0:00:47.30,0:00:53.00,Base,,0,0,0,,{\an5\pos(540,235)\fs128\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}“動くLP”へ。
+Dialogue: 1,0:00:47.80,0:00:53.00,Base,,0,0,0,,{\an5\pos(807,1398)\fnAnton\fs80\fscx135\fscy135\t(0,140,\fscx100\fscy100)}NEXT
+Dialogue: 1,0:00:47.95,0:00:53.00,Base,,0,0,0,,{\an5\pos(807,1508)\fnAnton\fs96\1c&H0000D4FF&\fscx135\fscy135\t(0,140,\fscx100\fscy100)}YOUR LP?
+Dialogue: 1,0:00:48.40,0:00:53.00,Base,,0,0,0,,{\an5\pos(540,1765)\fs58\fscx135\fscy135\t(0,140,\fscx100\fscy100)}制作のご相談はプロフィールから
+Dialogue: 1,0:00:48.90,0:00:53.00,Base,,0,0,0,,{\an5\pos(540,1860)\fnNoto Sans JP Black\fs42\1c&H0000D4FF&\fad(150,0)}保存して、あとで見返してください
+Dialogue: 8,0:00:00.00,0:00:53.00,Base,,0,0,0,,{\an7\pos(0,1910)\bord0\shad0\1c&H0000D4FF&\clip(0,1910,0,1920)\t(0,53000,\clip(0,1910,1080,1920))\p1}m 0 0 l 1080 0 l 1080 10 l 0 10{\p0}
