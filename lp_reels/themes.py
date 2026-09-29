@@ -135,3 +135,13 @@ THEMES["salon_rec"] = dict(
         (15.2, 20.1, "04  ATMOSPHERE", "光と刃の、シネマティック演出"),
     ],
 )
+THEMES["ryokan_rec"] = dict(
+    THEMES["ryokan"],
+    rec=dict(after="251d8ce9", before="69674589", offset=HOOK, hero_v=20.3, dend_v=23.6),
+    captions=[
+        (2.2, 4.8, "01  PROLOGUE", "灯りが、ゆっくりと灯る"),
+        (5.0, 9.3, "02  GARDEN", "膳・庭・湯が、順に現れる"),
+        (9.5, 16.8, "03  ROOMS", "客室が、ギャラリーのように流れる"),
+        (17.0, 20.1, "04  SILENCE", "文字が流れ、花びらが舞う"),
+    ],
+)
