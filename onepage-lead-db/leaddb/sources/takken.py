@@ -96,11 +96,18 @@ def ingest_takken(con, fetcher, pref="埼玉県", target=50, disp=50, per_page=1
         if n >= need:
             break
         if pno > 1:
-            f2 = dict(hidden, CMD="selectPage", pageListNo1=str(pno), pageListNo2=str(pno), dispPage=str(pno))
+            # 画面上の検索条件（kenCode 等）も送らないと 0 件が返る（1,000件テストで実測）
+            f2 = dict(form, **hidden)
+            f2.update(CMD="selectPage", pageListNo1=str(pno), pageListNo2=str(pno))
             html = _decode(fetcher.post(SEARCH, f2, use_cache=False))
             hidden = _hidden(html)
+        rows = parse_list(html)
+        if not rows:
+            log.warning("S4 takken %s page %d returned 0 rows", pref, pno)
+            db.set_job(con, "takken_list", f"{ken}:list:{disp}:{pno}", "FAILED", "0 rows")
+            continue
         db.set_job(con, "takken_list", f"{ken}:list:{disp}:{pno}", "COMPLETE")
-        for key, _name, _addr in parse_list(html)[:per_page]:
+        for key, _name, _addr in rows[:per_page]:
             if n >= need:
                 break
             if db.job_status(con, "takken_detail", key) == "COMPLETE":

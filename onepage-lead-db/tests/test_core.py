@@ -372,6 +372,37 @@ class StageTest(unittest.TestCase):
         self.assertEqual(takken.spread_pages(0, 3), [])
 
 
+class TakkenPagingTest(DbTestBase):
+    def test_select_page_sends_search_fields(self):
+        hidden = ('<input id="resultCount" name="resultCount" type="hidden" value="500"/>'
+                  '<input id="pageCount" name="pageCount" type="hidden" value="10"/>')
+
+        def row(k):
+            return (f"<tr><td>1</td><td>x</td><td>n</td><td><a onclick=\"js_ShowDetail('{k}')\">A{k}</a></td>"
+                    f"<td>r</td><td>本店</td><td>群馬県前橋市1-1</td></tr>")
+
+        class FakeFetcher:
+            def __init__(self):
+                self.posts = []
+
+            def post(self, url, data, **kw):
+                self.posts.append(dict(data))
+                if url == takken.DETAIL:
+                    body = TakkenParseTest.DETAIL.replace("049-257-4888", "027-111-" + data["sv_licenseNo"][-4:])
+                elif data["CMD"] == "search":
+                    body = hidden + row("10000001")
+                else:  # 検索条件がなければ実サイト同様 0 件
+                    body = hidden + (row("1000" + data["pageListNo1"].zfill(4)) if data.get("kenCode") == "10" else "")
+                return Page(url, url, 200, "", body.encode("cp932", "replace"))
+
+        from leaddb.fetch import Page
+        ff = FakeFetcher()
+        got = takken.ingest_takken(self.con, ff, pref="群馬県", target=3, per_page=1)
+        self.assertEqual(got, 3)
+        sel = [d for d in ff.posts if d.get("CMD") == "selectPage"]
+        self.assertTrue(sel and all(d["kenCode"] == "10" for d in sel))
+
+
 class PickNewTest(DbTestBase):
     def test_counts_existing_toward_target(self):
         from leaddb.sources import opendata
