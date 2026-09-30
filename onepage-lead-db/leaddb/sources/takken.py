@@ -43,13 +43,21 @@ def parse_list(html):
     return out
 
 
+KANA_PREFIX = re.compile(r"^[\uff61-\uff9f\s]+")
+
+
+def clean_name(s):
+    """商号欄の先頭にある半角カナの読み（空白を含むことがある）を除く。"""
+    return KANA_PREFIX.sub("", (s or "").strip()).strip() or (s or "").strip()
+
+
 def parse_detail(html):
     """詳細ページ → dict（ラベル→値）。代表者欄は捨てる。"""
     text = _clean(re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S))
     out = {}
-    m = re.search(r"商号又は名称\s+(\S+)\s+(.+?)\s+代表者の氏名", text)
+    m = re.search(r"商号又は名称\s+(.+?)\s+代表者の氏名", text)
     if m:
-        out["name"] = m.group(2).strip()
+        out["name"] = clean_name(m.group(1))
     m = re.search(r"主たる事務所の\s*所在地\s+(.+?)\s+総従事者数", text)
     if m:
         out["address"] = m.group(1).strip()

@@ -386,6 +386,12 @@ class TakkenParseTest(unittest.TestCase):
         self.assertEqual(d["kengyo"], ["不動産管理業"])
         self.assertNotIn("新井", str(d))  # 代表者名は保持しない
 
+    def test_name_with_spaced_kana(self):
+        self.assertEqual(takken.clean_name("ｶﾌﾞｼｷｶﾞｲｼﾔ ﾐﾄﾐﾌﾄﾞｳｻﾝ 株式会社 三富不動産"), "株式会社 三富不動産")
+        self.assertEqual(takken.clean_name("ﾑｻｼﾉﾄﾁｶﾌﾞｼｷｶﾞｲｼﾔ 武藏野土地株式会社"), "武藏野土地株式会社")
+        d = takken.parse_detail(self.DETAIL.replace("ﾑｻｼﾉﾄﾁｶﾌﾞｼｷｶﾞｲｼﾔ", "ﾑｻｼﾉ ﾄﾁ ｶﾌﾞｼｷｶﾞｲｼﾔ"))
+        self.assertEqual(d["name"], "武藏野土地株式会社")
+
     def test_list(self):
         html = ("<tr><td>1</td><td>埼玉県</td><td>(17)第000001号</td><td><a onclick=\"js_ShowDetail('11000001')\">"
                 "武藏野土地株式会社</a></td><td>新井</td><td>本店</td><td>埼玉県川越市新宿町１－１１－５</td></tr>")
