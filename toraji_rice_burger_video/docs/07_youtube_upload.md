@@ -41,10 +41,11 @@
 
 作ったら #トラジライスバーガー で投稿してね！コメントもお待ちしています😊
 
-※ナレーション音声は音声合成AIで作成しています。映像の一部はAIで生成・高画質化しています。
+※ナレーション音声は音声合成AIで作成しています。映像はAIで生成しています。
 
 ▼クレジット
 音声合成：Kokoro-82M（Apache License 2.0）
+映像生成：Higgsfield（Hailuo 2.3）
 高画質化：Real-ESRGAN（BSD-3-Clause）
 BGM・効果音：オリジナル（プログラム合成）
 フォント：Noto Sans JP／Dela Gothic One（SIL Open Font License）

@@ -61,7 +61,8 @@ HOST_PROMPTS = {
     "S30": "The young woman talks energetically to the camera and does a small fist pump at the end with a big smile, "
            "natural head movement, warm restaurant background with bokeh, static camera. Keep her face and outfit identical.",
 }
-NEG = "Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark."
+NEG = ("Keep the colors, lighting and composition consistent with the first frame. "
+       "Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.")
 
 
 # ---------------- クリップ一覧 ----------------

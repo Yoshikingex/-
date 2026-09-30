@@ -8,6 +8,7 @@
 シーンごとに4並列でレンダリングし、最後に連結して音声を重ねる。
 """
 import json
+import re
 import subprocess
 import sys
 from functools import lru_cache
@@ -157,27 +158,31 @@ def clip_path(key):
     return p if p.exists() else None
 
 
-@lru_cache(maxsize=2)   # 1080pは1本あたり約1GBになるので保持は2本まで
-def clip_frames(key, box):
-    w, h = box
-    cmd = [FF, "-loglevel", "error", "-i", str(clip_path(key)), "-an",
-           "-vf", f"fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
+@lru_cache(maxsize=2)
+def clip_frames(key):
+    """クリップを元の解像度のまま読み込む（1080pに拡大して保持するとメモリ不足で落ちるため、拡大は1コマずつ行う）。"""
+    trim = cfg().get("clip_trim", {}).get(key)   # 例 {"sb22_21": [0, 2.6]}：崩れた後半を使わない
+    cut = ["-ss", str(trim[0]), "-t", str(trim[1] - trim[0])] if trim else []
+    probe = subprocess.run([FF, "-i", str(clip_path(key))], capture_output=True, text=True).stderr
+    w, h = map(int, re.search(r", (\d{3,4})x(\d{3,4})", probe).groups())
+    cmd = [FF, "-loglevel", "error", *cut, "-i", str(clip_path(key)), "-an", "-vf", f"fps={FPS}",
            "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
     raw = subprocess.run(cmd, capture_output=True, check=True).stdout
     size = w * h * 3
-    return [raw[i * size:(i + 1) * size] for i in range(len(raw) // size)]
+    return (w, h), [raw[i * size:(i + 1) * size] for i in range(len(raw) // size)]
 
 
 def clip_frame(key, box, t, seg_len):
     """シーンの長さに合わせてクリップを再生。短いときはスロー（最低0.5倍）→それでも足りなければ往復再生。"""
-    fr = clip_frames(key, box)
+    (w, h), fr = clip_frames(key)
     n = len(fr)
     speed = max(min(1.0, (n / FPS) / max(seg_len, 1e-3)), 0.5)
     k = int(t * speed * FPS)
     if k >= n and n > 1:
         m = k % (2 * n - 2)
         k = m if m < n else 2 * n - 2 - m
-    return Image.frombytes("RGB", box, fr[min(k, n - 1)]).convert("RGBA")
+    im = Image.frombytes("RGB", (w, h), fr[min(k, n - 1)])
+    return cover(im, box).convert("RGBA")
 
 
 def clip_bg(frame_rgba):
@@ -395,8 +400,8 @@ def render_frame(item, i, prev_chapter, envelope, telop=True):
             frame.alpha_composite(wpi, (cx - wpi.width // 2, cy - wpi.height // 2))
     end_screen = kind == "end" and ts > item.get("voice_end", 0)
     if end_screen and used_clip:
-        dark = Image.new("RGBA", (W, H), (0, 0, 0, 150))
-        frame.alpha_composite(dark)
+        frame = clip_bg(frame)   # 背景の動画をぼかして暗くし、文字を読みやすくする
+        frame.alpha_composite(Image.new("RGBA", (W, H), (0, 0, 0, 90)))
         frame.alpha_composite(special_layer(kind, sc["id"]))
     elif end_screen:
         frame = blurred("hero", 0.38).copy()
@@ -531,7 +536,7 @@ def main():
     total = sum(it["n"] for it in items) / FPS
     print(f"{MODE}: {len(items)} scenes, {total:.1f}s, {W}x{H}@{FPS}")
     WORK.mkdir(exist_ok=True)
-    with Pool(4) as pool:
+    with Pool(3 if CLIP_DIR is not None else 4) as pool:   # クリップ版はメモリを多く使うので3並列
         segs = pool.map(render_segment, [(k, items) for k in range(len(items))], chunksize=1)
     lst = WORK / f"segs_{MODE}.txt"
     lst.write_text("".join(f"file '{s}'\n" for s in segs))

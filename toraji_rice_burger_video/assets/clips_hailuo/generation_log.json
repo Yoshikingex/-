@@ -1,0 +1,266 @@
+{
+ "tool": "Higgsfield（Claude Code の Higgsfield 連携）",
+ "model": "minimax_hailuo（Hailuo 2.3 / 2.3 Fast）, 6秒, 768p, start_image",
+ "budget_credits": 200,
+ "used_credits": 140,
+ "balance_before": 2112,
+ "balance_after_batch": 1976,
+ "note": "sb22_02 は初回版で『トラジ』が『トフジ』に崩れたため入力画像を変えて作り直し（+4）。sb22_05 はテスト版（ピンク過多）を本番版で置き換え。sb22_21 は後半が崩れるため 0〜2.6秒のみ使用（scenes.json clip_trim）",
+ "jobs": {
+  "sb22_05": {
+   "job_id": "2f047bb5-4fda-4af4-8308-441907ce3d9f",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb12_10": {
+   "index": 1,
+   "job_id": "0ba7db06-7fd2-4d2b-a6d7-2ab505228755",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_01": {
+   "index": 3,
+   "job_id": "d87424d5-0b99-44ac-9926-d1248b4d3900",
+   "variant": "minimax-2.3",
+   "credits": 6,
+   "status": "completed"
+  },
+  "sb22_03": {
+   "index": 4,
+   "job_id": "ed0b7345-3a71-42a4-9768-aedc99d1996c",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_04": {
+   "index": 5,
+   "job_id": "b9a137b4-983c-4c2b-adea-e0410e4c6b1b",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_05_v2": {
+   "index": 6,
+   "job_id": "363f45c8-7bd7-4813-96b6-f4fd1862e36d",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_06": {
+   "index": 7,
+   "job_id": "9d64d363-0423-4281-9509-1ab97c07201a",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_08": {
+   "index": 9,
+   "job_id": "e36becf3-ccf1-40d0-86e5-a6853d97917d",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb12_01": {
+   "index": 10,
+   "job_id": "e472acc5-4cdb-4cbd-a9ed-e0c6f19e7cc5",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb12_02": {
+   "index": 11,
+   "job_id": "b7586739-b14b-401a-abe4-95a74a06a916",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb12_11": {
+   "index": 0,
+   "job_id": "05680b1d-ca0d-4baf-9359-1efc4b53e0e5",
+   "variant": "minimax-2.3",
+   "credits": 6,
+   "status": "completed"
+  },
+  "S03": {
+   "index": 2,
+   "job_id": "9908b7c9-87ed-4fab-b2fe-58c58322bf48",
+   "variant": "minimax-2.3",
+   "credits": 6,
+   "status": "completed"
+  },
+  "sb22_07": {
+   "index": 8,
+   "job_id": "ff15ea10-e234-4ed3-8d2a-cb4376073788",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_13": {
+   "index": 12,
+   "job_id": "c3be291e-4f96-4c81-bffe-ac212a8855cd",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_02": {
+   "index": 13,
+   "job_id": "d678cf40-0ef7-458c-9a9d-dadefeae0cd0",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "rejected_text_morph"
+  },
+  "sb22_11": {
+   "index": 14,
+   "job_id": "52a1dc30-e7a6-438d-9cc6-bade40973751",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_12": {
+   "index": 15,
+   "job_id": "e87a7126-584a-43cb-a9de-3d261be450dc",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb12_03": {
+   "index": 16,
+   "job_id": "e21d90ed-622c-4c9e-ad6c-fbb211bbfe78",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_09": {
+   "index": 17,
+   "job_id": "8613b4cb-4e2c-4056-8869-f627c911dab2",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_10": {
+   "index": 18,
+   "job_id": "501bf263-806a-4e70-b74e-94134456e0bc",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_14": {
+   "index": 19,
+   "job_id": "925732e6-141e-4784-9230-78b2f7de66f6",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_15": {
+   "index": 20,
+   "job_id": "cd813d3f-4425-4972-9c0c-27b1366452ae",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_16": {
+   "index": 21,
+   "job_id": "1b54f35e-2755-47a7-8360-084d4564557d",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_17": {
+   "index": 22,
+   "job_id": "8b363ebd-4269-42a5-a913-40f57f2e17c1",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_18": {
+   "index": 23,
+   "job_id": "a47f3c17-2894-4308-ad5b-f5cfd9598a4e",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_19": {
+   "index": 24,
+   "job_id": "55768f4d-8a12-4740-b86a-6a6c1289a733",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_20": {
+   "index": 25,
+   "job_id": "d15c2631-8fee-4b8d-8c79-ad4a1ce4498e",
+   "variant": "minimax-2.3",
+   "credits": 6,
+   "status": "completed"
+  },
+  "sb22_21": {
+   "index": 26,
+   "job_id": "3f1a0c5d-ac5a-4f86-8e35-2febaadb4d4e",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "S28": {
+   "index": 27,
+   "job_id": "c5bcb1ba-4650-48de-bbc9-9c0ade4736ff",
+   "variant": "minimax-2.3",
+   "credits": 6,
+   "status": "completed"
+  },
+  "S30": {
+   "index": 28,
+   "job_id": "52607497-0040-486d-8623-6a6cb1e2edaa",
+   "variant": "minimax-2.3",
+   "credits": 6,
+   "status": "completed"
+  },
+  "sb22_22": {
+   "index": 29,
+   "job_id": "8b47bc6e-9c6e-4457-aa44-6e51c72b73d2",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  },
+  "sb22_02_v2": {
+   "index": 13,
+   "job_id": "4e837ac0-1b2e-4d40-a17a-7ad56cd6db0c",
+   "variant": "minimax-2.3-fast",
+   "credits": 4,
+   "status": "completed"
+  }
+ },
+ "prompts": {
+  "sb12_11": "Slow push-in, yolk drips down in slow motion, steam rises. Scene: rice burger torn in half showing thick layers of glossy sweet-savory beef and a fried egg, runny yolk slowly oozing and dripping. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb12_10": "Slow 15-degree orbit around the burger, sauce drips, steam. Scene: tall rice burger with crispy grilled rice buns, egg, tomato, lettuce and dripping sauce on a wooden board. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "S03": "The young woman in the red and black TORAJI uniform waves at the camera with her right hand and talks cheerfully, natural head movement and blinking, warm restaurant background with soft bokeh, static camera. Keep her face, glasses, braids and outfit identical.",
+  "sb22_01": "Static camera, steam rising, gentle rack focus from front lettuce to egg yolk. Scene: finished rice burger hero shot, crispy rice buns, sweet-savory beef, fried egg, tomato, lettuce, salmon-orange aurora sauce. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_03": "Top-down, very slow clockwise rotation and slight push-in. Scene: top-down flat lay of ingredients: two rice patties, tomato, green leaf lettuce, egg, sweet-savory beef in a bowl, salmon-orange sauce. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_04": "Static, a spoon enters frame from the right. Scene: mayonnaise and ketchup side by side in a white ceramic bowl. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_05": "Circular whisking motion, sauce swirls smoothly, locked-off camera. Scene: hands whisking mayonnaise and ketchup with a spoon in a white bowl, blending into a smooth salmon-orange sauce. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_06": "A spoon lifts a glossy ribbon of sauce and lets it fall, slow motion. Scene: smooth glossy salmon-orange aurora sauce in a white bowl with a soft peak. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_07": "Knife slices down in slow motion, juice glistens. Scene: chef knife slicing a ripe red tomato into thick rounds on a wooden board. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_08": "Water droplets splash in slow motion as leaves are torn. Scene: hands tearing crisp green leaf lettuce over a steel colander, water droplets. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb12_01": "Slow push-in, steam curls upward. Scene: freshly cooked glossy Japanese white rice, individual grains visible, steam rising. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb12_02": "Sizzling oil bubbles at the edges, crust darkens, slight push-in. Scene: round rice patty searing in a black frying pan with sesame oil, golden crust with grill marks. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_13": "A pastry brush glazes soy sauce across the crust, sizzle and steam, slow lateral slide. Scene: extreme macro of a golden crispy rice bun surface with toasted grains. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_02": "Slow push-in on the package. Scene: retail package of a frozen rice burger on a wooden table. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_11": "Turntable rotates slowly, warm glow. Scene: rice burger package inside a microwave oven, warm interior light. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_12": "Timer digits count down, time-lapse feel. Scene: digital kitchen timer showing 5:00 next to a paper-wrapped package. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb12_03": "Spatula tosses the beef, heavy steam, sauce bubbles and turns glossy. Scene: chopped beef and sliced onion stir-fried in a pan, glossy caramelized yakiniku sauce, spatula. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_09": "Yolk drops into the ring in slow motion. Scene: hands cracking an egg into an oiled round steel ring mold in a black pan. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_10": "Whites gently bubble, black pepper falls from above. Scene: perfectly round sunny-side-up egg in a steel ring mold, bright orange yolk, black pepper. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_14": "Beef settles onto the bun, steam rises. Scene: glossy sweet-savory beef heaped on a crispy rice bun, a hand holding the top bun. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_15": "Egg slides off the spatula and settles, yolk wobbles. Scene: spatula placing a round fried egg on top of the beef. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_16": "Tomato placed gently, droplets glisten. Scene: fingers placing a thick tomato slice on the fried egg. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_17": "Thick sauce pours in slow motion and spreads. Scene: a spoon drizzling salmon-orange aurora sauce onto the tomato slice. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_18": "Lettuce placed, leaves bounce slightly. Scene: hands placing crisp green leaf lettuce on top of the stack. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_19": "Top bun pressed down, sauce squeezes out and drips. Scene: hand pressing the crispy top rice bun onto the finished burger. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_20": "Slow dolly left to right across the layers, sauce drips. Scene: low-angle close-up of the burger layers: crispy rice bun, sauce, lettuce, tomato, egg, beef. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "sb22_21": "Hands fold the wax paper around the burger. Scene: rice burger wrapped in printed wax paper on a wooden board. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark.",
+  "S28": "The young woman smiles excitedly, nods and gives a happy thumbs-up toward the rice burger beside her, natural blinking, warm restaurant background with bokeh, static camera. Keep her face and outfit identical.",
+  "S30": "The young woman talks energetically to the camera and does a small fist pump at the end with a big smile, natural head movement, warm restaurant background with bokeh, static camera. Keep her face and outfit identical.",
+  "sb22_22": "Slow pull-back, steam. Scene: finished rice burger next to its product package on a dark wooden table, bokeh. Keep the colors, lighting and composition consistent with the first frame. Realistic physics, natural food texture, no morphing, no extra hands, no text, no subtitles, no watermark."
+ }
+}

@@ -154,7 +154,7 @@ Slow 15-degree orbit around the burger, sauce drips, steam. Realistic physics, n
 
 ```text
 【静止画｜16:9｜参照画像あり】
-Recreate the reference image as a 16:9 high-resolution photo. Finished rice burger hero shot, crispy rice buns, sweet-savory beef, fried egg, tomato, lettuce, pink aurora sauce. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
+Recreate the reference image as a 16:9 high-resolution photo. Finished rice burger hero shot, crispy rice buns, sweet-savory beef, fried egg, tomato, lettuce, salmon-orange aurora sauce. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
 
 【動画｜image-to-video｜5秒】
 Static camera, steam rising, gentle rack focus from front lettuce to egg yolk. Realistic physics, natural food texture, no morphing, no extra hands, no text.
@@ -164,7 +164,7 @@ Static camera, steam rising, gentle rack focus from front lettuce to egg yolk. R
 
 ```text
 【静止画｜16:9｜参照画像あり】
-Recreate the reference image as a 16:9 high-resolution photo. Top-down flat lay of ingredients: two rice patties, tomato, green leaf lettuce, egg, sweet-savory beef in a bowl, pink sauce. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
+Recreate the reference image as a 16:9 high-resolution photo. Top-down flat lay of ingredients: two rice patties, tomato, green leaf lettuce, egg, sweet-savory beef in a bowl, salmon-orange sauce. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
 
 【動画｜image-to-video｜5秒】
 Top-down, very slow clockwise rotation and slight push-in. Realistic physics, natural food texture, no morphing, no extra hands, no text.
@@ -184,7 +184,7 @@ Static, a spoon enters frame from the right. Realistic physics, natural food tex
 
 ```text
 【静止画｜16:9｜参照画像あり】
-Recreate the reference image as a 16:9 high-resolution photo. Hands whisking mayonnaise and ketchup with a spoon in a white bowl, turning pink. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
+Recreate the reference image as a 16:9 high-resolution photo. Hands whisking mayonnaise and ketchup with a spoon in a white bowl, blending into a smooth salmon-orange sauce. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
 
 【動画｜image-to-video｜5秒】
 Circular whisking motion, sauce swirls smoothly, locked-off camera. Realistic physics, natural food texture, no morphing, no extra hands, no text.
@@ -194,7 +194,7 @@ Circular whisking motion, sauce swirls smoothly, locked-off camera. Realistic ph
 
 ```text
 【静止画｜16:9｜参照画像あり】
-Recreate the reference image as a 16:9 high-resolution photo. Smooth glossy pink aurora sauce in a white bowl with a soft peak. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
+Recreate the reference image as a 16:9 high-resolution photo. Smooth glossy salmon-orange aurora sauce in a white bowl with a soft peak. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
 
 【動画｜image-to-video｜5秒】
 A spoon lifts a glossy ribbon of sauce and lets it fall, slow motion. Realistic physics, natural food texture, no morphing, no extra hands, no text.
@@ -344,7 +344,7 @@ Tomato placed gently, droplets glisten. Realistic physics, natural food texture,
 
 ```text
 【静止画｜16:9｜参照画像あり】
-Recreate the reference image as a 16:9 high-resolution photo. A spoon drizzling pink aurora sauce onto the tomato slice. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
+Recreate the reference image as a 16:9 high-resolution photo. A spoon drizzling salmon-orange aurora sauce onto the tomato slice. cinematic Japanese food commercial, macro lens, shallow depth of field, warm tungsten key light with soft rim light, dark rustic wooden table, subtle steam, photorealistic, 4K, no text, no numbers, no watermark
 
 【動画｜image-to-video｜5秒】
 Thick sauce pours in slow motion and spreads. Realistic physics, natural food texture, no morphing, no extra hands, no text.

@@ -52,7 +52,7 @@
     "トラジライスバーガー・スペシャル",
     "調理時間 約25分｜2個分"
    ],
-   "shot": "finished rice burger hero shot, crispy rice buns, sweet-savory beef, fried egg, tomato, lettuce, pink aurora sauce",
+   "shot": "finished rice burger hero shot, crispy rice buns, sweet-savory beef, fried egg, tomato, lettuce, salmon-orange aurora sauce",
    "motion": "static camera, steam rising, gentle rack focus from front lettuce to egg yolk",
    "se": "タイトル（シャキーン）"
   },
@@ -65,7 +65,7 @@
    "telop": [
     "材料（2個分）"
    ],
-   "shot": "top-down flat lay of ingredients: two rice patties, tomato, green leaf lettuce, egg, sweet-savory beef in a bowl, pink sauce",
+   "shot": "top-down flat lay of ingredients: two rice patties, tomato, green leaf lettuce, egg, sweet-savory beef in a bowl, salmon-orange sauce",
    "motion": "top-down, very slow clockwise rotation and slight push-in",
    "se": "ポン×6（材料表示に合わせて）"
   },
@@ -92,7 +92,7 @@
    "telop": [
     "隠し味：焼肉のタレ 小さじ1＋黒こしょう"
    ],
-   "shot": "hands whisking mayonnaise and ketchup with a spoon in a white bowl, turning pink",
+   "shot": "hands whisking mayonnaise and ketchup with a spoon in a white bowl, blending into a smooth salmon-orange sauce",
    "motion": "circular whisking motion, sauce swirls smoothly, locked-off camera",
    "se": "カチャカチャ"
   },
@@ -105,7 +105,7 @@
    "telop": [
     "トラジ流オーロラソース 完成！"
    ],
-   "shot": "smooth glossy pink aurora sauce in a white bowl with a soft peak",
+   "shot": "smooth glossy salmon-orange aurora sauce in a white bowl with a soft peak",
    "motion": "a spoon lifts a glossy ribbon of sauce and lets it fall, slow motion",
    "se": "キラーン"
   },
@@ -311,7 +311,7 @@
    "telop": [
     "→ 特製ソース"
    ],
-   "shot": "a spoon drizzling pink aurora sauce onto the tomato slice",
+   "shot": "a spoon drizzling salmon-orange aurora sauce onto the tomato slice",
    "motion": "thick sauce pours in slow motion and spreads",
    "se": "トロ〜"
   },
@@ -613,5 +613,11 @@
    ],
    "se": "キラーン"
   }
- ]
+ ],
+ "clip_trim": {
+  "sb22_21": [
+   0,
+   2.6
+  ]
+ }
 }
