@@ -2,8 +2,34 @@
 
 ## 結論
 
-- 編集ソフトは **CapCut（パソコン版）** を推奨。理由：テロップ・自動字幕・BGMの音量自動調整・背景削除が標準で入っていて、専門知識なしで仕上げられる（Premiere Pro でも同じ手順で可）
-- 設計図は `output/animatic_720p.mp4`（仮編集）と `output/timings.json`（各シーンの開始時間と尺）。**仮映像を Higgsfield の本番クリップに1つずつ差し替えていく**
+- **完成版は自動で書き出し済み**：`tools/render_video.py` が、高画質化したコマ・ソアちゃん・テロップ・章ラベル・ワイプ・ナレーション・効果音・BGMを合成して出力する
+  - 本編：`toraji_rice_burger_video/output/toraji_rice_burger_main_1080p.mp4`
+  - ショート：`toraji_rice_burger_video/output/toraji_rice_burger_shorts_1080x1920.mp4`
+- 自動化した演出：ゆっくりズーム／パン、0.2秒のクロスフェード、テロップのスライドイン、章が変わるときのラベル表示＋「シュッ」、声に合わせて弾むソアちゃんのワイプ、BGMの自動音量ダウン（声の間）、終了画面20秒
+- 以下の手作業手順（CapCut）は、**Higgsfield で本物の動く映像を作って差し替える場合**の手順として残している
+
+## 自動書き出しの作り直し
+
+```text
+【Claude Code / Git Bash】
+cd /c/dev/-/toraji_rice_burger_video
+python tools/tts_voice.py kokoro            # 本編ナレーション
+python tools/tts_voice.py kokoro shorts     # ショートのナレーション
+python tools/upscale_panels.py              # コマの高画質化（初回のみ・約4分）
+python tools/make_audio.py                  # BGM・効果音
+python tools/render_video.py main           # 本編（約6〜10分）
+python tools/render_video.py shorts         # ショート
+python tools/build_docs.py                  # 台本・チャプター・字幕を最新の尺で更新
+
+【PowerShell】
+cd C:\dev\-\toraji_rice_burger_video
+python tools\tts_voice.py kokoro; python tools\tts_voice.py kokoro shorts
+python tools\upscale_panels.py; python tools\make_audio.py
+python tools\render_video.py main; python tools\render_video.py shorts; python tools\build_docs.py
+
+※ C:\dev\- は clone 先の例（未確定）
+※ 初回は音声AI・日本語辞書・高画質化AIのデータ（合計 約1GB）を自動ダウンロードする（事前に README の準備手順を実行）
+```
 
 ## 1. 素材フォルダの作り方
 
@@ -73,7 +99,7 @@ toraji_rice_burger_video/
 | 秒 | 映像（本編のシーン） | ナレーション | テロップ |
 |---|---|---|---|
 | 0〜3 | S01 断面・黄身とろ〜り | 焼肉屋さんの本気ライスバーガー！ | 黄身とろ〜り♡ |
-| 3〜6 | H1 主人公（縦） | トラジの〇〇が、お家で作ります！ | 焼肉屋の本気レシピ |
+| 3〜6 | H1 主人公（縦） | トラジのソアが、お家で作ります！ | 焼肉屋の本気レシピ |
 | 6〜12 | S12 → S13 バンズを焼く（1.5倍速） | ごはんを丸めて、ごま油でカリッと焼いて | ごはん100g×4枚 |
 | 12〜17 | S17 焼肉（1.5倍速） | 甘辛の焼肉をたっぷり | 焼肉のタレで汁気を飛ばす |
 | 17〜21 | S18 → S19 目玉焼き | セルクルでまんまる目玉焼き | 弱火2分半 |

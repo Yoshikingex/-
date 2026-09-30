@@ -1,82 +1,94 @@
-# トラジライスバーガー・スペシャル｜YouTubeレシピ動画 制作パッケージ
+# トラジライスバーガー・スペシャル｜YouTubeレシピ動画（完成版）
 
-主人公（1枚目の女性）が「トラジライスバーガー・スペシャル」をお家で作るレシピ動画（本編 約4分＋ショート45秒）の、台本・生成プロンプト・音声設計・サムネ・仮編集動画一式。
+焼肉トラジの看板娘 **ソアちゃん** が「トラジライスバーガー・スペシャル」をお家で作るレシピ動画。
+**本編・ショート・サムネ・字幕・概要欄まで、すべて自動生成済み**（有料APIは使っていない＝原価0）。
 
-## できているもの（このフォルダ内）
+## 完成品（そのままYouTubeに投稿できる）
 
-| ファイル | 中身 | 状態 |
+| ファイル | 中身 | 仕様 |
 |---|---|---|
-| `output/thumbnail_A.jpg` `B` `C` | サムネイル3案（1280×720） | ✅ 完成・そのまま使える |
-| `output/thumbnail_compare.jpg` | 3案の比較＋検索結果サイズでの見え方 | ✅ |
-| `output/animatic_720p.mp4` | **仮編集動画 3分49秒**（ストーリーボード＋テロップ＋仮ナレ） | ✅ 設計図。本番映像に差し替えて使う |
-| `output/subtitles_ja.srt` | 日本語字幕（仮編集の尺） | ✅ 本編完成後に再生成 |
-| `output/narration_for_tts.txt` | 音声合成に貼るナレーション原稿（読み仮名補正済み） | ✅ |
-| `output/youtube_chapters.txt` | 概要欄のチャプター | ✅ 本編完成後に再生成 |
-| `docs/01_recipe.md` | レシピ全文（材料・段取り・失敗対策・アレンジ） | ✅ |
-| `docs/02_script_storyboard.md` | 台本・絵コンテ（31シーン、TC・ナレ・テロップ・SE） | ✅ |
-| `docs/03_higgsfield_prompts.md` | Higgsfield 画像/動画プロンプト（主人公5カット＋料理27カット） | ✅ |
-| `docs/04_voice.md` | 主人公の声の設計（ElevenLabs 設定・説明文） | ✅ |
-| `docs/05_thumbnail.md` | サムネの狙い・A/Bテスト手順 | ✅ |
-| `docs/06_editing.md` | 編集手順（CapCut）・テロップ規定・音・書き出し・ショート台本 | ✅ |
-| `docs/07_youtube_upload.md` | タイトル3案・概要欄・タグ・投稿チェックリスト | ✅ |
+| `output/toraji_rice_burger_main_1080p.mp4` | **本編** 31シーン・9チャプター・終了画面20秒 | 3分3秒／1920×1080／30fps／音量 −14.7 LUFS |
+| `output/toraji_rice_burger_shorts_1080x1920.mp4` | **ショート**（本編への誘導） | 28秒／1080×1920／30fps |
+| `output/thumbnail_A.jpg`・`B`・`C` | サムネ3案（「テストと比較」用。本命はA） | 1280×720／各約0.3MB |
+| `output/subtitles_ja.srt`／`subtitles_ja_shorts.srt` | 日本語字幕（完成版の尺） | SRT |
+| `output/youtube_chapters.txt` | 概要欄のチャプター | 9章（YouTubeの規定：各章10秒以上を満たす） |
+| `docs/07_youtube_upload.md` | タイトル3案・概要欄（材料・作り方・チャプター・クレジット）・タグ・投稿チェックリスト | コピペ用 |
 
-## 制作の流れ（1ステップずつ進める）
+## どうやって作ったか（すべてこの環境の中で無料実行）
 
-1. **許諾確認**：主人公の肖像権（AI生成の可否）・トラジのロゴ/商品名の使用許可・市販品の有無 → `docs/03` の「0. 生成前チェック」
-2. **仮編集を見る**：`output/animatic_720p.mp4` で流れと尺を確認。直したい所は `tools/scenes.json` を修正
-3. **声を作る**：`docs/04_voice.md` → S01〜S31 の音声ファイル
-4. **主人公を生成**：`docs/03` の ①キャラ固定 → H1〜H5
-5. **料理カットを生成**：`docs/03` の C章（27カット：静止画→5秒動画）
-6. **編集**：`docs/06_editing.md`（仮編集に本番素材を差し替え）
-7. **サムネ最終化**：H5 ができたら人物を差し替えて再生成（`docs/05`）
-8. **投稿**：`docs/07_youtube_upload.md` のチェックリスト
+| 要素 | 方法 | ライセンス |
+|---|---|---|
+| 料理の映像 | ストーリーボード2枚を34コマに切り出し → **Real-ESRGAN で4倍に高画質化** → ゆっくりズーム／パン・クロスフェード | BSD-3-Clause |
+| ソアちゃん | 1枚目の写真を切り抜き → 自己紹介・実食・エンディングに登場。料理カット中は右上に**声に合わせて弾む丸ワイプ** | − |
+| 声 | **Kokoro-82M の日本語女性ボイス jf_alpha**（明るい・やや高め）。候補を音声認識AIで聞き取り比較して選定（`docs/04_voice.md`） | Apache-2.0 |
+| BGM・効果音 | プログラムで合成（明るいウクレレ風ポップ＋焼き音・ポン・キラーン等13種）。声の間はBGMを自動で下げる | オリジナル |
+| テロップ | Noto Sans JP／Dela Gothic One（白文字＋黒フチ、POINTは黄色、章ラベルは赤帯） | SIL OFL |
 
 ## 確定／未確定
 
-- 【確定】レシピ分量・台本31シーン・テロップ・サムネ3案・仮編集の尺（3:49、終了画面を本番20秒にすると約4:01）
-- 【未確定】主人公の名前（台本では `{NAME}`／テロップでは「〇〇」）
-- 【未確定】市販品「トラジライスバーガー・スペシャル」の実在・加熱時間（S14〜S16）。ストーリーボード2枚目のパッケージ画像から想定したもの
-- 【未確定】「焼肉トラジ」の公式動画として出すか（タイトルの「直伝」表記に影響）
-- 【推測】主人公は実在の人物。AI生成して公開するには本人・所属先の許諾が必要
-- 【未確定】Higgsfield・ElevenLabs の現行の機能名とクレジット/料金（生成＝有料）
+- 【確定】主人公＝ソア／時短ルート（市販品）＝採用
+- 【確定】動画の仕様・尺・音量・チャプター（コマンドで実測）
+- 【確定】ナレーションの聞き取り一致率：声のみ 平均91.4%／BGM入りの完成品（冒頭60秒）89.6%（音声認識AI Whisper で計測）
+- 【推測】「ソア」は音声認識では「ソワ」と取られることがある（珍しい名前のため）。気になる場合はテロップで補っている
+- 【推測】1枚目の女性は実在の人物。公開前に、本人・所属先・トラジの許諾を確認すること。投稿時は「改変または合成されたコンテンツ：はい」
+- 【未確定】ソアちゃんを「本当に動かす・口パクさせる」には Higgsfield 等の有料AI動画生成が必要。今回は写真を切り抜いて動かす表現にしている（差し替え手順は `docs/03`・`docs/06`）
 
-## 作り直し方（台本やサムネを変えたとき）
+## ドキュメント
 
-必要なもの：Python 3.10以上
+| ファイル | 中身 |
+|---|---|
+| `docs/01_recipe.md` | レシピ全文（材料・段取り・失敗対策・アレンジ） |
+| `docs/02_script_storyboard.md` | 台本・絵コンテ（完成版のタイムコード付き） |
+| `docs/03_higgsfield_prompts.md` | （任意・有料）Higgsfield で動く映像に差し替える場合のプロンプト |
+| `docs/04_voice.md` | 声の選定結果と、ElevenLabs に差し替える場合の手順 |
+| `docs/05_thumbnail.md` | サムネ3案の狙い・A/Bテスト手順 |
+| `docs/06_editing.md` | 自動書き出しの作り直し方／手動編集（CapCut）で仕上げる場合の手順 |
+| `docs/07_youtube_upload.md` | 投稿用のタイトル・概要欄・タグ・チェックリスト |
+
+## 作り直し方（台本を変えたとき）
+
+台本の原本は `tools/scenes.json`（本編 `scenes`・ショート `shorts`・読み補正 `tts_readings`）。docs/02・03 と output の字幕・チャプターは自動生成なので直接編集しない。
 
 ```text
+【準備（初回のみ）】
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+python -m unidic download          # 日本語辞書（約0.5GB）
+bash tools/fetch_fonts.sh          # フォント（PowerShellの場合は fetch_fonts.sh 内の3つのURLから assets\fonts\ にダウンロード）
+
 【Claude Code / Git Bash】
 cd /c/dev/-/toraji_rice_burger_video
-pip install -r requirements.txt
-bash tools/fetch_fonts.sh              # フォント取得（初回のみ）
-python tools/crop_panels.py            # ストーリーボードを1コマずつ切り出し
-python tools/cutout_host.py            # 主人公の切り抜き
-python tools/make_thumbnails.py        # サムネ3案
-python tools/build_animatic.py         # 仮編集動画（約3分かかる。仮ナレにネット接続が必要）
-python tools/build_docs.py             # 台本・プロンプト・チャプター・TTS原稿
+python tools/crop_panels.py && python tools/cutout_host.py && python tools/upscale_panels.py
+python tools/tts_voice.py kokoro && python tools/tts_voice.py kokoro shorts
+python tools/make_audio.py
+python tools/render_video.py main && python tools/render_video.py shorts
+python tools/make_thumbnails.py && python tools/build_docs.py
 
 【PowerShell】
 cd C:\dev\-\toraji_rice_burger_video
-pip install -r requirements.txt
-# フォントは tools\fetch_fonts.sh の3つのURLからダウンロードして assets\fonts\ に置く
-python tools\crop_panels.py; python tools\cutout_host.py; python tools\make_thumbnails.py
-python tools\build_animatic.py; python tools\build_docs.py
+python tools\crop_panels.py; python tools\cutout_host.py; python tools\upscale_panels.py
+python tools\tts_voice.py kokoro; python tools\tts_voice.py kokoro shorts
+python tools\make_audio.py
+python tools\render_video.py main; python tools\render_video.py shorts
+python tools\make_thumbnails.py; python tools\build_docs.py
 
-※ C:\dev\- はリポジトリの clone 先の例（未確定）。実際の場所に読み替える
-※ 台本は tools/scenes.json が原本。docs/02・docs/03 は自動生成なので直接編集しない
+※ C:\dev\- は clone 先の例（未確定）。実際の場所に読み替える
+※ 所要時間の目安（4コアCPU）：高画質化 約4分／本編書き出し 約4分／ショート 約35秒
 ```
 
 ## フォルダ構成
 
 ```text
 toraji_rice_burger_video/
-├─ README.md
-├─ requirements.txt
+├─ README.md / requirements.txt
 ├─ assets/
-│  ├─ source/   受け取った元画像5枚（01_host_girl.jpg ほか）
-│  ├─ panels/   ストーリーボードの切り出し34コマ＋主人公の切り抜き
-│  └─ fonts/    （Git管理外）fetch_fonts.sh で取得
-├─ docs/        01〜07 の制作ドキュメント
-├─ output/      サムネ・仮編集動画・字幕・原稿・チャプター
-└─ tools/       生成スクリプト＋ scenes.json（台本の原本）
+│  ├─ source/     受け取った元画像5枚
+│  ├─ panels/     切り出し34コマ＋ソアちゃんの切り抜き
+│  ├─ panels_hd/  高画質化した34コマ（Real-ESRGAN x4）
+│  ├─ audio/      BGM・効果音（合成）
+│  └─ fonts/      （Git管理外）fetch_fonts.sh で取得
+├─ docs/          01〜07
+├─ output/        完成動画・サムネ・字幕・チャプター・原稿（animatic_720p.mp4 は旧・仮編集版）
+├─ tools/         生成スクリプト一式＋ scenes.json（台本の原本）
+└─ work/          （Git管理外）音声・中間ファイル
 ```

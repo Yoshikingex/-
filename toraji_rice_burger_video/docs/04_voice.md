@@ -1,10 +1,24 @@
-# 04 主人公の声（ナレーション）
+# 04 主人公（ソアちゃん）の声
 
-## 結論
+## 結論（完成版で採用した声）
 
-- **ElevenLabs の「Voice Design（声を文章で設計）」で専用の声を1つ作り、全シーン同じ声で読ませる**のが推奨
-- 理由：主人公の見た目（三つ編み・丸眼鏡・明るい笑顔・飲食店スタッフ）に合う声を、動画ごとにブレずに使い続けられる。Higgsfield/Veo の「動画と同時に声を出す」機能は、クリップごとに声が変わりやすいので本編ナレーションには使わない
-- 【原価】ElevenLabs は有料プラン（商用利用できるプラン）が必要【未確定：現行プラン名・料金は公式で確認】
+- **Kokoro-82M の日本語女性ボイス `jf_alpha`**（ライセンス Apache-2.0＝商用利用可）を、この環境の中で無料生成して完成版に使用
+- 生成スクリプト：`toraji_rice_burger_video/tools/tts_voice.py`（読み補正は `tools/scenes.json` の `tts_readings`）
+- さらに自然な声にしたい場合の差し替え先として、下の ElevenLabs 手順を残している（有料）
+
+## 声の選び方（実測）
+
+候補を全31セリフで生成し、音声認識AI（Whisper small）で聞き取り直して、台本との一致率を測った。
+
+| 候補 | ライセンス | 平均一致率 | 最低 | 判定 |
+|---|---|---|---|---|
+| Kokoro `jf_alpha` | Apache-2.0 | **91.4%** | 74.6% | ✅ 採用 |
+| Style-Bert-VITS2 JVNV-F1（Happy） | CC BY-SA 4.0 | 89.0% | 62.1% | 不採用（「4等分」を「ぎょんとうぶん」と読む等の誤読） |
+| Style-Bert-VITS2 小春音アミ／あみたろ | 声素材工房の規約 | 未測定 | − | **不使用**：規約で「あみたろ以外の人の声として扱うこと」が禁止のため、ソアちゃんの声にできない |
+| Microsoft Edge 読み上げ（edge-tts） | 未確定 | − | − | 接続方式（WebSocket）がこの環境で非対応 |
+
+- 【確定】一致率はコマンド実測（Whisperの誤認識も含むため、100%にはならない）
+- 【推測】一致率が低めのセリフ（S01・S26）は、Whisperが「黄身→君」「断層→ダンソー」と同音の別語に取っただけで、発音自体の問題ではない可能性が高い
 
 ## 声のキャラクター設定（誰に頼んでも同じ声になるように）
 
@@ -17,7 +31,7 @@
 | 速さ | ふつうより少し速い（1.05〜1.1倍）。料理動画はテンポが命 |
 | NG | ささやき声・低く落ち着いた声・過剰なぶりっ子 |
 
-## ElevenLabs での作り方（1ステップずつ）
+## （任意・有料）ElevenLabs に差し替える場合の作り方
 
 1. ElevenLabs にログイン → 「Voices」→「Voice Design（声をデザイン）」を開く【画面名は未確定：同じ役割の機能を選ぶ】
 2. 下の説明文を貼り付けて声を生成（候補が3つ程度出る）
@@ -31,7 +45,7 @@
 A cheerful young Japanese woman in her early twenties. Bright, friendly and energetic, slightly high-pitched but natural (not anime-like). A warm smiling tone, like a popular restaurant staff member introducing her favorite recipe to viewers. Clear articulation, standard Tokyo Japanese accent, studio-quality recording, no background noise.
 
 聞き比べ用サンプル文：
-こんにちは！焼肉トラジの〇〇です！今日は、お店の味をお家で楽しめる、トラジライスバーガー・スペシャルを作っていきます！
+こんにちは！焼肉トラジのソアです！今日は、お店の味をお家で楽しめる、トラジライスバーガー・スペシャルを作っていきます！
 
 選ぶ基準：①数字（おおさじ2、ひゃくろくじゅうグラム）が聞き取りやすい ②「とろーり！」で笑顔が伝わる ③3回生成しても同じ声に聞こえる
 ```

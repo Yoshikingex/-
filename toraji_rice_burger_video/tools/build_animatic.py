@@ -2,8 +2,8 @@
 
 - 映像: ストーリーボードの各コマ（ゆっくりズーム）＋テロップ＋章ラベル
 - 音声: 仮ナレーション（gTTS の機械音声。本番は ElevenLabs 等で差し替え）
-- 出力: output/animatic_720p.mp4 / output/subtitles_ja.srt / output/timings.json
-本番のHiggsfield生成クリップが揃ったら、同じ尺(timings.json)で差し替えるだけで本編になる。
+- 出力: output/animatic_720p.mp4 / output/subtitles_ja_animatic.srt / output/timings_animatic.json
+※ 完成版は tools/render_video.py で作る（この仮編集は構成確認用の旧版）。
 """
 import json
 import subprocess
@@ -163,7 +163,7 @@ def overlay_special(scene, frame_layer):
 
 def build():
     cfg = json.loads((ROOT / "tools" / "scenes.json").read_text(encoding="utf-8"))
-    name = cfg["host_name_tts_fallback"]
+    name = cfg.get("host_name", "ソア")
     scenes = cfg["scenes"]
 
     # 1) 音声と尺
@@ -252,8 +252,8 @@ def build():
     for i, tl in enumerate(timeline, 1):
         end = tl["start"] + tl["dur"] - (END_HOLD if tl["id"] == scenes[-1]["id"] else 0.2)
         srt.append(f"{i}\n{ts(tl['start'] + 0.15)} --> {ts(end)}\n{tl['narr'].replace('看板娘', '{NAME}')}\n")
-    (OUT / "subtitles_ja.srt").write_text("\n".join(srt), encoding="utf-8")
-    (OUT / "timings.json").write_text(json.dumps({"total_sec": round(total, 2), "fps": FPS, "scenes": timeline},
+    (OUT / "subtitles_ja_animatic.srt").write_text("\n".join(srt), encoding="utf-8")
+    (OUT / "timings_animatic.json").write_text(json.dumps({"total_sec": round(total, 2), "fps": FPS, "scenes": timeline},
                                                  ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"done: {mp4.name} {total:.1f}s, {mp4.stat().st_size} bytes, {len(scenes)} scenes")
 

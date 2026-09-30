@@ -8,7 +8,7 @@
 
 - [ ] **主人公の肖像権・AI生成の許諾**：1枚目の女性は実在の人物と思われる【推測】。本人（または所属事務所）と、トラジ（ロゴ・制服の使用）から「AIで動画を生成してYouTubeに公開する」許諾を**書面で**取る
 - [ ] YouTube 投稿時に「**改変または合成されたコンテンツ**」を「はい」にする（実在の人物をリアルに合成した動画は申告が必要）
-- [ ] 市販品「トラジライスバーガー・スペシャル」が実在・販売中か（S14〜S16で使用）。未確認ならそのカットは作らない
+- [x] 市販品「トラジライスバーガー・スペシャル」：販売ありとして S14〜S16 で使用（確定）
 
 ## 1. 全体の流れ（どのツールで何を作るか）
 
@@ -250,7 +250,7 @@ Recreate the reference image as a 16:9 high-resolution photo. Extreme macro of a
 A pastry brush glazes soy sauce across the crust, sizzle and steam, slow lateral slide. Realistic physics, natural food texture, no morphing, no extra hands, no text.
 ```
 
-### S14｜時短ルート｜参照：`assets/panels/sb22_02.png`　⚠市販品の確認後に生成
+### S14｜時短ルート｜参照：`assets/panels/sb22_02.png`
 
 ```text
 【静止画｜16:9｜参照画像あり】
@@ -260,7 +260,7 @@ Recreate the reference image as a 16:9 high-resolution photo. Retail package of 
 Slow push-in on the package. Realistic physics, natural food texture, no morphing, no extra hands, no text.
 ```
 
-### S15｜時短ルート｜参照：`assets/panels/sb22_11.png`　⚠市販品の確認後に生成
+### S15｜時短ルート｜参照：`assets/panels/sb22_11.png`
 
 ```text
 【静止画｜16:9｜参照画像あり】
@@ -270,7 +270,7 @@ Recreate the reference image as a 16:9 high-resolution photo. Rice burger packag
 Turntable rotates slowly, warm glow. Realistic physics, natural food texture, no morphing, no extra hands, no text.
 ```
 
-### S16｜時短ルート｜参照：`assets/panels/sb22_12.png`　⚠市販品の確認後に生成
+### S16｜時短ルート｜参照：`assets/panels/sb22_12.png`
 
 ```text
 【静止画｜16:9｜参照画像あり】

@@ -1,3 +1,15 @@
+# 画像・動画
 pillow>=10
 imageio-ffmpeg>=0.5
+numpy>=1.26
+scipy>=1.11
+soundfile>=0.12
+# 音声合成（Kokoro-82M / 日本語）※インストール後に `python -m unidic download` を1回実行
+kokoro>=0.9
+misaki[ja]>=0.9
+# 高画質化（Real-ESRGAN）※torch/torchvision は CPU 版を推奨:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+spandrel>=0.4
+huggingface_hub>=0.23
+# 旧・仮編集（build_animatic.py）の仮ナレ用
 gTTS>=2.5
