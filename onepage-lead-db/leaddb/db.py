@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   source_key TEXT UNIQUE NOT NULL,
   business_name TEXT, company_name TEXT, industry TEXT, sub_industry TEXT,
   postal_code TEXT, prefecture TEXT, city TEXT, address TEXT,
-  corporate_number TEXT, staff_count INTEGER,
+  corporate_number TEXT, staff_count INTEGER, service_area TEXT,
   seed_website_url TEXT,
   data_confidence TEXT,
   merged_into TEXT,
@@ -80,7 +80,7 @@ def connect(path) -> sqlite3.Connection:
     return con
 
 
-MIGRATIONS = {"businesses": [("chain_size", "INTEGER"), ("exclude_reason", "TEXT")]}
+MIGRATIONS = {"businesses": [("chain_size", "INTEGER"), ("exclude_reason", "TEXT"), ("service_area", "TEXT")]}
 
 
 def _migrate(con):
@@ -102,7 +102,7 @@ def upsert_business(con, rec: dict) -> str:
     """source_key 単位で登録（同じ入力を2回取り込んでも増えない）。lead_id を返す。"""
     row = con.execute("SELECT lead_id FROM businesses WHERE source_key=?", (rec["source_key"],)).fetchone()
     cols = ["business_name", "company_name", "industry", "sub_industry", "postal_code", "prefecture",
-            "city", "address", "corporate_number", "staff_count", "seed_website_url"]
+            "city", "address", "corporate_number", "staff_count", "seed_website_url", "service_area"]
     if row:
         lead_id = row["lead_id"]
         sets = ", ".join(f"{c}=COALESCE(?, {c})" for c in cols)

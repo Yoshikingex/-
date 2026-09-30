@@ -2,6 +2,7 @@
 
   stage --n 1000     段階テスト。累計 n 件になるまで取り込み→巡回→統合→採点→出力を実行
                      配分: 不動産30%（7都県に均等）/ 歯科25% / クリニック25% / 介護20%
+  ingest-zeh [--limit N]  SII ZEHビルダー一覧（関東の地元工務店）を取り込む
   crawl              未巡回の公式サイトを巡回（途中再開可）
   retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
   repair-merges      旧方式の統合（行を移していた）を取り消す一回限りの修復
@@ -15,7 +16,7 @@ import logging
 
 from . import chains, config, crawl, db, dedup, export, igconf, review, score
 from .fetch import Fetcher
-from .sources import opendata, takken
+from .sources import opendata, takken, zeh
 
 log = logging.getLogger("leaddb")
 
@@ -45,6 +46,8 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("stage")
     p.add_argument("--n", type=int, default=100)
+    pz = sub.add_parser("ingest-zeh")
+    pz.add_argument("--limit", type=int, default=None)
     sub.add_parser("crawl")
     sub.add_parser("retry-sites")
     sub.add_parser("repair-merges")
@@ -74,6 +77,8 @@ def main(argv=None):
         res = finalize(con)
         res.update({"ingested": got, "crawled": crawled, "fetch": f.stats})
         print(json.dumps(res, ensure_ascii=False, indent=1))
+    elif a.cmd == "ingest-zeh":
+        print(json.dumps({"ingested": zeh.ingest_zeh(con, f, target=a.limit)}, ensure_ascii=False))
     elif a.cmd == "crawl":
         print(json.dumps({"crawled": crawl.crawl_all(con, f), "fetch": f.stats}, ensure_ascii=False))
     elif a.cmd == "retry-sites":

@@ -595,6 +595,25 @@ class ReviewTest(DbTestBase):
         self.assertEqual(got["koumuten_b"]["instagram_confidence"], "REJECTED")
 
 
+class ZehTest(DbTestBase):
+    def test_select_and_ingest(self):
+        from leaddb.sources import zeh
+        csvtext = ("\ufeff事業者名,ZEHビルダー登録番号,登録名称（屋号）,対応可能エリア,ホームページ,電話番号\n"
+                   "株式会社山田工務店,B1,山田工務店,埼玉県;東京都,https://yamada-k.jp/results.html,049-111-2222\n"
+                   "全国ハウス株式会社,B2,全国ハウス,北海道;青森県;東京都;大阪府,https://zenkoku.jp/,03-1111-2222\n"
+                   "大阪工務店,B3,大阪工務店,大阪府,https://osaka.jp/,06-1111-2222\n")
+
+        class F:
+            def get(self, url):
+                return Page(url, url, 200, "text/html", csvtext.encode("utf-8"))
+        from leaddb.fetch import Page
+        self.assertEqual(zeh.ingest_zeh(self.con, F()), 1)
+        b = self.con.execute("SELECT * FROM businesses").fetchone()
+        self.assertEqual((b["business_name"], b["industry"], b["prefecture"], b["service_area"], b["seed_website_url"]),
+                         ("山田工務店", "construction", None, "埼玉県;東京都", "https://yamada-k.jp/"))
+        self.assertEqual(self.con.execute("SELECT display FROM contacts").fetchone()[0], "049-111-2222")
+
+
 class MigrationTest(unittest.TestCase):
     def test_adds_columns_to_old_db(self):
         with tempfile.TemporaryDirectory() as t:
@@ -605,7 +624,7 @@ class MigrationTest(unittest.TestCase):
             con.commit(); con.close()
             con = db.connect(path)
             cols = {r[1] for r in con.execute("PRAGMA table_info(businesses)")}
-            self.assertTrue({"chain_size", "exclude_reason"} <= cols)
+            self.assertTrue({"chain_size", "exclude_reason", "service_area"} <= cols)
             self.assertEqual(con.execute("SELECT COUNT(*) FROM businesses").fetchone()[0], 1)
             con.close()
 

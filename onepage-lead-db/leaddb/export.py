@@ -19,7 +19,7 @@ COLUMNS = ["lead_id", "business_name", "company_name", "industry", "sub_industry
            "web_need_score", "web_need_level", "reason_1", "reason_2", "reason_3", "lead_priority",
            "data_confidence", "data_source", "source_url_1", "source_url_2", "source_url_3", "last_checked_at",
            "website_evidence", "staff_count", "recommended_dm_angle", "recommended_sample", "chain_size",
-           "exclude_reason"]
+           "exclude_reason", "service_area"]
 DM_COLUMNS = ["instagram_confidence", "business_name", "industry", "prefecture", "city", "phone", "email", "website_url", "instagram_url",
               "instagram_username", "web_need_score", "web_need_level", "website_status", "recommended_dm_angle",
               "recommended_sample"]
@@ -91,7 +91,7 @@ def build_rows(con):
             "website_evidence": w["evidence"] if w else None, "staff_count": b["staff_count"],
             "recommended_dm_angle": sc["recommended_dm_angle"] if sc else None,
             "recommended_sample": sc["recommended_sample"] if sc else None,
-            "chain_size": b["chain_size"], "exclude_reason": b["exclude_reason"],
+            "chain_size": b["chain_size"], "exclude_reason": b["exclude_reason"], "service_area": b["service_area"],
         })
     return rows
 
@@ -186,8 +186,8 @@ def stats(con, rows=None):
         "HIGH": lv.get("HIGH", 0), "MEDIUM": lv.get("MEDIUM", 0), "LOW": lv.get("LOW", 0),
         "avg_web_need_score": round(sum(scores) / len(scores), 1) if scores else None,
         "by_industry": dict(Counter(r["industry"] for r in leads).most_common()),
-        "by_prefecture": {p: c for p in config.PREF_ORDER
-                          for c in [sum(r["prefecture"] == p for r in leads)] if c},
+        "by_prefecture": {p: c for p in config.PREF_ORDER + ["不明（営業エリアのみ）"]
+                          for c in [sum((r["prefecture"] or "不明（営業エリアのみ）") == p for r in leads)] if c},
         "by_website_status": dict(Counter(r["website_status"] for r in leads).most_common()),
         "by_priority": dict(sorted(Counter(r["lead_priority"] for r in leads).items())),
         "phone_call_targets": sum(r["industry"] == "real_estate" and r["website_status"] == "UNKNOWN" for r in leads),
