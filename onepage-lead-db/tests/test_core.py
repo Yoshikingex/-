@@ -9,7 +9,7 @@ from unittest import mock
 from leaddb import db, dedup, export, score
 from leaddb import extract as X
 from leaddb import normalize as N
-from leaddb.fetch import Fetcher, GuardViolation, Page, check_guard
+from leaddb.fetch import Fetcher, GuardViolation, RobotsUnreachable, check_guard
 from leaddb.sources import takken
 
 
@@ -67,6 +67,14 @@ class EmailTest(unittest.TestCase):
     def test_rank(self):
         emails = ["hello@gmail.com", "info@abc.jp", "tanaka@abc.jp"]
         self.assertEqual(sorted(emails, key=lambda e: N.email_rank(e, "abc.jp"))[0], "info@abc.jp")
+
+
+class UrlTest(unittest.TestCase):
+    def test_clean_url(self):
+        self.assertEqual(N.clean_url("http://www.shibuya‐dsc.jp"), "http://www.shibuya-dsc.jp")
+        self.assertEqual(N.clean_url("ｗｗｗ.abc.jp"), "http://www.abc.jp")
+        self.assertIsNone(N.clean_url("なし"))
+        self.assertEqual(N.domain_of("https://www.ABC.co.jp/x"), "abc.co.jp")
 
 
 class AddressTest(unittest.TestCase):
@@ -304,6 +312,15 @@ class FetchGuardTest(DbTestBase):
         f = self.f({"https://b.jp/x": (200, b"x", {}), "https://c.jp/robots.txt": (503, b"", {})})
         self.assertTrue(f.allowed("https://b.jp/x"))
         self.assertFalse(f.allowed("https://c.jp/x"))
+
+    def test_robots_connection_error_is_unreachable(self):
+        class Boom(FakeSession):
+            def request(self, method, url, **kw):
+                self.calls.append(url)
+                raise __import__("requests").ConnectionError("x")
+        f = Fetcher(self.con, interval=0, backoff=[0, 0, 0], session=Boom({}))
+        with self.assertRaises(RobotsUnreachable):
+            f.get("https://down.jp/")
 
     def test_redirect_to_instagram_blocked_before_request(self):
         s = FakeSession({"https://d.jp/": (302, b"", {"Location": "https://www.instagram.com/d/"})})

@@ -20,6 +20,10 @@ class GuardViolation(Exception):
     """G2/G3/G5 に触れるアクセスを試みた。"""
 
 
+class RobotsUnreachable(GuardViolation):
+    """robots.txt が接続エラー/5xxで取れず、安全側で取得を見送った（サイト到達不能の可能性）。"""
+
+
 @dataclass
 class Page:
     url: str
@@ -66,6 +70,7 @@ class Fetcher:
         self.s.headers.update({"User-Agent": config.USER_AGENT, "Accept-Language": "ja,en;q=0.5"})
         self._last = {}
         self._robots = {}
+        self._robots_unreachable = set()
         self.stats = {"network": 0, "cache": 0, "robots_block": 0, "errors": 0}
         config.CACHE.mkdir(parents=True, exist_ok=True)
 
@@ -82,6 +87,7 @@ class Fetcher:
                 page = self._request("GET", base + "/robots.txt", None, use_robots=False)
                 if page.status >= 500:
                     rp.allow_all, rp.disallow_all = False, True  # RFC 9309: サーバーエラーは全拒否
+                    self._robots_unreachable.add(base)
                 elif page.status >= 400:
                     pass                                          # 404 等は制限なし
                 else:
@@ -89,6 +95,7 @@ class Fetcher:
                     rp.parse(page.body.decode("utf-8", "replace").splitlines())
             except (requests.RequestException, GuardViolation):
                 rp.allow_all, rp.disallow_all = False, True      # 取れないときは安全側
+                self._robots_unreachable.add(base)
         ok = rp.can_fetch(config.USER_AGENT, url)
         if not ok:
             self.stats["robots_block"] += 1
@@ -115,6 +122,9 @@ class Fetcher:
                 body = gzip.decompress((config.CACHE / row["body_path"]).read_bytes())
                 return Page(url, row["final_url"], row["status"], row["content_type"] or "", body, True)
         if use_robots and not self.allowed(url):
+            p = urlsplit(url)
+            if f"{p.scheme}://{p.netloc}" in self._robots_unreachable:
+                raise RobotsUnreachable(f"robots.txt unreachable: {url}")
             raise GuardViolation(f"robots.txt disallow: {url}")
         host = urlsplit(url).netloc
         last_err = None

@@ -6,7 +6,7 @@ import requests
 from . import config, db
 from . import extract as X
 from . import normalize as N
-from .fetch import GuardViolation
+from .fetch import GuardViolation, RobotsUnreachable
 
 log = logging.getLogger("leaddb.crawl")
 
@@ -39,6 +39,9 @@ def crawl_one(con, fetcher, lead_id, seed_url):
         return "NONE"
     try:
         top = fetcher.get(url)
+    except RobotsUnreachable:
+        _save_website(con, lead_id, url=url, domain=dom, status="UNREACHABLE", evidence="接続不可（robots.txt取得時）")
+        return "UNREACHABLE"
     except GuardViolation as e:
         _save_website(con, lead_id, url=url, domain=dom, status="UNKNOWN", evidence=f"取得不可: {e}"[:200])
         return "UNKNOWN"
@@ -115,3 +118,13 @@ def crawl_all(con, fetcher, limit=None):
         _save_website(con, r["lead_id"], status="UNKNOWN", evidence="取得元にURL項目なし（国交省データ）")
     con.commit()
     return done
+
+
+def retry_sites(con) -> int:
+    """到達不能/取得不可だったサイトの巡回ジョブを PENDING に戻す（宅建のUNKNOWNは対象外）。"""
+    ids = [r["lead_id"] for r in con.execute(
+        "SELECT w.lead_id FROM websites w JOIN businesses b ON b.lead_id=w.lead_id WHERE b.merged_into IS NULL "
+        "AND b.industry != 'real_estate' AND w.status IN ('UNKNOWN','UNREACHABLE')")]
+    for i in ids:
+        db.set_job(con, "site", i, "PENDING", "retry")
+    return len(ids)

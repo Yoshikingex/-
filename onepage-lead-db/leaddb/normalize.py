@@ -130,7 +130,7 @@ def domain_of(url: str):
 
 
 def clean_url(url: str):
-    u = nfkc(url or "").strip()
+    u = _HY.sub("-", nfkc(url or "")).strip()
     if not u or u in ("-", "なし", "無"):
         return None
     if not re.match(r"^https?://", u, re.I):

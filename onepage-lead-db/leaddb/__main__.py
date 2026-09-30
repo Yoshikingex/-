@@ -2,6 +2,7 @@
 
   stage --n 100      段階テスト（宅建:歯科:介護 ≒ 1/3ずつ）を取り込み→巡回→統合→採点→出力まで実行
   crawl              未巡回の公式サイトを巡回（途中再開可）
+  retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
   finalize           統合→採点→CSV出力→集計→ダッシュボード
   stats              集計をJSONで表示
 """
@@ -32,6 +33,7 @@ def main(argv=None):
     p.add_argument("--n", type=int, default=100)
     p.add_argument("--takken-pref", default="埼玉県")
     sub.add_parser("crawl")
+    sub.add_parser("retry-sites")
     sub.add_parser("finalize")
     sub.add_parser("stats")
     a = ap.parse_args(argv)
@@ -56,6 +58,8 @@ def main(argv=None):
         print(json.dumps(res, ensure_ascii=False, indent=1))
     elif a.cmd == "crawl":
         print(json.dumps({"crawled": crawl.crawl_all(con, f), "fetch": f.stats}, ensure_ascii=False))
+    elif a.cmd == "retry-sites":
+        print(json.dumps({"reset": crawl.retry_sites(con)}, ensure_ascii=False))
     elif a.cmd == "finalize":
         print(json.dumps(finalize(con), ensure_ascii=False, indent=1))
     elif a.cmd == "stats":
