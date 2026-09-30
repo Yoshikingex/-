@@ -28,6 +28,14 @@ def spread_sample(rows, n):
     return [rows[int(i * step)] for i in range(n)]
 
 
+def pick_new(con, rows, target, key_of):
+    """既存分を数えたうえで、目標件数 target に届くまでの未登録行だけを等間隔サンプルから返す。"""
+    keys = {key_of(r) for r in rows}
+    have = {r[0] for r in con.execute("SELECT source_key FROM businesses")} & keys
+    need = max(0, (target if target is not None else len(rows)) - len(have))
+    return [r for r in spread_sample(rows, target) if key_of(r) not in have][:need]
+
+
 def resolve_kaigo_url(fetcher, code):
     """掲載ページから最新ファイル名を引く（名前に作成日時が入るため推測で組み立てない）。"""
     html = fetcher.get(KAIGO_PAGE).text
@@ -37,7 +45,7 @@ def resolve_kaigo_url(fetcher, code):
     return "https://www.mhlw.go.jp" + sorted(m)[-1]
 
 
-def ingest_kaigo(con, fetcher, limit=None, code="150"):
+def ingest_kaigo(con, fetcher, target=None, code="150"):
     url = resolve_kaigo_url(fetcher, code)
     dest = config.RAW / url.rsplit("/", 1)[-1]
     fetcher.download(url, dest)
@@ -47,7 +55,7 @@ def ingest_kaigo(con, fetcher, limit=None, code="150"):
             if r.get("都道府県名") in config.PREF_ORDER:
                 r["_pref"] = r["都道府県名"]
                 rows.append(r)
-    picked = spread_sample(rows, limit)
+    picked = pick_new(con, rows, target, lambda r: f"S1:{r.get('事業所番号')}")
     n = 0
     for r in picked:
         addr = (r.get("住所") or "") + (r.get("方書（ビル名等）") or "")
@@ -66,11 +74,11 @@ def ingest_kaigo(con, fetcher, limit=None, code="150"):
         db.add_source(con, lead_id, "S1", url)
         n += 1
     con.commit()
-    log.info("S1 kaigo(%s): kanto rows=%d picked=%d", code, len(rows), n)
+    log.info("S1 kaigo(%s): kanto rows=%d new=%d", code, len(rows), n)
     return n
 
 
-def ingest_iryou(con, fetcher, kind="dental", limit=None):
+def ingest_iryou(con, fetcher, kind="dental", target=None):
     url = IRYOU_FILES[kind]
     dest = config.RAW / url.rsplit("/", 1)[-1]
     fetcher.download(url, dest)
@@ -82,7 +90,7 @@ def ingest_iryou(con, fetcher, kind="dental", limit=None):
                 if pref:
                     r["_pref"] = pref
                     rows.append(r)
-    picked = spread_sample(rows, limit)
+    picked = pick_new(con, rows, target, lambda r: f"S2:{kind}:{r.get('ID')}")
     n = 0
     for r in picked:
         postal, pref, city, address = N.split_address(r.get("所在地"))
@@ -96,5 +104,5 @@ def ingest_iryou(con, fetcher, kind="dental", limit=None):
         db.add_source(con, lead_id, "S2", url)
         n += 1
     con.commit()
-    log.info("S2 iryou(%s): kanto rows=%d picked=%d", kind, len(rows), n)
+    log.info("S2 iryou(%s): kanto rows=%d new=%d", kind, len(rows), n)
     return n

@@ -358,6 +358,44 @@ class TakkenParseTest(unittest.TestCase):
         self.assertEqual(takken.parse_list(html), [("11000001", "武藏野土地株式会社", "埼玉県川越市新宿町１－１１－５")])
 
 
+class StageTest(unittest.TestCase):
+    def test_targets_sum(self):
+        from leaddb.__main__ import stage_targets
+        for n in (100, 1000, 10000, 7):
+            t = stage_targets(n)
+            self.assertEqual(sum(t.values()), n)
+        self.assertEqual(stage_targets(1000), {"real_estate": 300, "dental": 250, "clinic": 250, "care": 200})
+
+    def test_spread_pages(self):
+        self.assertEqual(takken.spread_pages(127, 4), [1, 32, 64, 96])
+        self.assertEqual(takken.spread_pages(2, 5), [1, 2])
+        self.assertEqual(takken.spread_pages(0, 3), [])
+
+
+class PickNewTest(DbTestBase):
+    def test_counts_existing_toward_target(self):
+        from leaddb.sources import opendata
+        rows = [{"ID": str(i), "_pref": "東京都"} for i in range(100)]
+        self.biz("S2:dental:5", "x", "a")
+        self.biz("S2:dental:7", "y", "b")
+        got = opendata.pick_new(self.con, rows, 10, lambda r: f"S2:dental:{r['ID']}")
+        self.assertEqual(len(got), 8)
+        self.assertFalse({"5", "7"} & {r["ID"] for r in got})
+
+
+class ConnRetryTest(DbTestBase):
+    def test_connection_error_tries_twice(self):
+        class Boom(FakeSession):
+            def request(self, method, url, **kw):
+                self.calls.append(url)
+                raise __import__("requests").ConnectionError("x")
+        s = Boom({})
+        f = Fetcher(self.con, interval=0, backoff=[0, 0, 0], session=s)
+        with self.assertRaises(Exception):
+            f._request("GET", "https://x.jp/", None, use_robots=False)
+        self.assertEqual(len(s.calls), 2)
+
+
 class ExportTest(DbTestBase):
     def test_dm_sort(self):
         rows = [{"website_status": "OLD", "web_need_score": 90, "lead_id": "L2"},

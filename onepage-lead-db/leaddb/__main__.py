@@ -1,6 +1,7 @@
 """CLI:  python -m leaddb <command>
 
-  stage --n 100      段階テスト（宅建:歯科:介護 ≒ 1/3ずつ）を取り込み→巡回→統合→採点→出力まで実行
+  stage --n 1000     段階テスト。累計 n 件になるまで取り込み→巡回→統合→採点→出力を実行
+                     配分: 不動産30%（7都県に均等）/ 歯科25% / クリニック25% / 介護20%
   crawl              未巡回の公式サイトを巡回（途中再開可）
   retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
   finalize           統合→採点→CSV出力→集計→ダッシュボード
@@ -17,6 +18,13 @@ from .sources import opendata, takken
 log = logging.getLogger("leaddb")
 
 
+def stage_targets(n):
+    """累計目標。端数は介護に寄せて合計を n に合わせる。"""
+    t = {"real_estate": n * 30 // 100, "dental": n * 25 // 100, "clinic": n * 25 // 100}
+    t["care"] = n - sum(t.values())
+    return t
+
+
 def finalize(con):
     merged = dedup.run(con)
     scored = score.score_all(con)
@@ -31,7 +39,6 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("stage")
     p.add_argument("--n", type=int, default=100)
-    p.add_argument("--takken-pref", default="埼玉県")
     sub.add_parser("crawl")
     sub.add_parser("retry-sites")
     sub.add_parser("finalize")
@@ -45,12 +52,14 @@ def main(argv=None):
         log.warning("resume: %d RUNNING jobs reset to PENDING", reset)
     f = Fetcher(con)
     if a.cmd == "stage":
-        n_re = a.n // 3 + a.n % 3
-        n_dn = a.n // 3
-        n_cr = a.n // 3
-        got = {"real_estate": takken.ingest_takken(con, f, pref=a.takken_pref, limit=n_re),
-               "dental": opendata.ingest_iryou(con, f, "dental", limit=n_dn),
-               "care": opendata.ingest_kaigo(con, f, limit=n_cr)}
+        t = stage_targets(a.n)
+        got = {"real_estate": 0}
+        for i, pref in enumerate(config.PREF_ORDER):
+            per = t["real_estate"] // 7 + (1 if i < t["real_estate"] % 7 else 0)
+            got["real_estate"] += takken.ingest_takken(con, f, pref=pref, target=per)
+        got["dental"] = opendata.ingest_iryou(con, f, "dental", target=t["dental"])
+        got["clinic"] = opendata.ingest_iryou(con, f, "clinic", target=t["clinic"])
+        got["care"] = opendata.ingest_kaigo(con, f, target=t["care"])
         log.info("ingested %s", got)
         crawled = crawl.crawl_all(con, f)
         res = finalize(con)

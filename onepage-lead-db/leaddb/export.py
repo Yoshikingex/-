@@ -19,6 +19,8 @@ COLUMNS = ["lead_id", "business_name", "company_name", "industry", "sub_industry
 DM_COLUMNS = ["business_name", "industry", "prefecture", "city", "phone", "email", "website_url", "instagram_url",
               "instagram_username", "web_need_score", "web_need_level", "website_status", "recommended_dm_angle",
               "recommended_sample"]
+CALL_COLUMNS = ["business_name", "industry", "sub_industry", "prefecture", "city", "address", "phone", "staff_count",
+                "website_status", "recommended_dm_angle", "recommended_sample", "data_source", "source_url_1"]
 PHONE_SOURCE_RANK = {"S4": 0, "S1": 0, "S2": 1, "S3": 2, "S8": 3}
 CONF_RANK = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
 TF = {True: "TRUE", False: "FALSE"}
@@ -116,6 +118,10 @@ def export_all(con):
     dm = sorted((r for r in leads if r["instagram_found"] == "TRUE" and r["instagram_confidence"] != "LOW"
                  and (r["web_need_score"] or 0) >= 50), key=dm_sort_key)
     counts["instagram_dm_targets.csv"] = _write(out / "instagram_dm_targets.csv", dm, DM_COLUMNS)
+    # Q1裁定: HP状態が確認できない宅建業者は、スコアとは別枠の電話営業リストにする（小規模順）
+    calls = sorted((r for r in leads if r["industry"] == "real_estate" and r["website_status"] == "UNKNOWN"),
+                   key=lambda r: (r["staff_count"] if r["staff_count"] is not None else 10 ** 6, r["lead_id"]))
+    counts["phone_call_targets.csv"] = _write(out / "phone_call_targets.csv", calls, CALL_COLUMNS)
     for ind in sorted({r["industry"] for r in leads}):
         counts[f"by_industry/{ind}.csv"] = _write(out / "by_industry" / f"{ind}.csv",
                                                   [r for r in leads if r["industry"] == ind], COLUMNS)
@@ -153,6 +159,7 @@ def stats(con, rows=None):
                           for c in [sum(r["prefecture"] == p for r in leads)] if c},
         "by_website_status": dict(Counter(r["website_status"] for r in leads).most_common()),
         "by_priority": dict(sorted(Counter(r["lead_priority"] for r in leads).items())),
+        "phone_call_targets": sum(r["industry"] == "real_estate" and r["website_status"] == "UNKNOWN" for r in leads),
         "jobs": jobs, "current_job": f"{cur['kind']}:{cur['key']}" if cur else None,
     }
 

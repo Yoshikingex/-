@@ -15,7 +15,9 @@ USER_AGENT = "onepage-lead-db/0.1 (public business info research; low-rate; resp
 PER_HOST_INTERVAL = float(os.environ.get("LEADDB_INTERVAL", "3.0"))  # G6: 同一ホスト最短3秒
 TIMEOUT = 20
 MAX_RETRIES = 3
-BACKOFF = [30, 60, 120]  # G6: 429/503/接続エラー時
+BACKOFF = [30, 60, 120]  # G6: 429/503 時
+CONN_RETRIES = 2         # 接続エラー（DNS/SSL/切断）の試行回数。相手への負荷は増えない方向の変更
+CONN_RETRY_WAIT = 10
 MAX_PAGES_PER_SITE = 3
 
 # G2/G3: 自動アクセス禁止ホスト（robots.txt で実測済み）

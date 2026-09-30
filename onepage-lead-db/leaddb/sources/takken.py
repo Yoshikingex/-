@@ -64,39 +64,52 @@ def parse_detail(html):
     return out
 
 
-def ingest_takken(con, fetcher, pref="埼玉県", limit=50, disp=50):
-    """都道府県の本店を一覧→詳細の順に取得。一覧はページ単位、詳細は業者単位でジョブ化（再開可）。"""
+def spread_pages(page_count, k):
+    """1..page_count から等間隔に k ページ選ぶ（免許番号順の偏りを避ける）。"""
+    if page_count <= 0:
+        return []
+    k = max(1, min(k, page_count))
+    return sorted({1 + int(i * page_count / k) for i in range(k)})
+
+
+def ingest_takken(con, fetcher, pref="埼玉県", target=50, disp=50, per_page=15):
+    """都道府県の本店を、一覧ページを等間隔に選び各ページ先頭 per_page 件ずつ詳細取得する。
+    既に登録済みの同県分は target に数える。詳細は業者単位でジョブ化（再開可）。"""
     ken = PREF_CODE[pref]
+    have = con.execute("SELECT COUNT(*) FROM businesses WHERE source_key LIKE 'S4:takken:%' AND prefecture=?",
+                       (pref,)).fetchone()[0]
+    need = max(0, target - have)
+    if not need:
+        return 0
     form = {"CMD": "search", "caller": "TK", "rdoSelect": "1", "comNameKanaOnly": "", "comNameKanjiOnly": "",
             "rdoSelectJoken": "1", "licenseNoKbn": "", "licenseNoFrom": "", "licenseNoTo": "", "choice": "1",
             "kenCode": ken, "sortValue": "1", "rdoSelectSort": "1", "dispCount": str(disp), "dispPage": "1",
             "sv_dispCount": "0", "sv_dispPage": "0", "resultCount": "0", "pageCount": "0"}
-    page = fetcher.post(SEARCH, form, use_cache=False)  # セッションを張るため毎回取得
-    html = _decode(page)
+    html = _decode(fetcher.post(SEARCH, form, use_cache=False))  # セッションを張るため毎回取得
     hidden = _hidden(html)
     total = int(hidden.get("resultCount", "0") or 0)
     pages = int(hidden.get("pageCount", "0") or 0)
-    log.info("S4 takken %s: resultCount=%d pageCount=%d", pref, total, pages)
-    n, pno = 0, 1
-    while n < limit and pno <= max(pages, 1):
-        jkey = f"{ken}:list:{disp}:{pno}"
+    log.info("S4 takken %s: resultCount=%d pageCount=%d have=%d need=%d", pref, total, pages, have, need)
+    n = 0
+    k = -(-need // per_page) + 1  # 失敗・既存分の余裕として1ページ多めに
+    for pno in spread_pages(pages, k):
+        if n >= need:
+            break
         if pno > 1:
             f2 = dict(hidden, CMD="selectPage", pageListNo1=str(pno), pageListNo2=str(pno), dispPage=str(pno))
             html = _decode(fetcher.post(SEARCH, f2, use_cache=False))
             hidden = _hidden(html)
-        rows = parse_list(html)
-        db.set_job(con, "takken_list", jkey, "COMPLETE")
-        for key, _name, _addr in rows:
-            if n >= limit:
+        db.set_job(con, "takken_list", f"{ken}:list:{disp}:{pno}", "COMPLETE")
+        for key, _name, _addr in parse_list(html)[:per_page]:
+            if n >= need:
                 break
             if db.job_status(con, "takken_detail", key) == "COMPLETE":
-                n += 1
-                continue
+                continue  # 既存分は have に数え済み
             db.set_job(con, "takken_detail", key, "RUNNING")
             try:
                 d = parse_detail(_decode(fetcher.post(DETAIL, dict(hidden, sv_licenseNo=key))))
-                postal, p2, city, address = N.split_address(d.get("address") or _addr)
-                sub = "不動産管理会社" if any("管理" in k for k in d.get("kengyo", [])) else "不動産会社"
+                postal, _p, city, address = N.split_address(d.get("address") or _addr)
+                sub = "不動産管理会社" if any("管理" in k2 for k2 in d.get("kengyo", [])) else "不動産会社"
                 lead_id = db.upsert_business(con, {
                     "source_key": f"S4:takken:{key}", "business_name": d.get("name") or _name,
                     "company_name": d.get("name") or _name, "industry": "real_estate", "sub_industry": sub,
@@ -113,6 +126,5 @@ def ingest_takken(con, fetcher, pref="埼玉県", limit=50, disp=50):
             except Exception as e:  # noqa: BLE001 - 1件の失敗で全体を止めない
                 log.warning("takken detail %s failed: %s", key, e)
                 db.set_job(con, "takken_detail", key, "FAILED", str(e)[:200])
-        pno += 1
     con.commit()
     return n

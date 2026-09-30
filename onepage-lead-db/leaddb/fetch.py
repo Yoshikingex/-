@@ -149,8 +149,9 @@ class Fetcher:
                 last_err = e
                 self.stats["errors"] += 1
                 log.warning("request error %s (%s) attempt %d", url, type(e).__name__, attempt + 1)
-                if attempt < config.MAX_RETRIES - 1:
-                    time.sleep(self.backoff[attempt])
+                if attempt >= config.CONN_RETRIES - 1:
+                    break  # 接続エラー（DNS/SSL/切断）は長く待っても直らないことが多い → 早めに打ち切る
+                time.sleep(min(self.backoff[attempt], config.CONN_RETRY_WAIT))
         raise last_err or requests.RequestException(f"failed: {url}")
 
     def _follow(self, method, url, data, hops=5):
