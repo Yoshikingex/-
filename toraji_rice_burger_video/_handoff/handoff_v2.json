@@ -1,0 +1,114 @@
+{
+ "handoff_version": "v2",
+ "lineage": {
+  "replaces": "handoff_v1.json",
+  "changes": [
+   "ソアちゃんの肖像・AI動画化の許諾：ユーザー確認済み（回答『1』）→ ソアのクリップ3本（S03/S28/S30）も生成する",
+   "open_issues から許諾の項目を削除、stop_conditions から許諾の疑義を削除"
+  ],
+  "note": "前版は削除しない"
+ },
+ "created": "2026-09-30",
+ "project": "toraji_rice_burger_video（YouTubeレシピ動画：トラジライスバーガー・スペシャル）",
+ "repo": {
+  "name": "yoshikingex/-",
+  "branch": "claude/recipe-video-production-7d8r1d",
+  "project_dir": "toraji_rice_burger_video/",
+  "last_commit_before_this_handoff": "4c8ca15"
+ },
+ "roles": {
+  "user": "司令塔の判断・実機確認",
+  "claude": "実測・実装・生成の実行"
+ },
+ "decisions": {
+  "host": "ソア（焼肉トラジの看板娘）。1枚目の写真の女性",
+  "shortcut_route": "採用（S14〜S16 市販品トラジライスバーガー・スペシャル）",
+  "voice": "Kokoro-82M jf_alpha（Apache-2.0）。Whisper一致率 91.4%（SBV2 JVNV 89.0%）で採用",
+  "voice_rejected": {
+   "sbv2_amitaro_koharune": "規約で『あみたろ以外の人の声として扱う』ことが禁止のため不使用",
+   "edge_tts": "WebSocketがプロキシ非対応（回避禁止）"
+  },
+  "latest_request": "写真（静止画）を基本使わず、全シーンを動画クリップで作ってつなげる。Higgsfieldは200クレジット以内",
+  "budget_credits": 200,
+  "retry_reserve": "15%（モデル選定は170以内）",
+  "host_consent": "ユーザー確認済み（2026-09-30、回答『1』：本人・所属先・トラジの許可あり）。ソアのクリップ3本も生成する"
+ },
+ "done": {
+  "v1_image_based": {
+   "main": "output/toraji_rice_burger_main_1080p.mp4 3:02.5 1920x1080 30fps -14.7LUFS",
+   "shorts": "output/toraji_rice_burger_shorts_1080x1920.mp4 27.8s",
+   "thumbnails": "output/thumbnail_A/B/C.jpg",
+   "artifact_preview": "https://claude.ai/artifact/BgspahjPXdJ9BXEaXqEiKt（非公開・スマホ試写）"
+  },
+  "clip_pipeline": {
+   "generator": "tools/hf_generate.py（prepare/estimate/run/status、予算ハードキャップ、Idempotency-Key、失敗は課金なし扱い）",
+   "renderer": "tools/render_video.py main|shorts --clips work/clips → *_clips.mp4",
+   "verified": "ダミークリップ30本でショートを書き出し、各場面でフレームが変化（平均差20〜33）＝動画として使われることを確認。テスト出力は削除済み"
+  },
+  "clip_count": 30,
+  "clip_seconds_total_if_kling3_turbo": 127
+ },
+ "higgsfield_api_facts": {
+  "base": "https://api.higgsfield.ai",
+  "auth": "Authorization: Key ${HF_API_KEY_ID}:${HF_API_KEY_SECRET}",
+  "upload": "POST /files/generate-upload-url → PUT upload_url（認証ヘッダなし）→ public_url を image_url に",
+  "estimate": "POST /estimate/<model path>（同じbody）→ {credits, usd}",
+  "status": "status_url をポーリング。completed で video.url",
+  "billing": "failed/nsfw は課金なし。出力は最低7日保持",
+  "concurrency": "上限超過は 400 'Maximum number of concurrent requests'",
+  "candidates_in_priority": [
+   "kling-video/v3.0-turbo/image-to-video",
+   "bytedance/seedance-2.0/image-to-video",
+   "kling-video/v2.5-turbo/standard/image-to-video",
+   "minimax/hailuo-2.3/standard/image-to-video",
+   "wan/v2.6/image-to-video",
+   "pixverse/v6/image-to-video",
+   "lightricks/ltx-2.5/image-to-video/fast"
+  ],
+  "credit_cost_per_clip": "未確定（見積もりAPIで要実測）"
+ },
+ "blocked_on": "ユーザーが環境変数 HF_API_KEY_ID / HF_API_KEY_SECRET を登録し、新しいセッションを開始すること（登録は新セッションから有効）",
+ "next_steps_in_new_session": [
+  "0. 環境変数2つが見えるか確認（値は表示しない）: python3 -c \"import os;print(all(os.environ.get(k) for k in ['HF_API_KEY_ID','HF_API_KEY_SECRET']))\"",
+  "1. pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu && pip install -r toraji_rice_burger_video/requirements.txt && python -m unidic download && bash toraji_rice_burger_video/tools/fetch_fonts.sh",
+  "2. pyopenjtalk不要（Kokoroのみ使用）。transformers等の警告は無視可",
+  "3. cd toraji_rice_burger_video && python tools/tts_voice.py kokoro && python tools/tts_voice.py kokoro shorts",
+  "4. python tools/hf_generate.py prepare && python tools/hf_generate.py estimate --budget 200  → 結果（各モデルの合計クレジット・選択モデル）をユーザーに報告",
+  "5. 見積もりが170以内なら run --budget 200。超えるなら停止してユーザーに番号で判断を仰ぐ（クリップ削減案を提示）",
+  "6. python tools/render_video.py main --clips work/clips && python tools/render_video.py shorts --clips work/clips",
+  "7. 検証: 尺・解像度・LUFS・各場面のフレーム差・使用クレジット（hf_generate.py status）→ 試写ページ（同じArtifact URL）を *_clips.mp4 の720p版で更新 → commit/push"
+ ],
+ "stop_conditions": [
+  "見積もり合計が予算の85%を超える",
+  "使用済み＋次の1本が200を超える（スクリプトが自動停止）",
+  "401（キー不正）"
+ ],
+ "open_issues": [
+  "【推測】『ソア』は音声認識で『ソワ』と取られることがある",
+  "work/ はGit管理外（音声・入力画像・クリップ）。新セッションで再生成が必要"
+ ],
+ "measured": {
+  "voice_whisper_mean": {
+   "kokoro": 0.914,
+   "sbv2_jvnv_f1": 0.89
+  },
+  "mix_intelligibility_first60s": 0.896,
+  "main_loudness_lufs": -14.7
+ },
+ "key_file_sizes": {
+  "tools/scenes.json": 17641,
+  "tools/hf_generate.py": 14581,
+  "tools/render_video.py": 25748,
+  "tools/tts_voice.py": 3791,
+  "tools/make_audio.py": 8526,
+  "tools/upscale_panels.py": 1572,
+  "tools/build_docs.py": 6740,
+  "docs/08_video_clips_higgsfield.md": 4255,
+  "README.md": 6612,
+  "requirements.txt": 533,
+  "output/toraji_rice_burger_main_1080p.mp4": 61317313,
+  "output/toraji_rice_burger_shorts_1080x1920.mp4": 10023267,
+  "output/timings.json": 5291
+ },
+ "secrets_note": "APIキー等の秘密情報はこのJSON・リポジトリに含めない（環境変数のみ）"
+}
