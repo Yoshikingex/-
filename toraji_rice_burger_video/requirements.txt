@@ -13,3 +13,5 @@ spandrel>=0.4
 huggingface_hub>=0.23
 # 旧・仮編集（build_animatic.py）の仮ナレ用
 gTTS>=2.5
+# Higgsfield API 呼び出し
+requests>=2.31

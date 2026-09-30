@@ -4,6 +4,7 @@
 音声: ナレーション(work/voice_kokoro) ＋ 効果音・BGM(assets/audio)
 使い方: python tools/render_video.py main   → output/toraji_rice_burger_main_1080p.mp4 ＋ 字幕・チャプター・timings
         python tools/render_video.py shorts → output/toraji_rice_burger_shorts_1080x1920.mp4
+        python tools/render_video.py main --clips work/clips   → 動画クリップ版（写真は使わない）…_clips.mp4
 シーンごとに4並列でレンダリングし、最後に連結して音声を重ねる。
 """
 import json
@@ -33,6 +34,10 @@ if MODE == "shorts":
 else:
     W, H, KEY, END_HOLD, PAD = 1920, 1080, "scenes", 20.0, 0.45
 S = min(W, H) / 720      # 文字サイズの倍率（720px基準で設計）
+# 動画クリップ版: --clips <フォルダ> に <素材名>.mp4（例 sb22_05.mp4, S03.mp4）があればそれを使う
+CLIP_DIR = Path(sys.argv[sys.argv.index("--clips") + 1]) if "--clips" in sys.argv else None
+if CLIP_DIR is not None and not CLIP_DIR.is_absolute():
+    CLIP_DIR = ROOT / CLIP_DIR
 VOICE_DIR = WORK / "voice_kokoro"
 
 DELA = str(A / "fonts" / "DelaGothicOne.ttf")
@@ -142,6 +147,42 @@ def fit_w(im, mw):
 def ease(x):
     x = min(max(x, 0.0), 1.0)
     return 1 - (1 - x) ** 3
+
+
+# ---------------- 動画クリップ ----------------
+def clip_path(key):
+    if CLIP_DIR is None:
+        return None
+    p = CLIP_DIR / f"{key}.mp4"
+    return p if p.exists() else None
+
+
+@lru_cache(maxsize=2)   # 1080pは1本あたり約1GBになるので保持は2本まで
+def clip_frames(key, box):
+    w, h = box
+    cmd = [FF, "-loglevel", "error", "-i", str(clip_path(key)), "-an",
+           "-vf", f"fps={FPS},scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h}",
+           "-f", "rawvideo", "-pix_fmt", "rgb24", "-"]
+    raw = subprocess.run(cmd, capture_output=True, check=True).stdout
+    size = w * h * 3
+    return [raw[i * size:(i + 1) * size] for i in range(len(raw) // size)]
+
+
+def clip_frame(key, box, t, seg_len):
+    """シーンの長さに合わせてクリップを再生。短いときはスロー（最低0.5倍）→それでも足りなければ往復再生。"""
+    fr = clip_frames(key, box)
+    n = len(fr)
+    speed = max(min(1.0, (n / FPS) / max(seg_len, 1e-3)), 0.5)
+    k = int(t * speed * FPS)
+    if k >= n and n > 1:
+        m = k % (2 * n - 2)
+        k = m if m < n else 2 * n - 2 - m
+    return Image.frombytes("RGB", box, fr[min(k, n - 1)]).convert("RGBA")
+
+
+def clip_bg(frame_rgba):
+    small = frame_rgba.convert("RGB").resize((W // 8, H // 8), Image.BILINEAR).filter(ImageFilter.GaussianBlur(3))
+    return ImageEnhance.Brightness(small.resize((W, H), Image.BILINEAR)).enhance(0.5).convert("RGBA")
 
 
 # ---------------- レイヤー ----------------
@@ -264,7 +305,12 @@ def render_frame(item, i, prev_chapter, envelope, telop=True):
     ts = i / FPS
     kind = sc["kind"]
     idx = int(sc["id"][1:])
-    if kind == "host":
+    used_clip = False
+    host_key = sc["id"] if MODE == "main" else "S03"
+    if kind == "host" and clip_path(host_key):
+        frame = clip_frame(host_key, (W, H), ts, item["dur"])
+        used_clip = True
+    elif kind == "host":
         frame = blurred("hero", 0.42).copy()
         h = host_img()
         hh = int(H * (0.93 if MODE == "main" else 0.62))
@@ -317,15 +363,26 @@ def render_frame(item, i, prev_chapter, envelope, telop=True):
             box = (bw, int(bw / ar))
             base_w, base_h = box
             pos = (int(20 * S) if kind == "ingredients" else 0, (H - box[1]) // 2)
-        cw, ch = int(base_w * z), int(base_h * z)
-        r = max(cw / src.width, ch / src.height)
-        im = src.resize((int(src.width * r) + 1, int(src.height * r) + 1), Image.BILINEAR)
-        x0 = (im.width - box[0]) // 2 + int(pan * im.width)
-        y0 = (im.height - box[1]) // 2
-        x0 = min(max(x0, 0), im.width - box[0])
-        frame.alpha_composite(im.crop((x0, y0, x0 + box[0], y0 + box[1])).convert("RGBA"), pos)
-        # ソアのワイプ（料理カット中に右上。声に合わせて弾む）
-        if kind in ("broll", "title"):
+        if clip_path(name):
+            # 動画クリップ版：本編は画面いっぱい（材料だけ左寄せ）、ショートは正方形
+            if MODE == "main":
+                box = (W, H) if kind != "ingredients" else (int(W * 0.56), int(W * 0.56 * 9 / 16))
+                pos = (0, 0) if kind != "ingredients" else (int(20 * S), (H - box[1]) // 2)
+            seg_len = item["dur"] / len(imgs)
+            cf = clip_frame(name, box, lp * seg_len, seg_len)
+            frame = clip_bg(cf) if box != (W, H) else frame
+            frame.alpha_composite(cf, pos)
+            used_clip = True
+        else:
+            cw, ch = int(base_w * z), int(base_h * z)
+            r = max(cw / src.width, ch / src.height)
+            im = src.resize((int(src.width * r) + 1, int(src.height * r) + 1), Image.BILINEAR)
+            x0 = (im.width - box[0]) // 2 + int(pan * im.width)
+            y0 = (im.height - box[1]) // 2
+            x0 = min(max(x0, 0), im.width - box[0])
+            frame.alpha_composite(im.crop((x0, y0, x0 + box[0], y0 + box[1])).convert("RGBA"), pos)
+        # ソアのワイプ（料理カット中に右上。声に合わせて弾む）※動画クリップ版では写真を使わないので出さない
+        if kind in ("broll", "title") and CLIP_DIR is None:
             d = int(118 * S)
             wp = face_wipe(d)
             sc_w = 1.0 + 0.07 * envelope[i]
@@ -337,7 +394,11 @@ def render_frame(item, i, prev_chapter, envelope, telop=True):
             cy = int((160 if MODE == "shorts" else 40) * S) + wp.height // 2
             frame.alpha_composite(wpi, (cx - wpi.width // 2, cy - wpi.height // 2))
     end_screen = kind == "end" and ts > item.get("voice_end", 0)
-    if end_screen:
+    if end_screen and used_clip:
+        dark = Image.new("RGBA", (W, H), (0, 0, 0, 150))
+        frame.alpha_composite(dark)
+        frame.alpha_composite(special_layer(kind, sc["id"]))
+    elif end_screen:
         frame = blurred("hero", 0.38).copy()
         b = hero_soft(int(H * (0.62 if MODE == "main" else 0.3) / 0.7))
         frame.alpha_composite(b, ((W - b.width) // 2, H - int(b.height * 0.92)))
@@ -476,6 +537,13 @@ def main():
     lst.write_text("".join(f"file '{s}'\n" for s in segs))
     wav = mix_audio(items, total)
     name = "toraji_rice_burger_main_1080p.mp4" if MODE == "main" else "toraji_rice_burger_shorts_1080x1920.mp4"
+    if CLIP_DIR is not None:
+        name = name.replace(".mp4", "_clips.mp4")
+        missing = sorted({(it["sc"]["id"] if it["sc"]["kind"] == "host" else it["sc"].get("img", ""))
+                          for it in items if not clip_path(it["sc"]["id"] if it["sc"]["kind"] == "host" and MODE == "main"
+                                                            else ("S03" if it["sc"]["kind"] == "host" else it["sc"].get("img", "")))} - {""})
+        if missing:
+            print("クリップが無い素材（写真のズーム表示で代用）:", ", ".join(missing))
     subprocess.run([FF, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-i", str(wav),
                     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest",
                     "-movflags", "+faststart", str(OUT / name)], check=True)
