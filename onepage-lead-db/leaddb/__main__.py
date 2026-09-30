@@ -12,7 +12,7 @@ import argparse
 import json
 import logging
 
-from . import config, crawl, db, dedup, export, score
+from . import chains, config, crawl, db, dedup, export, igconf, score
 from .fetch import Fetcher
 from .sources import opendata, takken
 
@@ -28,11 +28,14 @@ def stage_targets(n):
 
 def finalize(con):
     merged = dedup.run(con)
+    ig = igconf.reclassify(con)
+    excluded = chains.compute(con)
     scored = score.score_all(con)
     rows, counts = export.export_all(con)
     st = export.stats(con, rows)
     export.dashboard(st)
-    return {"merged": merged, "scored": scored, "files": counts, "stats": st}
+    return {"merged": merged, "instagram_confidence": ig, "excluded_chain_large": excluded, "scored": scored,
+            "files": counts, "stats": st}
 
 
 def main(argv=None):

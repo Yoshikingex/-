@@ -71,7 +71,21 @@ def connect(path) -> sqlite3.Connection:
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")
     con.executescript(SCHEMA)
+    _migrate(con)
     return con
+
+
+MIGRATIONS = {"businesses": [("chain_size", "INTEGER"), ("exclude_reason", "TEXT")]}
+
+
+def _migrate(con):
+    """後から追加した列を既存DBに足す（ADD COLUMN だけ。既存データは変えない）。"""
+    for table, cols in MIGRATIONS.items():
+        have = {r[1] for r in con.execute(f"PRAGMA table_info({table})")}
+        for name, typ in cols:
+            if name not in have:
+                con.execute(f"ALTER TABLE {table} ADD COLUMN {name} {typ}")
+    con.commit()
 
 
 def next_lead_id(con) -> str:

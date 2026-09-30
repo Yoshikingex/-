@@ -16,10 +16,15 @@ COLUMNS = ["lead_id", "business_name", "company_name", "industry", "sub_industry
            "instagram_last_checked_at", "facebook_url", "line_url", "google_maps_url", "review_count", "rating",
            "web_need_score", "web_need_level", "reason_1", "reason_2", "reason_3", "lead_priority",
            "data_confidence", "data_source", "source_url_1", "source_url_2", "source_url_3", "last_checked_at",
-           "website_evidence", "staff_count", "recommended_dm_angle", "recommended_sample"]
+           "website_evidence", "staff_count", "recommended_dm_angle", "recommended_sample", "chain_size",
+           "exclude_reason"]
 DM_COLUMNS = ["business_name", "industry", "prefecture", "city", "phone", "email", "website_url", "instagram_url",
               "instagram_username", "web_need_score", "web_need_level", "website_status", "recommended_dm_angle",
               "recommended_sample"]
+REVIEW_COLUMNS = ["lead_id", "business_name", "industry", "prefecture", "city", "phone", "website_url", "website_status",
+                  "web_need_score", "instagram_url", "instagram_username", "instagram_confidence",
+                  "確認_事業用アカウント(Y/N)", "確認_経営者本人(Y/N)", "確認_商品サービス投稿(Y/N)", "確認_最終投稿年月",
+                  "確認_DM可(Y/N)", "メモ"]
 CALL_COLUMNS = ["business_name", "industry", "sub_industry", "prefecture", "city", "address", "phone", "staff_count",
                 "website_status", "recommended_dm_angle", "recommended_sample", "data_source", "source_url_1"]
 PHONE_SOURCE_RANK = {"S4": 0, "S1": 0, "S2": 1, "S3": 2, "S8": 3}
@@ -83,6 +88,7 @@ def build_rows(con):
             "website_evidence": w["evidence"] if w else None, "staff_count": b["staff_count"],
             "recommended_dm_angle": sc["recommended_dm_angle"] if sc else None,
             "recommended_sample": sc["recommended_sample"] if sc else None,
+            "chain_size": b["chain_size"], "exclude_reason": b["exclude_reason"],
         })
     return rows
 
@@ -103,10 +109,14 @@ def dm_sort_key(r):
 
 
 def export_all(con):
-    rows = build_rows(con)
+    all_rows = build_rows(con)
     out = config.OUT
+    # user 裁定: チェーン・大手は営業対象から除外（別ファイルで確認できるようにする）
+    excluded = [r for r in all_rows if r["exclude_reason"]]
+    rows = [r for r in all_rows if not r["exclude_reason"]]
     leads = [r for r in rows if r["phone_found"] == "TRUE"]
     counts = {
+        "excluded_chain_large.csv": _write(out / "excluded_chain_large.csv", excluded, COLUMNS),
         "all_leads.csv": _write(out / "all_leads.csv", leads, COLUMNS),
         "high_priority.csv": _write(out / "high_priority.csv", [r for r in leads if (r["web_need_score"] or 0) >= 70], COLUMNS),
         "medium_priority.csv": _write(out / "medium_priority.csv",
@@ -124,15 +134,20 @@ def export_all(con):
     # Q1裁定: HP状態が確認できない宅建業者は、スコアとは別枠の電話営業リストにする（小規模順）
     calls = sorted((r for r in leads if r["industry"] == "real_estate" and r["website_status"] == "UNKNOWN"),
                    key=lambda r: (r["staff_count"] if r["staff_count"] is not None else 10 ** 6, r["lead_id"]))
+    # Instagram の目視確認用（人がブラウザで見て記入する。プログラムは instagram.com にアクセスしない）
+    review = sorted((r for r in rows if r["instagram_username"]),
+                    key=lambda r: (CONF_RANK.get(r["instagram_confidence"], 9), -(r["web_need_score"] or 0), r["lead_id"]))
+    counts["instagram_review.csv"] = _write(out / "instagram_review.csv", review, REVIEW_COLUMNS)
     counts["phone_call_targets.csv"] = _write(out / "phone_call_targets.csv", calls, CALL_COLUMNS)
     for ind in sorted({r["industry"] for r in leads}):
         counts[f"by_industry/{ind}.csv"] = _write(out / "by_industry" / f"{ind}.csv",
                                                   [r for r in leads if r["industry"] == ind], COLUMNS)
-    return rows, counts
+    return all_rows, counts
 
 
 def stats(con, rows=None):
-    rows = rows if rows is not None else build_rows(con)
+    all_rows = rows if rows is not None else build_rows(con)
+    rows = [r for r in all_rows if not r["exclude_reason"]]
     leads = [r for r in rows if r["phone_found"] == "TRUE"]
     n = len(leads)
 
@@ -149,9 +164,12 @@ def stats(con, rows=None):
     cur = con.execute("SELECT kind, key FROM crawl_jobs WHERE status='RUNNING' ORDER BY updated_at DESC LIMIT 1").fetchone()
     scores = [r["web_need_score"] for r in leads if r["web_need_score"] is not None]
     return {
-        "candidates_total": len(rows),
+        "candidates_total": len(all_rows),
+        "excluded_chain_large": len(all_rows) - len(rows),
+        "candidates_after_exclusion": len(rows),
         "merged_duplicates": con.execute("SELECT COUNT(*) FROM businesses WHERE merged_into IS NOT NULL").fetchone()[0],
         "leads_with_phone": n, "missing_phone": len(rows) - n,
+        "instagram_low_candidates": sum(r["instagram_confidence"] == "LOW" for r in rows),
         "email_found": em, "email_rate_pct": pct(em),
         "instagram_found": ig, "instagram_rate_pct": pct(ig),
         "website_found": hp, "website_none": nohp, "website_unknown": unknown, "website_none_rate_pct": pct(nohp),
@@ -185,8 +203,8 @@ def dashboard(st, path=None):
     n = st["leads_with_phone"]
     body = "".join([
         '<div class="tiles">',
-        tile("総リード数（電話あり）", n, f"候補 {st['candidates_total']} / 重複統合 {st['merged_duplicates']}"),
-        tile("電話取得率", f"{round(100 * n / st['candidates_total'], 1) if st['candidates_total'] else 0}%", f"電話なし {st['missing_phone']}"),
+        tile("総リード数（電話あり）", n, f"候補 {st['candidates_total']} / 除外 {st['excluded_chain_large']} / 重複統合 {st['merged_duplicates']}"),
+        tile("電話取得率", f"{round(100 * n / st['candidates_after_exclusion'], 1) if st['candidates_after_exclusion'] else 0}%", f"電話なし {st['missing_phone']}"),
         tile("メール取得率", f"{st['email_rate_pct']}%", f"{st['email_found']}件"),
         tile("Instagram取得率", f"{st['instagram_rate_pct']}%", f"{st['instagram_found']}件"),
         tile("HPなし率", f"{st['website_none_rate_pct']}%", f"HPなし {st['website_none']} / 不明 {st['website_unknown']}"),

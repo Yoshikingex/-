@@ -461,6 +461,98 @@ class ConnRetryTest(DbTestBase):
         self.assertEqual(len(s.calls), 2)
 
 
+class IgConfTest(unittest.TestCase):
+    def test_classify(self):
+        from leaddb import igconf as I
+        cases = [
+            ("ito.ryunoshin", "soleado.jp", ("ソレアード久喜",), "LOW"),         # 職員個人らしい
+            ("kuonen.abiko", "kuonen-abiko.jp", ("くおん苑",), "HIGH"),          # ドメインと一致
+            ("jalakaigo", "jala.co.jp", ("福寿",), "HIGH"),
+            ("tokorozawa_kitano_dental", "dental-kitano.com", (), "HIGH"),
+            ("hana_salon_official", "abc.jp", (), "MEDIUM"),                    # 事業用の語
+            ("hanako_1990", "abc.jp", (), "MEDIUM"),                            # 判断材料なし
+            ("taro.yamada", "yamada-koumuten.jp", ("山田工務店",), "HIGH"),     # 屋号と一致すれば個人名形でも可
+            ("SHOP.Tanaka", None, (), "MEDIUM"),
+            ("dr_oshige", "seaclinic-beauty.com", (), "MEDIUM"),                 # 院長本人らしい
+            ("sugo.seikei", "north-oak-ortho-clinic.com", (), "MEDIUM"),
+        ]
+        for u, d, names, exp in cases:
+            with self.subTest(u=u):
+                self.assertEqual(I.classify(u, d, names), exp)
+
+
+class ChainTest(DbTestBase):
+    def setUp(self):
+        super().setUp()
+        from leaddb import config as C
+        self.raw = Path(self.tmp.name) / "raw"
+        self.raw.mkdir()
+        self.p = mock.patch.object(C, "RAW", self.raw)
+        self.p.start()
+        with open(self.raw / "jigyosho_150_all_1.csv", "w", encoding="utf-8-sig") as f:
+            f.write("都道府県名,法人番号\n" + "東京都,111\n" * 5 + "東京都,222\n" * 4 + "大阪府,222\n" * 3)
+
+    def tearDown(self):
+        self.p.stop()
+        super().tearDown()
+
+    def add(self, key, **kw):
+        rec = {"source_key": key, "business_name": kw.pop("name", key), "industry": "care"}
+        rec.update(kw)
+        return db.upsert_business(self.con, rec)
+
+    def reasons(self):
+        return {r[0]: r[1] for r in self.con.execute("SELECT source_key, exclude_reason FROM businesses")}
+
+    def test_rules(self):
+        from leaddb import chains
+        self.add("S1:a", corporate_number="111")
+        self.add("S1:b", corporate_number="222")          # 関東では4施設 → 対象のまま
+        self.add("S4:takken:1", staff_count=30)
+        self.add("S4:takken:2", staff_count=29)
+        self.con.commit()
+        self.assertEqual(chains.compute(self.con), 2)
+        r = self.reasons()
+        self.assertIn("5施設", r["S1:a"])
+        self.assertIsNone(r["S1:b"])
+        self.assertIn("30人", r["S4:takken:1"])
+        self.assertIsNone(r["S4:takken:2"])
+
+    def test_corp_key(self):
+        from leaddb import chains
+        self.assertEqual(chains.corp_key("医療法人社団　善仁会 ○○クリニック"), "医療法人社団善仁会")
+        self.assertIsNone(chains.corp_key("やまだ歯科医院"))
+
+    def test_excluded_rows_leave_main_outputs(self):
+        from leaddb import chains, config as C
+        a = self.add("S1:a", corporate_number="111")
+        b = self.add("S1:b", corporate_number="999")
+        for i in (a, b):
+            db.add_contact(self.con, i, "phone", "0312345678" if i == a else "0312345679", source_code="S1")
+        self.con.commit()
+        chains.compute(self.con)
+        with mock.patch.object(C, "OUT", Path(self.tmp.name) / "out"):
+            rows, counts = export.export_all(self.con)
+            st = export.stats(self.con, rows)
+        self.assertEqual((counts["all_leads.csv"], counts["excluded_chain_large.csv"]), (1, 1))
+        self.assertEqual(st["candidates_total"], st["excluded_chain_large"] + st["leads_with_phone"] + st["missing_phone"])
+
+
+class MigrationTest(unittest.TestCase):
+    def test_adds_columns_to_old_db(self):
+        with tempfile.TemporaryDirectory() as t:
+            path = Path(t) / "old.db"
+            con = sqlite3.connect(path)
+            con.execute("CREATE TABLE businesses (lead_id TEXT PRIMARY KEY, source_key TEXT UNIQUE NOT NULL)")
+            con.execute("INSERT INTO businesses VALUES ('L1','S1:1')")
+            con.commit(); con.close()
+            con = db.connect(path)
+            cols = {r[1] for r in con.execute("PRAGMA table_info(businesses)")}
+            self.assertTrue({"chain_size", "exclude_reason"} <= cols)
+            self.assertEqual(con.execute("SELECT COUNT(*) FROM businesses").fetchone()[0], 1)
+            con.close()
+
+
 class ExportTest(DbTestBase):
     def test_dm_sort(self):
         rows = [{"website_status": "OLD", "web_need_score": 90, "lead_id": "L2"},
