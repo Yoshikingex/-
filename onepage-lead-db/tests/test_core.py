@@ -614,6 +614,16 @@ class ZehTest(DbTestBase):
         self.assertEqual(self.con.execute("SELECT display FROM contacts").fetchone()[0], "049-111-2222")
 
 
+class ZehScopeTest(unittest.TestCase):
+    def test_scope(self):
+        from leaddb.sources import zeh
+        rows = [{"対応可能エリア": "大阪府"}, {"対応可能エリア": "埼玉県;東京都"},
+                {"対応可能エリア": "北海道;青森県;岩手県;宮城県"}, {"対応可能エリア": ""}]
+        self.assertEqual(len(zeh.select(rows, "kanto")), 1)
+        self.assertEqual(len(zeh.select(rows, "nationwide")), 2)
+        self.assertEqual(len(zeh.select(rows, "nationwide", max_areas=5)), 3)
+
+
 class MigrationTest(unittest.TestCase):
     def test_adds_columns_to_old_db(self):
         with tempfile.TemporaryDirectory() as t:

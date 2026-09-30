@@ -27,6 +27,10 @@ REVIEW_COLUMNS = ["lead_id", "business_name", "industry", "prefecture", "city", 
                   "web_need_score", "instagram_url", "instagram_username", "instagram_confidence",
                   "確認_事業用アカウント(Y/N)", "確認_経営者本人(Y/N)", "確認_商品サービス投稿(Y/N)", "確認_最終投稿年月",
                   "確認_DM可(Y/N)", "メモ"]
+ACCOUNT_COLUMNS = ["instagram_confidence", "instagram_url", "instagram_username", "business_name", "company_name",
+                   "industry", "sub_industry", "prefecture", "service_area", "city", "phone", "email", "website_url",
+                   "website_status", "web_need_score", "web_need_level", "recommended_dm_angle", "recommended_sample",
+                   "lead_id"]
 CALL_COLUMNS = ["business_name", "industry", "sub_industry", "prefecture", "city", "address", "phone", "staff_count",
                 "website_status", "recommended_dm_angle", "recommended_sample", "data_source", "source_url_1"]
 PHONE_SOURCE_RANK = {"S4": 0, "S1": 0, "S2": 1, "S3": 2, "S8": 3}
@@ -148,6 +152,8 @@ def export_all(con):
             r = dict(r, **{c: rv[k] for k, c in REVIEW_FIELDS.items()})
         review.append(r)
     counts["instagram_review.csv"] = _write(out / "instagram_review.csv", review, REVIEW_COLUMNS)
+    accounts = [r for r in review if r["instagram_confidence"] in IG_USABLE]
+    counts["instagram_accounts.csv"] = _write(out / "instagram_accounts.csv", accounts, ACCOUNT_COLUMNS)
     counts["phone_call_targets.csv"] = _write(out / "phone_call_targets.csv", calls, CALL_COLUMNS)
     for ind in sorted({r["industry"] for r in leads}):
         counts[f"by_industry/{ind}.csv"] = _write(out / "by_industry" / f"{ind}.csv",
@@ -188,6 +194,9 @@ def stats(con, rows=None):
         "by_industry": dict(Counter(r["industry"] for r in leads).most_common()),
         "by_prefecture": {p: c for p in config.PREF_ORDER + ["不明（営業エリアのみ）"]
                           for c in [sum((r["prefecture"] or "不明（営業エリアのみ）") == p for r in leads)] if c},
+        "by_service_area_first": dict(Counter((r["service_area"] or "").split(";")[0] for r in leads
+                                              if r["service_area"]).most_common()),
+        "instagram_accounts_usable": sum(r["instagram_found"] == "TRUE" for r in rows),
         "by_website_status": dict(Counter(r["website_status"] for r in leads).most_common()),
         "by_priority": dict(sorted(Counter(r["lead_priority"] for r in leads).items())),
         "phone_call_targets": sum(r["industry"] == "real_estate" and r["website_status"] == "UNKNOWN" for r in leads),

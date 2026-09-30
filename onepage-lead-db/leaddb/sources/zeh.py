@@ -30,19 +30,23 @@ def site_root(url):
     return f"{p.scheme}://{p.netloc}/" if p.netloc else None
 
 
-def select(rows):
+def select(rows, scope="kanto", max_areas=MAX_AREAS):
+    """scope='kanto': 関東7都県を含むもの / 'nationwide': 全国（user 裁定: Instagram 1,000件のため全国へ拡大）。"""
     out = []
     for r in rows:
         a = areas(r.get("対応可能エリア"))
-        if a and len(a) <= MAX_AREAS and any(p in config.PREF_ORDER for p in a):
-            out.append(r)
+        if not a or len(a) > max_areas:
+            continue
+        if scope == "kanto" and not any(p in config.PREF_ORDER for p in a):
+            continue
+        out.append(r)
     return out
 
 
-def ingest_zeh(con, fetcher, target=None):
+def ingest_zeh(con, fetcher, target=None, scope="kanto", max_areas=MAX_AREAS):
     page = fetcher.get(URL)
     text = page.body.decode("utf-8-sig", errors="replace")
-    rows = select(list(csv.DictReader(io.StringIO(text))))
+    rows = select(list(csv.DictReader(io.StringIO(text))), scope, max_areas)
     n = 0
     for r in rows[:target] if target else rows:
         reg = (r.get("ZEHビルダー登録番号") or "").strip()
@@ -63,5 +67,5 @@ def ingest_zeh(con, fetcher, target=None):
         db.add_source(con, lead_id, "S5", URL)
         n += 1
     con.commit()
-    log.info("S5 zeh: kanto-local rows=%d ingested=%d", len(rows), n)
+    log.info("S5 zeh(%s, areas<=%d): rows=%d ingested=%d", scope, max_areas, len(rows), n)
     return n

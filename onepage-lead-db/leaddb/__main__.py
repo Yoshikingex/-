@@ -2,7 +2,8 @@
 
   stage --n 1000     段階テスト。累計 n 件になるまで取り込み→巡回→統合→採点→出力を実行
                      配分: 不動産30%（7都県に均等）/ 歯科25% / クリニック25% / 介護20%
-  ingest-zeh [--limit N]  SII ZEHビルダー一覧（関東の地元工務店）を取り込む
+  ingest-zeh [--scope kanto|nationwide] [--max-areas 3] [--limit N]
+                     SII ZEHビルダー一覧（地元工務店＝営業エリアが max-areas 都道府県以内）を取り込む
   crawl              未巡回の公式サイトを巡回（途中再開可）
   retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
   repair-merges      旧方式の統合（行を移していた）を取り消す一回限りの修復
@@ -48,6 +49,8 @@ def main(argv=None):
     p.add_argument("--n", type=int, default=100)
     pz = sub.add_parser("ingest-zeh")
     pz.add_argument("--limit", type=int, default=None)
+    pz.add_argument("--scope", choices=["kanto", "nationwide"], default="kanto")
+    pz.add_argument("--max-areas", type=int, default=zeh.MAX_AREAS)
     sub.add_parser("crawl")
     sub.add_parser("retry-sites")
     sub.add_parser("repair-merges")
@@ -78,7 +81,8 @@ def main(argv=None):
         res.update({"ingested": got, "crawled": crawled, "fetch": f.stats})
         print(json.dumps(res, ensure_ascii=False, indent=1))
     elif a.cmd == "ingest-zeh":
-        print(json.dumps({"ingested": zeh.ingest_zeh(con, f, target=a.limit)}, ensure_ascii=False))
+        print(json.dumps({"ingested": zeh.ingest_zeh(con, f, target=a.limit, scope=a.scope, max_areas=a.max_areas)},
+                         ensure_ascii=False))
     elif a.cmd == "crawl":
         print(json.dumps({"crawled": crawl.crawl_all(con, f), "fetch": f.stats}, ensure_ascii=False))
     elif a.cmd == "retry-sites":

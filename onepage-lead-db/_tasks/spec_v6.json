@@ -1,0 +1,721 @@
+{
+  "meta": {
+    "spec_id": "onepage-lead-db/spec_v6",
+    "version": 6,
+    "created_at": "2026-09-30",
+    "phase": "PHASE2",
+    "lineage": "v6 は v5（_tasks/spec_v5.json, md5 df3c1a0b0297ae4949e09d2269a61bac）を置き換える。v1〜v5 は削除しない",
+    "status": "DECIDED",
+    "note": "2026-09-30 user 裁定: 工務店・介護・不動産に集中（美容・飲食は対象外）、SII ZEH 地元工務店を採用、Meta API は使わない、Instagram 最低1,000件・全国へ拡大・当面は Instagram 主軸",
+    "decisions": {
+      "Q1": "2 = S1+S2 を主力、S4（国交省 宅建業者）を 3秒間隔・同時1本で併用",
+      "Q2": "1 = 閾値 70/50 据え置き。100件テスト後に分布を見て再判断"
+    }
+  },
+  "environment": {
+    "project_root": "/home/user/-/onepage-lead-db/",
+    "repo": "yoshikingex/-",
+    "branch": "claude/kanto-sales-lead-db-9wnqj1",
+    "python": "3.11.15",
+    "libs_installed": [
+      "requests==2.33.1",
+      "beautifulsoup4==4.15.0"
+    ],
+    "libs_to_add": [],
+    "libs_not_used": {
+      "pandas": "標準ライブラリの csv と sqlite3 で足りるため入れない",
+      "playwright": "JS描画が必要なサイトが出た場合だけ検討する（今回は入れない）"
+    }
+  },
+  "invariant_guards": {
+    "G1_zip_untouched": {
+      "file": "/home/user/-/system_marketplace.zip",
+      "bytes": 367748,
+      "md5": "428a7ba9bc0624f12e2cda5ec89a472f",
+      "rule": "展開・変更・削除しない。検収時にバイト数とmd5が一致すること"
+    },
+    "G2_no_instagram_access": "instagram.com へのHTTPアクセスは0件（robots.txt で自動収集禁止を実測済み）。Instagram URL は事業者の公式サイトに貼られたリンクだけを記録する。リダイレクト先も要求前に検査する（fetch._follow）",
+    "G3_no_google_search": "google.com/search へのアクセスは0件（robots.txt で Disallow: /search を実測済み）",
+    "G4_no_paid_api": "課金・カード登録が必要なAPIは使わない。必要になったらSTOPして報告する",
+    "G5_robots_check": "取得する前にドメインごとに robots.txt を確認してキャッシュし、Disallow に当たるURLは取得しない",
+    "G6_rate_limit": "同じドメインへのアクセスは最短3秒間隔、同時接続は1本。429/503 が返ったら 30s→60s→120s と間隔を広げ、3回失敗したら FAILED にする。接続エラー（DNS/SSL/切断）は最大2回・待ち10秒で打ち切る（試行回数が減る方向の変更で、相手への負荷は増えない）",
+    "G7_no_bypass": "ログイン・CAPTCHA・Cloudflare の突破、プロキシの切り替え、非公開APIの利用はしない",
+    "G8_no_guess": "取れなかった項目は NULL にする。推測で埋めない",
+    "G9_public_repo": "リポジトリ Yoshikingex/- は public（list_repos で実測）。data/ と logs/ は .gitignore で除外し、リードデータを push しない。CSV は SendUserFile で user に直接渡す",
+    "G10_no_representative_name": "S4 の代表者氏名は取得・保存しない（個人名を持たない）"
+  },
+  "measured_sources": {
+    "_legend": "status=確定: PHASE2で実測済み / 未確定: 実測していない、または規約を確認できていない",
+    "S1_kaigo_opendata": {
+      "url": "https://www.mhlw.go.jp/stf/kaigo-kouhyou_opendata.html",
+      "status": "確定",
+      "license": "厚労省HP利用規約 + CC BY互換（出典の表示が必要）",
+      "fields": "事業所名, 住所, 電話番号, FAX, 法人番号, 法人名, URL ほか（全24列を実測）",
+      "files": "CSV 140本（サービス種別ごと）",
+      "industry": "介護施設",
+      "use": "主要ソース"
+    },
+    "S2_iryou_opendata": {
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/iryou/newpage_43373.html",
+      "status": "確定",
+      "license": "営利・非営利を問わず二次利用可（ページ記載）",
+      "measured_dental_kanto": {
+        "08茨城": 1052,
+        "09栃木": 974,
+        "10群馬": 926,
+        "11埼玉": 2881,
+        "12千葉": 2465,
+        "13東京": 8476,
+        "14神奈川": 3844,
+        "total": 20618,
+        "with_url": 12364
+      },
+      "phone_column": "なし（歯科CSV 57列を実測）→ 電話は公式サイトから取る",
+      "industry": "歯科医院, クリニック（診療所）",
+      "use": "主要ソース。URLのない事業者は電話が取れないため missing_phone.csv に入る"
+    },
+    "S3_osm_overpass": {
+      "endpoint": "https://overpass.kumi.systems/api/interpreter",
+      "status": "確定（件数は少ない）",
+      "license": "ODbL（出典の表示が必要。DBを公開配布する場合は同じライセンスにする義務あり）",
+      "measured_saitama": {
+        "美容室": 961,
+        "美容室_phone": 45,
+        "美容室_website": 12,
+        "美容室_instagram": 1,
+        "不動産": 315,
+        "不動産_phone": 24,
+        "建築系": 101,
+        "建築系_phone": 10
+      },
+      "note": "overpass-api.de は接続がリセットされた。電話の保有率は約5%",
+      "use": "補助ソース"
+    },
+    "S4_mlit_etsuran": {
+      "url": "https://etsuran2.mlit.go.jp/TAKKEN/",
+      "status": "確定（仕組み）/ 利用条件は未確定のまま低速で使用（Q1裁定）",
+      "fact": "robots.txt は404。国交省サイト全体は PDL1.0。検索システム独自の利用条件は見つからなかった",
+      "industry": "建設業者・宅建業者（建築・工務店・リフォーム・不動産）",
+      "risk": "フォーム送信で検索する仕組み。大量に自動検索してよいかは未確定",
+      "use": "Q1 の裁定待ち",
+      "measured": {
+        "埼玉県_本店_resultCount": 6335,
+        "一覧項目": "免許行政庁, 免許証番号, 商号, 代表者名, 事務所名, 所在地",
+        "詳細項目": "商号, 所在地, 総従事者数, 電話番号, 兼業 ほか",
+        "URL項目": "なし"
+      },
+      "consequence": "宅建業者はHPの有無を確認できないため website_status=UNKNOWN（+25点の対象外）。推測でNONEにしない"
+    },
+    "S5_itp": {
+      "url": "https://itp.ne.jp/",
+      "status": "判定不能",
+      "fact": "robots.txt の取得がタイムアウト（HTTP/2エラー、HTTP/1.1でも15秒タイムアウト）",
+      "use": "使わない"
+    },
+    "S6_google_search": {
+      "status": "確定: 使用不可",
+      "fact": "robots.txt に User-agent: * / Disallow: /search"
+    },
+    "S7_instagram": {
+      "status": "確定: 直接アクセス不可",
+      "fact": "robots.txt に『書面で許可されていない自動収集は禁止』と明記。User-agent: * / Disallow: /"
+    },
+    "S8_official_websites": {
+      "status": "確定（方式）",
+      "use": "S1〜S4 で得たURLだけを巡回し、電話・メール・SNSリンク・サイト品質を取る。robots.txt を守り、トップページと会社概要・お問い合わせ系ページの最大3ページまで"
+    },
+    "S5_sii_zeh": {
+      "url": "https://zehweb.jp/registration/builder/system/api.php",
+      "status": "確定",
+      "license": "zehweb.jp/policy: 出典記載で複製・翻案等自由（出典：SII公開データ）",
+      "robots": "404",
+      "fields": "事業者名, 登録名称（屋号）, 登録番号, 対応可能エリア, ホームページ, 電話番号（本社住所なし）",
+      "measured": {
+        "全国": 3823,
+        "地元(エリア<=3)全国": 3161,
+        "うちHPあり": 2274,
+        "関東を含む地元": 576,
+        "関東地元HPあり": 435,
+        "関東の途中実測_IG保有率": "135/209（サイト取得できた中の65%）"
+      },
+      "consequence": "prefecture は推測で埋めず NULL、営業エリアを service_area に記録"
+    }
+  },
+  "industries": {
+    "_note": "最終的に10業種前後。取得できた実数を報告し、水増ししない",
+    "codes": {
+      "construction": [
+        "建築会社",
+        "工務店",
+        "リフォーム会社",
+        "外構",
+        "塗装会社"
+      ],
+      "real_estate": [
+        "不動産会社",
+        "不動産仲介",
+        "不動産管理会社"
+      ],
+      "beauty": [
+        "美容室",
+        "理容室",
+        "エステ",
+        "ネイルサロン"
+      ],
+      "bodycare": [
+        "整体",
+        "整骨院",
+        "鍼灸院"
+      ],
+      "gym": [
+        "パーソナルジム",
+        "フィットネスジム"
+      ],
+      "auto": [
+        "自動車販売",
+        "中古車販売",
+        "自動車整備"
+      ],
+      "restaurant": [
+        "飲食店",
+        "焼肉店",
+        "居酒屋",
+        "カフェ"
+      ],
+      "lodging": [
+        "旅館",
+        "ホテル",
+        "グランピング施設"
+      ],
+      "dental": [
+        "歯科医院"
+      ],
+      "clinic": [
+        "クリニック"
+      ],
+      "care": [
+        "介護施設"
+      ]
+    },
+    "region_priority": [
+      "東京都",
+      "埼玉県",
+      "神奈川県",
+      "千葉県",
+      "茨城県",
+      "栃木県",
+      "群馬県"
+    ],
+    "cap_per_industry": 10000
+  },
+  "pipeline": [
+    "P1 ingest: 公開データ（S1/S2/S3、裁定次第でS4）を取り込み、businesses と sources に保存する",
+    "P2 normalize: 電話・住所・社名・ドメインを正規化する",
+    "P3 dedup: 重複をまとめる（順序は dedup の項）",
+    "P4 site_crawl: website_url があるものだけ公式サイトを最大3ページ取得する（キャッシュあり）",
+    "P5 extract: 電話・業務用メール・Instagram/Facebook/LINEのリンク・フォームの有無・予約導線の有無を抜き出す",
+    "P6 website_quality: https の有無、viewport の有無、著作権表記の年、jQueryなど古い技術の痕跡、テーブルレイアウトの有無、ページの重さから0〜100点で採点する",
+    "P7 score: web_need_score を計算する",
+    "P8 export: CSV を出力し、ダッシュボードを生成する"
+  ],
+  "normalize": {
+    "phone": "全角→半角、ハイフン統一、市外局番を補って 0X-XXXX-XXXX 形式にする。0120/0800/050 は保持し、phone_type 列で区別する",
+    "email": "小文字化する。業務用の接頭辞（info/contact/shop/office/support/sales/mail/reserve/recruit ほか）を優先し、個人名らしい local-part は email_personal_suspect=TRUE にして出力から除外する",
+    "domain": "www. を取り除いて小文字化する",
+    "name": "全角半角の統一、法人格（株式会社/(株)/有限会社 など）の除去、空白の除去"
+  },
+  "dedup": {
+    "order": [
+      "phone",
+      "instagram_username",
+      "website_domain",
+      "address+name"
+    ],
+    "rule": "電話一致を最優先。同じ公的名簿内の別ID同士は社名か住所の一致も必須。同じ番号が5件以上なら住所一致必須。Instagram・ドメイン一致は、チェーン支店を潰さないよう社名か住所の一致も必須（1,000件テストで Instagram 一致の統合 11/11 件が誤り）。統合は businesses.merged_into だけを更新し、子の行（連絡先・SNS・出典）は移さない。出力時に統合グループ単位でまとめる（取り消し可能）。merged_into は常に深さ1",
+    "shared_domain_exclusion": [
+      "ameblo.jp",
+      "jimdo",
+      "wixsite.com",
+      "fc2.com",
+      "hotpepper.jp",
+      "tabelog.com",
+      "linktr.ee"
+    ]
+  },
+  "instagram_policy": {
+    "sources_allowed": [
+      "公式サイト内の instagram.com リンク",
+      "公式サイト内の lit.link / linktr.ee など（robots.txt で許可されている場合のみ）",
+      "OSM の contact:instagram タグ",
+      "公開データの URL 欄が instagram.com の場合"
+    ],
+    "sources_forbidden": [
+      "instagram.com への直接アクセス",
+      "Google 検索",
+      "非公開API"
+    ],
+    "confidence": {
+      "HIGH": "公式サイトからのリンクで、アカウント名がドメイン/社名の英字部分と重なる",
+      "MEDIUM": "公式サイトからのリンクで、事業用・院長/経営者らしい語を含む、または判断材料なし。OSMタグ・公開データURL欄も MEDIUM",
+      "LOW": "公式サイトからのリンクでも個人名らしい形（taro.yamada 等）で事業者の手がかりと重ならない → DM対象外、instagram_review.csv に候補として保存"
+    },
+    "not_measurable": [
+      "投稿頻度",
+      "フォロワー数",
+      "アカウントが実在するか"
+    ],
+    "honest_limit": "『HPなし + Instagramあり』の事業者は、公式サイトという入口がないためほぼ見つけられない。取得率は低くなる見込み【推測】",
+    "human_review": "data/output/instagram_review.csv に全アカウントを出力。確認列（事業用/経営者本人/商品サービス投稿/最終投稿年月/DM可/メモ）は user がブラウザで目視して記入する。プログラムは instagram.com にアクセスしない",
+    "stop_profile_scraping": "プロフィール・投稿の自動閲覧は robots.txt（書面許可なき自動収集禁止）に反するため実装しない（2026-09-30 STOP）",
+    "meta_api": "使わない（Q10）"
+  },
+  "web_need_score": {
+    "range": "0〜100（範囲外は切り詰め）",
+    "levels": {
+      "HIGH": ">=70",
+      "MEDIUM": "50〜69",
+      "LOW": "<=49"
+    },
+    "rules_measurable": [
+      {
+        "pts": 25,
+        "cond": "website_found=FALSE（公開データと公式サイト巡回の両方でURLなし）"
+      },
+      {
+        "pts": 20,
+        "cond": "website_status=OLD"
+      },
+      {
+        "pts": 15,
+        "cond": "mobile_friendly=FALSE（viewport なし）"
+      },
+      {
+        "pts": 15,
+        "cond": "https_enabled=FALSE"
+      },
+      {
+        "pts": 10,
+        "cond": "website_quality_score<=20"
+      },
+      {
+        "pts": 10,
+        "cond": "ビジュアル商材の業種（construction/real_estate/beauty/restaurant/lodging/gym）"
+      },
+      {
+        "pts": 10,
+        "cond": "contact_form_found=FALSE かつ reservation_found=FALSE"
+      },
+      {
+        "pts": 10,
+        "cond": "無料ブログ・簡易サイトのドメイン"
+      },
+      {
+        "pts": 10,
+        "cond": "instagram_found=TRUE かつ website_status が OLD/BASIC"
+      },
+      {
+        "pts": 5,
+        "cond": "著作権表記の年が5年以上前"
+      },
+      {
+        "pts": -20,
+        "cond": "website_status=EXCELLENT"
+      },
+      {
+        "pts": -15,
+        "cond": "チェーン: 同じドメインを10件以上（共有プラットフォーム除く）または同じInstagramを5件以上の事業者が共有"
+      },
+      {
+        "pts": -10,
+        "cond": "website_status=GOOD"
+      }
+    ],
+    "rules_null_not_measurable": [
+      "Instagramが活発",
+      "Google Maps/SNSが更新されている",
+      "施工事例・写真が多い（公式サイトの画像枚数で代用できるかは100件テストで判断）",
+      "LINEのみで集客",
+      "Instagramのみで集客"
+    ],
+    "reasons": "加点の大きい順に reason_1〜3 に入れる"
+  },
+  "sample_mapping": {
+    "construction": {
+      "sample": "MAISON",
+      "url": "https://maison-akari.vercel.app",
+      "dm_angles": [
+        "施工写真訴求",
+        "ビフォーアフター",
+        "高級感",
+        "問い合わせ訴求"
+      ]
+    },
+    "real_estate": {
+      "sample": "MAISON",
+      "url": "https://maison-akari.vercel.app",
+      "dm_angles": [
+        "物件紹介",
+        "高級物件",
+        "売主獲得",
+        "Instagram→HP導線"
+      ]
+    },
+    "beauty": {
+      "sample": "雫",
+      "url": "https://shizuku-hair-atelier.vercel.app/",
+      "dm_angles": [
+        "スタイル写真",
+        "店舗世界観",
+        "Instagram→予約導線",
+        "ブランド訴求"
+      ]
+    },
+    "bodycare": {
+      "sample": "雫",
+      "url": "https://shizuku-hair-atelier.vercel.app/",
+      "dm_angles": [
+        "Instagram→予約導線",
+        "スタッフ訴求"
+      ]
+    },
+    "restaurant": {
+      "sample": "KEBAB",
+      "url": "https://kebab-taste-a-better-day.vercel.app",
+      "dm_angles": [
+        "料理シズル",
+        "店舗世界観",
+        "Instagram→予約導線"
+      ]
+    },
+    "lodging": {
+      "sample": "朧",
+      "url": "https://oboro-nine.vercel.app",
+      "dm_angles": [
+        "宿泊体験",
+        "客室",
+        "料理シズル",
+        "店舗世界観"
+      ]
+    },
+    "auto": {
+      "sample": "VELARIN.",
+      "url": "https://velarin.vercel.app",
+      "dm_angles": [
+        "在庫車紹介",
+        "ブランド訴求",
+        "問い合わせ訴求"
+      ]
+    },
+    "gym": {
+      "sample": "VELARIN.",
+      "url": "https://velarin.vercel.app",
+      "dm_angles": [
+        "ビフォーアフター",
+        "設備",
+        "スタッフ訴求",
+        "体験予約"
+      ]
+    },
+    "dental": {
+      "sample": "AURELION",
+      "url": "https://kairos-meridian-plum.vercel.app",
+      "dm_angles": [
+        "ブランド訴求",
+        "スタッフ訴求",
+        "予約導線"
+      ]
+    },
+    "clinic": {
+      "sample": "AURELION",
+      "url": "https://kairos-meridian-plum.vercel.app",
+      "dm_angles": [
+        "ブランド訴求",
+        "スタッフ訴求",
+        "予約導線"
+      ]
+    },
+    "care": {
+      "sample": "朧",
+      "url": "https://oboro-nine.vercel.app",
+      "dm_angles": [
+        "施設世界観",
+        "スタッフ訴求",
+        "見学予約"
+      ]
+    },
+    "_note": "gym/dental/clinic/care への割り当ては原案【推測】。user の確認で確定する"
+  },
+  "db": {
+    "path": "onepage-lead-db/data/leads.db",
+    "tables": {
+      "businesses": "lead_id PK, business_name, company_name, industry, sub_industry, postal_code, prefecture, city, address, corporate_number, data_confidence, created_at, updated_at",
+      "contacts": "lead_id FK, phone, phone_type, email, email_personal_suspect, source_id FK",
+      "social_accounts": "lead_id FK, platform(instagram/facebook/line), url, username, confidence, source_id FK, last_checked_at",
+      "websites": "lead_id FK, url, domain, status, quality_score, https_enabled, mobile_friendly, contact_form_found, reservation_found, copyright_year, fetched_at, http_status",
+      "scores": "lead_id FK, web_need_score, web_need_level, reason_1, reason_2, reason_3, lead_priority, recommended_dm_angle, recommended_sample, scored_at",
+      "sources": "source_id PK, lead_id FK, source_code(S1..S8), source_url, fetched_at",
+      "crawl_jobs": "job_id PK, kind(ingest/site_crawl), key UNIQUE, status(PENDING/RUNNING/COMPLETE/FAILED), attempts, last_error, updated_at",
+      "http_cache": "url PK, status, body_path, fetched_at"
+    },
+    "resume": "起動時に RUNNING のジョブを PENDING に戻す。書き込みは1件ごとにコミットする。WAL モードを使う。同じURLは http_cache に当たれば再取得しない",
+    "safety": "DELETE/DROP を使うコードは書かない。作り直すときは新しいDBファイルを別名で作る"
+  },
+  "outputs": {
+    "dir": "onepage-lead-db/data/output/",
+    "files": [
+      "all_leads.csv",
+      "high_priority.csv",
+      "medium_priority.csv",
+      "with_instagram.csv",
+      "without_instagram.csv",
+      "with_email.csv",
+      "without_email.csv",
+      "missing_phone.csv",
+      "instagram_dm_targets.csv",
+      "by_industry/<industry_code>.csv",
+      "phone_call_targets.csv",
+      "excluded_chain_large.csv",
+      "instagram_review.csv",
+      "instagram_accounts.csv"
+    ],
+    "encoding": "UTF-8 BOM付き（Excelで文字化けしないため）",
+    "all_leads_columns": [
+      "lead_id",
+      "business_name",
+      "company_name",
+      "industry",
+      "sub_industry",
+      "postal_code",
+      "prefecture",
+      "city",
+      "address",
+      "phone",
+      "phone_found",
+      "email",
+      "email_found",
+      "website_url",
+      "website_found",
+      "website_status",
+      "website_quality_score",
+      "mobile_friendly",
+      "https_enabled",
+      "contact_form_found",
+      "reservation_found",
+      "line_found",
+      "instagram_link_found",
+      "facebook_link_found",
+      "instagram_url",
+      "instagram_username",
+      "instagram_found",
+      "instagram_confidence",
+      "instagram_source",
+      "instagram_last_checked_at",
+      "facebook_url",
+      "line_url",
+      "google_maps_url",
+      "review_count",
+      "rating",
+      "web_need_score",
+      "web_need_level",
+      "reason_1",
+      "reason_2",
+      "reason_3",
+      "lead_priority",
+      "data_confidence",
+      "data_source",
+      "source_url_1",
+      "source_url_2",
+      "source_url_3",
+      "last_checked_at"
+    ],
+    "null_columns_by_design": {
+      "google_maps_url": "Google Maps は使わないため NULL",
+      "review_count": "取得手段がないため NULL",
+      "rating": "取得手段がないため NULL"
+    },
+    "instagram_dm_targets": {
+      "filter": "phone_found=TRUE AND instagram_found=TRUE AND instagram_confidence!='LOW' AND web_need_score>=50",
+      "columns": [
+        "business_name",
+        "industry",
+        "prefecture",
+        "city",
+        "phone",
+        "email",
+        "website_url",
+        "instagram_url",
+        "instagram_username",
+        "web_need_score",
+        "web_need_level",
+        "website_status",
+        "recommended_dm_angle",
+        "recommended_sample"
+      ],
+      "sort": "website_status の順（NONE→OLD→BASIC→その他）、次に web_need_score の降順"
+    },
+    "lead_priority": {
+      "P1": "Instagramあり+電話あり+HPなし",
+      "P2": "Instagramあり+電話あり+HPが古い",
+      "P3": "Instagramあり+電話あり+HPが弱い(BASIC)",
+      "P4": "Instagramなし+電話あり+HPなし",
+      "P5": "その他"
+    },
+    "data_confidence": {
+      "HIGH": "2つ以上のソースで一致",
+      "MEDIUM": "公式ソース1件",
+      "LOW": "検索結果のみ（今回は発生しない想定）"
+    },
+    "extra_columns": [
+      "website_evidence",
+      "staff_count",
+      "recommended_dm_angle",
+      "recommended_sample"
+    ],
+    "phone_call_targets": {
+      "filter": "phone_found=TRUE AND industry='real_estate' AND website_status='UNKNOWN'",
+      "sort": "staff_count 昇順",
+      "columns": [
+        "business_name",
+        "industry",
+        "sub_industry",
+        "prefecture",
+        "city",
+        "address",
+        "phone",
+        "staff_count",
+        "website_status",
+        "recommended_dm_angle",
+        "recommended_sample",
+        "data_source",
+        "source_url_1"
+      ]
+    },
+    "instagram_accounts": {
+      "filter": "チェーン・大手除外後、instagram_confidence in (CONFIRMED,HIGH,MEDIUM)。スコア不問",
+      "sort": "信頼度→スコア"
+    }
+  },
+  "logs_dashboard": {
+    "logs": [
+      "logs/crawl.log",
+      "logs/error.log",
+      "logs/score.log"
+    ],
+    "progress_cmd": "python -m leaddb stats（仕様書で定めた集計項目を標準出力に出す）",
+    "dashboard": "data/output/dashboard.html（DBから生成する静的HTML。外部CDNなし。更新は stats を実行したとき）"
+  },
+  "tests": {
+    "framework": "unittest（標準ライブラリ。追加インストール不要のため pytest から変更）",
+    "unit_min": [
+      "電話正規化 10件以上",
+      "メールの業務用/個人判定 8件以上",
+      "重複統合 6件以上",
+      "スコア計算 8件以上",
+      "robots.txt 判定 3件以上",
+      "ジョブ再開 2件以上",
+      "サンプル割り当て 全業種"
+    ],
+    "stages": [
+      {
+        "n": 100,
+        "gate": "電話・メール・Instagram の紐付け精度を20件の目視サンプルで確認し、重複率とスコア分布を報告して user の裁定を受ける"
+      },
+      {
+        "n": 1000,
+        "gate": "失敗率10%以下、ガード違反0件"
+      },
+      {
+        "n": 10000,
+        "gate": "同上。1業種あたりの上限を守っているか確認"
+      }
+    ]
+  },
+  "acceptance": {
+    "counts": [
+      "総件数",
+      "重複除外件数",
+      "電話取得件数",
+      "メール取得件数",
+      "Instagram取得件数",
+      "HPあり件数",
+      "HPなし件数",
+      "HIGH/MEDIUM/LOW",
+      "業種別件数",
+      "都道府県別件数",
+      "Instagram取得率",
+      "メール取得率"
+    ],
+    "files": [
+      "各CSVのバイト数と行数",
+      "leads.db のバイト数"
+    ],
+    "cross_check": [
+      "all_leads の行数 = HIGH+MEDIUM+LOW",
+      "with_instagram + without_instagram = all_leads",
+      "with_email + without_email = all_leads",
+      "業種別CSVの行数合計 = all_leads",
+      "G1 の zip のバイト数と md5 が一致"
+    ],
+    "git": [
+      "git diff --stat",
+      "テスト件数の増分"
+    ],
+    "rule": "数字が一致しなければ完了とは言わない"
+  },
+  "stop_conditions": [
+    "課金・カード登録が必要になった",
+    "ログイン・CAPTCHA が必要になった",
+    "robots.txt または利用規約で自動取得が禁止されていると分かった",
+    "スコア閾値やガードを緩める必要が出た",
+    "system_marketplace.zip に影響する操作が必要になった"
+  ],
+  "decided": {
+    "Q1_primary_source": "option 2",
+    "Q2_score_calibration": "option 1（閾値は変更しない）",
+    "Q3_real_estate_unknown_site": "option 1: 宅建業者（HP状態UNKNOWN）はスコアとは別枠の data/output/phone_call_targets.csv に小規模（従事者数の少ない）順で出力。閾値70/50は変更しない",
+    "Q4_stage_1000": "option 1: 1,000件テストへ進む",
+    "Q5_instagram_precision_first": "option 1",
+    "Q6_exclude_chain_large": "チェーン・大手は営業対象から除外し data/output/excluded_chain_large.csv に分離（削除はしない）",
+    "Q7_paid_api": "option 1: 使わない",
+    "Q8_industry_focus": "工務店・介護・不動産（美容・飲食は対象外）",
+    "Q9_zeh_scope": "option 1: 営業エリア3都道府県以内の地元工務店",
+    "Q10_meta_api": "option 1: 使わない（Platform Terms 3.a(v)・Developer Policies 5 と営業DM用途が衝突するおそれ）。確認は人の目視",
+    "Q11_instagram_goal": "Instagramアカウント最低1,000件。対象地域を全国へ拡大（工務店から）"
+  },
+  "website_status_values": {
+    "NONE": "公開データと巡回の両方でURLなし（存在しないことの証明ではない）",
+    "OLD/BASIC/AVERAGE/GOOD/EXCELLENT": "品質点 0-25/26-45/46-65/66-85/86-100",
+    "UNKNOWN": "URL項目を持たない取得元、または robots.txt で取得不可",
+    "UNREACHABLE": "URLはあるが接続不可・HTTP 4xx"
+  },
+  "stage_plan": {
+    "mix": "不動産30%（7都県に均等配分、一覧ページを等間隔に選び各15件）/ 歯科25% / クリニック25% / 介護20%（累計目標。既存分を数える）",
+    "100": "完了（実測: 候補100、電話あり82、HIGH 6、DM対象0）",
+    "1000": "実行",
+    "10000": "1000件の検収後に user 裁定"
+  },
+  "findings_100": {
+    "instagram_dm_targets": 0,
+    "reason": "Instagram 7件はすべて公式サイトが GOOD/EXCELLENT/AVERAGE で score<50",
+    "care_phone_site_match": "4/17（サイトは本部番号が多い → 公的データの番号を優先）",
+    "bugs_fixed": [
+      "URL中のUnicodeハイフン",
+      "robots.txt接続失敗をUNREACHABLEに分類"
+    ]
+  },
+  "findings_1000_bugs": {
+    "takken_paging": "selectPage に検索条件を送らず各県1ページ目しか取れなかった（124/300）→ 修正・回帰テスト追加",
+    "instagram_merge": "チェーン共通Instagramで支店11件を誤統合 → 取消（repair-merges、DELETE不使用、バックアップ data/leads_backup_before_unmerge.db）"
+  },
+  "exclusion_rules": {
+    "chain_facilities": "同一法人が関東で5施設以上（S1=法人番号 / S2=正式名称の法人部分）",
+    "large_staff": "宅建業者の総従事者数30人以上",
+    "shared_domain": "サンプル内で同一ドメイン10件以上（共有プラットフォーム除く）",
+    "shared_instagram": "サンプル内で同一Instagram5件以上",
+    "note": "閾値は1,000件テストの分布から置いた初期値（推測）。調整可能"
+  },
+  "region": {
+    "scope": "関東 + 全国（S5 工務店のみ全国。S1/S2/S4 は関東のまま）",
+    "reason": "Instagram 1,000件目標"
+  }
+}
