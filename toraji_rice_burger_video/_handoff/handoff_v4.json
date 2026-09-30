@@ -1,0 +1,154 @@
+{
+ "handoff_version": "v4",
+ "lineage": {
+  "replaces": "handoff_v3.json",
+  "changes": [
+   "声を ElevenLabs Luna（Higgsfield text2speech_v2, 1.08倍速）に変更。全40セリフ",
+   "S13『裏返したら』→『ひっくり返したら』、S15『電子レンジで』→『レンジで』（読み間違い対策）",
+   "本編 3:50.6（声がゆっくりになり+48秒）、11チャプター。本編はcrf22で73.7MBに再圧縮",
+   "ミックス：声の間のBGMダッキングを-14dB相当に、効果音も声の間は-45%",
+   "render_video.py --voice <name>（既定 elevenlabs）",
+   "アカウント残高の大幅減（約362）は本セッション外の生成（Seedance 2.0×2, Gemini Omni, Image to 3D, GPT Image, Upscale）と確認しユーザーに報告"
+  ],
+  "note": "前版は削除しない"
+ },
+ "created": "2026-09-30",
+ "project": "toraji_rice_burger_video（YouTubeレシピ動画：トラジライスバーガー・スペシャル）",
+ "repo": {
+  "name": "yoshikingex/-",
+  "branch": "claude/recipe-video-production-7d8r1d",
+  "project_dir": "toraji_rice_burger_video/",
+  "last_commit_before_this_handoff": "4c8ca15"
+ },
+ "roles": {
+  "user": "司令塔の判断・実機確認",
+  "claude": "実測・実装・生成の実行"
+ },
+ "decisions": {
+  "host": "ソア（焼肉トラジの看板娘）。1枚目の写真の女性",
+  "shortcut_route": "採用（S14〜S16 市販品トラジライスバーガー・スペシャル）",
+  "voice": "ElevenLabs Luna ×1.08（Whisper一致率: 全31行 92.6% vs Kokoro 91.4%／声のみ連結 90.8% vs 86.5%）",
+  "voice_rejected": {
+   "sbv2_amitaro_koharune": "規約で『あみたろ以外の人の声として扱う』ことが禁止のため不使用",
+   "edge_tts": "WebSocketがプロキシ非対応（回避禁止）"
+  },
+  "latest_request": "写真（静止画）を基本使わず、全シーンを動画クリップで作ってつなげる。Higgsfieldは200クレジット以内",
+  "budget_credits": 200,
+  "retry_reserve": "15%（モデル選定は170以内）",
+  "host_consent": "ユーザー確認済み（2026-09-30、回答『1』：本人・所属先・トラジの許可あり）。ソアのクリップ3本も生成する"
+ },
+ "done": {
+  "v1_image_based": {
+   "main": "output/toraji_rice_burger_main_1080p.mp4 3:02.5 1920x1080 30fps -14.7LUFS",
+   "shorts": "output/toraji_rice_burger_shorts_1080x1920.mp4 27.8s",
+   "thumbnails": "output/thumbnail_A/B/C.jpg",
+   "artifact_preview": "https://claude.ai/artifact/BgspahjPXdJ9BXEaXqEiKt（非公開・スマホ試写）"
+  },
+  "clip_pipeline": {
+   "generator": "tools/hf_generate.py（prepare/estimate/run/status、予算ハードキャップ、Idempotency-Key、失敗は課金なし扱い）",
+   "renderer": "tools/render_video.py main|shorts --clips work/clips → *_clips.mp4",
+   "verified": "ダミークリップ30本でショートを書き出し、各場面でフレームが変化（平均差20〜33）＝動画として使われることを確認。テスト出力は削除済み"
+  },
+  "clip_count": 30,
+  "clip_seconds_total_if_kling3_turbo": 127,
+  "v2_clip_based": {
+   "main": "output/toraji_rice_burger_main_1080p_clips.mp4 3:02.5 1920x1080 30fps -14.9LUFS 82.7MB",
+   "shorts": "output/toraji_rice_burger_shorts_1080x1920_clips.mp4 27.8s -14.5LUFS",
+   "clips": "assets/clips_hailuo/（30本＋generation_log.json）",
+   "credits_used": 140,
+   "balance_after": 1972,
+   "artifact_preview": "https://claude.ai/artifact/BgspahjPXdJ9BXEaXqEiKt（v2・全シーン動画版を上に、旧版は折りたたみ）",
+   "fixes": {
+    "sb22_02": "『トフジ』崩れ→パッケージ全体入力で再生成",
+    "sb22_05": "テスト版（ピンク過多）→本番版",
+    "sb22_21": "0〜2.6秒のみ使用(clip_trim)"
+   }
+  },
+  "v3_elevenlabs_voice": {
+   "main": "output/toraji_rice_burger_main_1080p_clips.mp4 3:50.57 1920x1080 -13.4LUFS 73.7MB",
+   "shorts": "output/toraji_rice_burger_shorts_1080x1920_clips.mp4 36.77s -12.7LUFS",
+   "voice_files": "assets/voice_elevenlabs/*.flac（40本）",
+   "credits": {
+    "hailuo_clips": 140,
+    "elevenlabs_voice": 10.8,
+    "project_total": 150.8,
+    "budget": 200
+   },
+   "mix_intelligibility": "声のみ89.1% / BGM入り86.1%（同タイミング・60秒）",
+   "artifact": "v3"
+  }
+ },
+ "higgsfield_api_facts": {
+  "base": "https://api.higgsfield.ai",
+  "auth": "Authorization: Key ${HF_API_KEY_ID}:${HF_API_KEY_SECRET}",
+  "upload": "POST /files/generate-upload-url → PUT upload_url（認証ヘッダなし）→ public_url を image_url に",
+  "estimate": "POST /estimate/<model path>（同じbody）→ {credits, usd}",
+  "status": "status_url をポーリング。completed で video.url",
+  "billing": "failed/nsfw は課金なし。出力は最低7日保持",
+  "concurrency": "上限超過は 400 'Maximum number of concurrent requests'",
+  "candidates_in_priority": [
+   "kling-video/v3.0-turbo/image-to-video",
+   "bytedance/seedance-2.0/image-to-video",
+   "kling-video/v2.5-turbo/standard/image-to-video",
+   "minimax/hailuo-2.3/standard/image-to-video",
+   "wan/v2.6/image-to-video",
+   "pixverse/v6/image-to-video",
+   "lightricks/ltx-2.5/image-to-video/fast"
+  ],
+  "credit_cost_per_clip": "未確定（見積もりAPIで要実測）"
+ },
+ "blocked_on": null,
+ "next_steps_in_new_session": [
+  "（任意）気になる場面・セリフだけ作り直し（1クリップ4〜6cr、1セリフ0.15〜0.3cr）",
+  "YouTube投稿：docs/07_youtube_upload.md"
+ ],
+ "stop_conditions": [
+  "追加生成でプロジェクト累計が200クレジットを超える（現在 約151）"
+ ],
+ "open_issues": [
+  "【推測】『ソア』は音声認識で『ソワ』と取られることがある",
+  "work/ はGit管理外（クリップ本体は assets/clips_hailuo に保存済み）"
+ ],
+ "measured": {
+  "voice_whisper_mean": {
+   "kokoro": 0.914,
+   "sbv2_jvnv_f1": 0.89
+  },
+  "mix_intelligibility_first60s": 0.896,
+  "main_loudness_lufs": -14.7
+ },
+ "key_file_sizes": {
+  "tools/scenes.json": 18042,
+  "tools/hf_generate.py": 14668,
+  "tools/render_video.py": 26762,
+  "tools/tts_voice.py": 3791,
+  "tools/make_audio.py": 8526,
+  "tools/upscale_panels.py": 1572,
+  "tools/build_docs.py": 6740,
+  "docs/08_video_clips_higgsfield.md": 4647,
+  "README.md": 6816,
+  "requirements.txt": 533,
+  "output/toraji_rice_burger_main_1080p.mp4": 61317313,
+  "output/toraji_rice_burger_shorts_1080x1920.mp4": 10023267,
+  "output/timings.json": 5306,
+  "output/toraji_rice_burger_main_1080p_clips.mp4": 73676046,
+  "output/toraji_rice_burger_shorts_1080x1920_clips.mp4": 18970505,
+  "assets/clips_hailuo/generation_log.json": 15676,
+  "assets/voice_elevenlabs/README.md": 671
+ },
+ "secrets_note": "APIキー等の秘密情報はこのJSON・リポジトリに含めない（環境変数のみ）",
+ "higgsfield_mcp_facts": {
+  "costs_get_cost": {
+   "minimax_hailuo 2.3-fast 6s 768": 4,
+   "minimax_hailuo 2.3 6s 768": 6,
+   "seedance_2_0_mini 4s": 4,
+   "kling3_0 std 3s sound off": 4.5,
+   "kling3_0_turbo 3s": 4.5,
+   "veo3_1_lite 4s": 6,
+   "wan2_7 2s": 3
+  },
+  "gotcha": "batchで『Preset ○○ was recommended』と未送信になることがある→ declined_preset_id を付けて再送（未送信は課金なし）",
+  "upload": "media_upload(20件)→presigned PUT→media_confirm。20件指定にすると結果が大きくファイル保存される"
+ },
+ "account_note": "残高 1972→1599.2。うち本セッションは約10.8（Voiceover）。残り約362は本セッション外の生成（ユーザーに確認依頼済み）"
+}

@@ -39,7 +39,8 @@ S = min(W, H) / 720      # 文字サイズの倍率（720px基準で設計）
 CLIP_DIR = Path(sys.argv[sys.argv.index("--clips") + 1]) if "--clips" in sys.argv else None
 if CLIP_DIR is not None and not CLIP_DIR.is_absolute():
     CLIP_DIR = ROOT / CLIP_DIR
-VOICE_DIR = WORK / "voice_kokoro"
+# ナレーション: --voice <名前> で work/voice_<名前>/ を使う（既定 elevenlabs＝Luna×1.08、旧版は kokoro）
+VOICE_DIR = WORK / f"voice_{sys.argv[sys.argv.index('--voice') + 1] if '--voice' in sys.argv else 'elevenlabs'}"
 
 DELA = str(A / "fonts" / "DelaGothicOne.ttf")
 NOTO = str(A / "fonts" / "NotoSansJP.ttf")
@@ -257,7 +258,7 @@ def special_layer(kind, sid):
             lay.alpha_composite(t, ((W - t.width) // 2, int(70 * S)))
             nx = text_img("次はこちら ▶", noto(34), YELLOW, int(7 * S))
             lay.alpha_composite(nx, (int(120 * S), int(170 * S)))
-            cr = text_img("音声：Kokoro-82M（Apache-2.0）／BGM・効果音：オリジナル", noto(16, "Bold"), (230, 230, 230), int(3 * S))
+            cr = text_img("音声：ElevenLabs（Higgsfield経由）／BGM・効果音：オリジナル", noto(16, "Bold"), (230, 230, 230), int(3 * S))
             lay.alpha_composite(cr, (W - cr.width - int(24 * S), H - cr.height - int(16 * S)))
     return lay
 
@@ -499,11 +500,12 @@ def mix_audio(items, total):
     e = np.array([np.abs(voice[i:i + hop]).max() if i < n else 0 for i in range(0, n, hop)])
     act = (e > 0.02).astype(float)
     act = np.convolve(act, np.ones(9) / 9, "same")
-    duck = np.repeat(1.0 - 0.62 * np.clip(act * 1.5, 0, 1), hop)[:n]
+    act_s = np.repeat(np.clip(act * 1.5, 0, 1), hop)[:n]
+    duck = 1.0 - 0.80 * act_s          # 声の間はBGMを約-14dBまで下げる（ElevenLabsの声がBGMに埋もれないよう深めに）
     fade_in = np.minimum(1, np.arange(n) / (0.8 * SR))
     fade_out = np.clip((total - np.arange(n) / SR) / 2.5, 0, 1)
     bg = bg * 0.30 * duck * fade_in * fade_out
-    mix = voice * 1.0 + fx * 0.8 + bg
+    mix = voice * 1.0 + fx * 0.8 * (1.0 - 0.45 * act_s) + bg   # 効果音も声の間は少し下げる
     mix = np.tanh(mix * 1.1) / np.tanh(1.1)          # ソフトリミッター
     mix = mix / max(np.abs(mix).max(), 1e-6) * 0.89   # ピーク -1dB
     path = WORK / f"mix_{MODE}.wav"

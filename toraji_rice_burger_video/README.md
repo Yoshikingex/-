@@ -7,8 +7,10 @@
 
 | ファイル | 中身 | 仕様 |
 |---|---|---|
-| `output/toraji_rice_burger_main_1080p.mp4` | **本編** 31シーン・9チャプター・終了画面20秒 | 3分3秒／1920×1080／30fps／音量 −14.7 LUFS |
-| `output/toraji_rice_burger_shorts_1080x1920.mp4` | **ショート**（本編への誘導） | 28秒／1080×1920／30fps |
+| `output/toraji_rice_burger_main_1080p_clips.mp4` | **本編（最新）** 全シーンAI動画・声 ElevenLabs Luna・11チャプター・終了画面20秒 | 3分51秒／1920×1080／30fps／−13.4 LUFS |
+| `output/toraji_rice_burger_main_1080p.mp4` | 旧版（写真ズーム・声 Kokoro） | 3分3秒 |
+| `output/toraji_rice_burger_shorts_1080x1920_clips.mp4` | **ショート（最新）** | 37秒／1080×1920／30fps |
+| `output/toraji_rice_burger_shorts_1080x1920.mp4` | 旧版ショート | 28秒 |
 | `output/thumbnail_A.jpg`・`B`・`C` | サムネ3案（「テストと比較」用。本命はA） | 1280×720／各約0.3MB |
 | `output/subtitles_ja.srt`／`subtitles_ja_shorts.srt` | 日本語字幕（完成版の尺） | SRT |
 | `output/youtube_chapters.txt` | 概要欄のチャプター | 9章（YouTubeの規定：各章10秒以上を満たす） |
@@ -20,7 +22,7 @@
 |---|---|---|
 | 料理の映像 | ストーリーボード2枚を34コマに切り出し → **Real-ESRGAN で4倍に高画質化** → ゆっくりズーム／パン・クロスフェード | BSD-3-Clause |
 | ソアちゃん | 1枚目の写真を切り抜き → 自己紹介・実食・エンディングに登場。料理カット中は右上に**声に合わせて弾む丸ワイプ** | − |
-| 声 | **Kokoro-82M の日本語女性ボイス jf_alpha**（明るい・やや高め）。候補を音声認識AIで聞き取り比較して選定（`docs/04_voice.md`） | Apache-2.0 |
+| 声 | **ElevenLabs「Luna」**（Higgsfield経由・1.08倍速）。候補を音声認識AIで比較して選定（`docs/04_voice.md`）。旧版は Kokoro-82M | ElevenLabs（Higgsfield） |
 | BGM・効果音 | プログラムで合成（明るいウクレレ風ポップ＋焼き音・ポン・キラーン等13種）。声の間はBGMを自動で下げる | オリジナル |
 | テロップ | Noto Sans JP／Dela Gothic One（白文字＋黒フチ、POINTは黄色、章ラベルは赤帯） | SIL OFL |
 
