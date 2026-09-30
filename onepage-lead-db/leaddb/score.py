@@ -98,7 +98,7 @@ SELECT b.lead_id, b.industry, w.status AS website_status, w.quality_score, w.htt
        w.contact_form_found, w.reservation_found, w.copyright_year, w.domain,
        EXISTS(SELECT 1 FROM social_accounts s JOIN businesses g ON g.lead_id=s.lead_id
               WHERE (g.lead_id=b.lead_id OR g.merged_into=b.lead_id) AND s.platform='instagram'
-              AND s.confidence IN ('HIGH','MEDIUM')) AS instagram_found,
+              AND s.confidence IN ('CONFIRMED','HIGH','MEDIUM')) AS instagram_found,
        EXISTS(SELECT 1 FROM contacts c JOIN businesses g ON g.lead_id=c.lead_id
               WHERE (g.lead_id=b.lead_id OR g.merged_into=b.lead_id) AND c.kind='phone') AS phone_found,
        (w.domain IS NOT NULL AND (SELECT COUNT(*) FROM websites w2 JOIN businesses b2 ON b2.lead_id=w2.lead_id

@@ -7,6 +7,8 @@ from collections import Counter
 from . import config
 from . import normalize as N
 from .dedup import group_ids
+from .review import COLS as REVIEW_FIELDS
+from .review import lookup as review_lookup
 
 COLUMNS = ["lead_id", "business_name", "company_name", "industry", "sub_industry", "postal_code", "prefecture",
            "city", "address", "phone", "phone_found", "email", "email_found", "website_url", "website_found",
@@ -18,7 +20,7 @@ COLUMNS = ["lead_id", "business_name", "company_name", "industry", "sub_industry
            "data_confidence", "data_source", "source_url_1", "source_url_2", "source_url_3", "last_checked_at",
            "website_evidence", "staff_count", "recommended_dm_angle", "recommended_sample", "chain_size",
            "exclude_reason"]
-DM_COLUMNS = ["business_name", "industry", "prefecture", "city", "phone", "email", "website_url", "instagram_url",
+DM_COLUMNS = ["instagram_confidence", "business_name", "industry", "prefecture", "city", "phone", "email", "website_url", "instagram_url",
               "instagram_username", "web_need_score", "web_need_level", "website_status", "recommended_dm_angle",
               "recommended_sample"]
 REVIEW_COLUMNS = ["lead_id", "business_name", "industry", "prefecture", "city", "phone", "website_url", "website_status",
@@ -28,7 +30,8 @@ REVIEW_COLUMNS = ["lead_id", "business_name", "industry", "prefecture", "city", 
 CALL_COLUMNS = ["business_name", "industry", "sub_industry", "prefecture", "city", "address", "phone", "staff_count",
                 "website_status", "recommended_dm_angle", "recommended_sample", "data_source", "source_url_1"]
 PHONE_SOURCE_RANK = {"S4": 0, "S1": 0, "S2": 1, "S3": 2, "S8": 3}
-CONF_RANK = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+CONF_RANK = {"CONFIRMED": -1, "HIGH": 0, "MEDIUM": 1, "LOW": 2, "REJECTED": 3}
+IG_USABLE = {"CONFIRMED", "HIGH", "MEDIUM"}
 TF = {True: "TRUE", False: "FALSE"}
 
 
@@ -52,7 +55,7 @@ def build_rows(con):
         socials = con.execute(f"SELECT * FROM social_accounts WHERE lead_id IN ({q})", ids).fetchall()
         igs = sorted((s for s in socials if s["platform"] == "instagram"), key=lambda s: CONF_RANK.get(s["confidence"], 9))
         ig = igs[0] if igs else None
-        ig_ok = bool(ig) and ig["confidence"] in ("HIGH", "MEDIUM")
+        ig_ok = bool(ig) and ig["confidence"] in IG_USABLE
         fb = next((s["url"] for s in socials if s["platform"] == "facebook"), None)
         ln = next((s["url"] for s in socials if s["platform"] == "line"), None)
         sc = con.execute("SELECT * FROM scores WHERE lead_id=?", (lid,)).fetchone()
@@ -105,7 +108,8 @@ def _write(path, rows, cols):
 
 def dm_sort_key(r):
     order = {"NONE": 0, "OLD": 1, "BASIC": 2}
-    return (order.get(r["website_status"], 3), -(r["web_need_score"] or 0), r["lead_id"])
+    return (r.get("instagram_confidence") != "CONFIRMED", order.get(r["website_status"], 3),
+            -(r["web_need_score"] or 0), r["lead_id"])
 
 
 def export_all(con):
@@ -128,15 +132,21 @@ def export_all(con):
         "without_email.csv": _write(out / "without_email.csv", [r for r in leads if r["email_found"] != "TRUE"], COLUMNS),
         "missing_phone.csv": _write(out / "missing_phone.csv", [r for r in rows if r["phone_found"] != "TRUE"], COLUMNS),
     }
-    dm = sorted((r for r in leads if r["instagram_found"] == "TRUE" and r["instagram_confidence"] != "LOW"
+    dm = sorted((r for r in leads if r["instagram_found"] == "TRUE" and r["instagram_confidence"] in IG_USABLE
                  and (r["web_need_score"] or 0) >= 50), key=dm_sort_key)
     counts["instagram_dm_targets.csv"] = _write(out / "instagram_dm_targets.csv", dm, DM_COLUMNS)
     # Q1裁定: HP状態が確認できない宅建業者は、スコアとは別枠の電話営業リストにする（小規模順）
     calls = sorted((r for r in leads if r["industry"] == "real_estate" and r["website_status"] == "UNKNOWN"),
                    key=lambda r: (r["staff_count"] if r["staff_count"] is not None else 10 ** 6, r["lead_id"]))
     # Instagram の目視確認用（人がブラウザで見て記入する。プログラムは instagram.com にアクセスしない）
-    review = sorted((r for r in rows if r["instagram_username"]),
-                    key=lambda r: (CONF_RANK.get(r["instagram_confidence"], 9), -(r["web_need_score"] or 0), r["lead_id"]))
+    done = review_lookup(con)
+    review = []
+    for r in sorted((r for r in rows if r["instagram_username"]),
+                    key=lambda r: (CONF_RANK.get(r["instagram_confidence"], 9), -(r["web_need_score"] or 0), r["lead_id"])):
+        rv = done.get((r["lead_id"], r["instagram_username"]))
+        if rv:  # 記入済みの確認結果を引き継ぐ（再出力で消えないように）
+            r = dict(r, **{c: rv[k] for k, c in REVIEW_FIELDS.items()})
+        review.append(r)
     counts["instagram_review.csv"] = _write(out / "instagram_review.csv", review, REVIEW_COLUMNS)
     counts["phone_call_targets.csv"] = _write(out / "phone_call_targets.csv", calls, CALL_COLUMNS)
     for ind in sorted({r["industry"] for r in leads}):

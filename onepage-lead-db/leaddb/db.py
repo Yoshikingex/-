@@ -56,6 +56,11 @@ CREATE TABLE IF NOT EXISTS http_cache (
   cache_key TEXT PRIMARY KEY, url TEXT, final_url TEXT, status INTEGER,
   content_type TEXT, body_path TEXT, fetched_at TEXT
 );
+CREATE TABLE IF NOT EXISTS ig_reviews (
+  lead_id TEXT NOT NULL, username TEXT NOT NULL,
+  is_business TEXT, is_owner TEXT, has_products TEXT, last_post_ym TEXT, dm_ok TEXT, memo TEXT, imported_at TEXT,
+  PRIMARY KEY (lead_id, username)
+);
 CREATE INDEX IF NOT EXISTS ix_contacts_value ON contacts(kind, value);
 CREATE INDEX IF NOT EXISTS ix_websites_domain ON websites(domain);
 """

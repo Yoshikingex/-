@@ -5,6 +5,7 @@
   crawl              未巡回の公式サイトを巡回（途中再開可）
   retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
   repair-merges      旧方式の統合（行を移していた）を取り消す一回限りの修復
+  import-review --file PATH   Instagram目視確認の記入済みCSVを取り込む（その後 finalize で反映）
   finalize           統合→採点→CSV出力→集計→ダッシュボード
   stats              集計をJSONで表示
 """
@@ -12,7 +13,7 @@ import argparse
 import json
 import logging
 
-from . import chains, config, crawl, db, dedup, export, igconf, score
+from . import chains, config, crawl, db, dedup, export, igconf, review, score
 from .fetch import Fetcher
 from .sources import opendata, takken
 
@@ -29,6 +30,7 @@ def stage_targets(n):
 def finalize(con):
     merged = dedup.run(con)
     ig = igconf.reclassify(con)
+    ig.update(review.apply(con))  # 人の確認結果は自動判定より優先
     excluded = chains.compute(con)
     scored = score.score_all(con)
     rows, counts = export.export_all(con)
@@ -46,6 +48,8 @@ def main(argv=None):
     sub.add_parser("crawl")
     sub.add_parser("retry-sites")
     sub.add_parser("repair-merges")
+    pr = sub.add_parser("import-review")
+    pr.add_argument("--file", required=True)
     sub.add_parser("finalize")
     sub.add_parser("stats")
     a = ap.parse_args(argv)
@@ -77,6 +81,8 @@ def main(argv=None):
     elif a.cmd == "repair-merges":
         from . import repair
         print(json.dumps(repair.unmerge_all(con), ensure_ascii=False))
+    elif a.cmd == "import-review":
+        print(json.dumps(review.import_file(con, a.file), ensure_ascii=False))
     elif a.cmd == "finalize":
         print(json.dumps(finalize(con), ensure_ascii=False, indent=1))
     elif a.cmd == "stats":

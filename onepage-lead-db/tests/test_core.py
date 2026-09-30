@@ -538,6 +538,63 @@ class ChainTest(DbTestBase):
         self.assertEqual(st["candidates_total"], st["excluded_chain_large"] + st["leads_with_phone"] + st["missing_phone"])
 
 
+class ReviewTest(DbTestBase):
+    def lead(self, key, user, score_status="OLD"):
+        lid = db.upsert_business(self.con, {"source_key": key, "business_name": key, "industry": "construction",
+                                            "prefecture": "埼玉県"})
+        db.add_contact(self.con, lid, "phone", "049" + str(abs(hash(key)))[:7], source_code="S1")
+        self.con.execute("INSERT INTO social_accounts (lead_id, platform, url, username, confidence, source) "
+                         "VALUES (?, 'instagram', ?, ?, 'MEDIUM', 'opendata_url')", (lid, f"https://www.instagram.com/{user}/", user))
+        self.con.execute("INSERT INTO websites (lead_id, status, quality_score, https_enabled, mobile_friendly, "
+                         "domain) VALUES (?, ?, 10, 0, 0, 'x.jp')", (lid, score_status))
+        self.con.commit()
+        return lid
+
+    def write_csv(self, rows, enc="cp932"):
+        from leaddb import review
+        path = Path(self.tmp.name) / "filled.csv"
+        cols = ["lead_id", "instagram_username"] + list(review.COLS.values())
+        with open(path, "w", encoding=enc, newline="") as f:
+            w = __import__("csv").writer(f)
+            w.writerow(cols)
+            w.writerows(rows)
+        return path
+
+    def test_yn_and_verdict(self):
+        from leaddb import review as R
+        self.assertEqual([R.yn(x) for x in ("Y", "はい", "○", "n", "×", "", "たぶん")], ["Y", "Y", "Y", "N", "N", None, None])
+        self.assertEqual(R.verdict({"dm_ok": "Y", "is_business": "N", "is_owner": "Y"}), "CONFIRMED")
+        self.assertEqual(R.verdict({"dm_ok": "N", "is_business": "Y", "is_owner": "Y"}), "REJECTED")
+        self.assertEqual(R.verdict({"dm_ok": None, "is_business": "N", "is_owner": None}), "REJECTED")
+        self.assertIsNone(R.verdict({"dm_ok": None, "is_business": "Y", "is_owner": None}))
+
+    def test_import_apply_export_roundtrip(self):
+        from leaddb import review, config as C
+        a = self.lead("S9:a", "koumuten_a")
+        b = self.lead("S9:b", "koumuten_b")
+        c = self.lead("S9:c", "koumuten_c")
+        path = self.write_csv([[a, "koumuten_a", "Y", "Y", "Y", "2026/8", "Y", "社長本人"],
+                               [b, "koumuten_b", "N", "", "", "", "", ""],
+                               [c, "koumuten_c", "", "", "", "", "", ""],
+                               ["L9999999", "nobody", "Y", "", "", "", "Y", ""]])
+        st = review.import_file(self.con, path)
+        self.assertEqual(st, {"rows": 4, "imported": 2, "skipped_blank": 1, "unknown_lead": 1})
+        self.assertEqual(review.apply(self.con), {"CONFIRMED": 1, "REJECTED": 1})
+        score.score_all(self.con)
+        with mock.patch.object(C, "OUT", Path(self.tmp.name) / "out"):
+            rows, counts = export.export_all(self.con)
+            dm = list(__import__("csv").DictReader(open(Path(self.tmp.name) / "out" / "instagram_dm_targets.csv",
+                                                        encoding="utf-8-sig")))
+            rv = list(__import__("csv").DictReader(open(Path(self.tmp.name) / "out" / "instagram_review.csv",
+                                                        encoding="utf-8-sig")))
+        self.assertEqual([r["instagram_username"] for r in dm][0], "koumuten_a")   # 確認済みが先頭
+        self.assertNotIn("koumuten_b", [r["instagram_username"] for r in dm])     # 却下は除外
+        got = {r["instagram_username"]: r for r in rv}
+        self.assertEqual(got["koumuten_a"]["確認_最終投稿年月"], "2026-08")       # 記入内容を引き継ぐ
+        self.assertEqual(got["koumuten_a"]["メモ"], "社長本人")
+        self.assertEqual(got["koumuten_b"]["instagram_confidence"], "REJECTED")
+
+
 class MigrationTest(unittest.TestCase):
     def test_adds_columns_to_old_db(self):
         with tempfile.TemporaryDirectory() as t:
