@@ -6,6 +6,7 @@ from collections import Counter
 
 from . import config
 from . import normalize as N
+from .dedup import group_ids
 
 COLUMNS = ["lead_id", "business_name", "company_name", "industry", "sub_industry", "postal_code", "prefecture",
            "city", "address", "phone", "phone_found", "email", "email_found", "website_url", "website_found",
@@ -34,21 +35,23 @@ def build_rows(con):
     rows = []
     for b in con.execute("SELECT * FROM businesses WHERE merged_into IS NULL ORDER BY lead_id").fetchall():
         lid = b["lead_id"]
-        phones = sorted(con.execute("SELECT * FROM contacts WHERE lead_id=? AND kind='phone'", (lid,)).fetchall(),
+        ids = group_ids(con, lid)
+        q = ",".join("?" * len(ids))
+        phones = sorted(con.execute(f"SELECT * FROM contacts WHERE lead_id IN ({q}) AND kind='phone'", ids).fetchall(),
                         key=lambda c: PHONE_SOURCE_RANK.get(c["source_code"], 9))
         w = con.execute("SELECT * FROM websites WHERE lead_id=?", (lid,)).fetchone()
         dom = w["domain"] if w else None
         emails = sorted((c["value"] for c in con.execute(
-            "SELECT value FROM contacts WHERE lead_id=? AND kind='email' AND email_personal_suspect=0", (lid,))),
+            f"SELECT value FROM contacts WHERE lead_id IN ({q}) AND kind='email' AND email_personal_suspect=0", ids)),
             key=lambda e: N.email_rank(e, dom))
-        socials = con.execute("SELECT * FROM social_accounts WHERE lead_id=?", (lid,)).fetchall()
+        socials = con.execute(f"SELECT * FROM social_accounts WHERE lead_id IN ({q})", ids).fetchall()
         igs = sorted((s for s in socials if s["platform"] == "instagram"), key=lambda s: CONF_RANK.get(s["confidence"], 9))
         ig = igs[0] if igs else None
         ig_ok = bool(ig) and ig["confidence"] in ("HIGH", "MEDIUM")
         fb = next((s["url"] for s in socials if s["platform"] == "facebook"), None)
         ln = next((s["url"] for s in socials if s["platform"] == "line"), None)
         sc = con.execute("SELECT * FROM scores WHERE lead_id=?", (lid,)).fetchone()
-        srcs = con.execute("SELECT source_code, source_url FROM sources WHERE lead_id=? ORDER BY id", (lid,)).fetchall()
+        srcs = con.execute(f"SELECT source_code, source_url FROM sources WHERE lead_id IN ({q}) ORDER BY id", ids).fetchall()
         status = w["status"] if w else "UNKNOWN"
         website_found = {"NONE": False, "UNKNOWN": None}.get(status, True)
         rows.append({

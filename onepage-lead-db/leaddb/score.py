@@ -96,11 +96,16 @@ def compute(lead: dict, today: date = None) -> dict:
 LEAD_SQL = """
 SELECT b.lead_id, b.industry, w.status AS website_status, w.quality_score, w.https_enabled, w.mobile_friendly,
        w.contact_form_found, w.reservation_found, w.copyright_year, w.domain,
-       EXISTS(SELECT 1 FROM social_accounts s WHERE s.lead_id=b.lead_id AND s.platform='instagram'
+       EXISTS(SELECT 1 FROM social_accounts s JOIN businesses g ON g.lead_id=s.lead_id
+              WHERE (g.lead_id=b.lead_id OR g.merged_into=b.lead_id) AND s.platform='instagram'
               AND s.confidence IN ('HIGH','MEDIUM')) AS instagram_found,
-       EXISTS(SELECT 1 FROM contacts c WHERE c.lead_id=b.lead_id AND c.kind='phone') AS phone_found,
+       EXISTS(SELECT 1 FROM contacts c JOIN businesses g ON g.lead_id=c.lead_id
+              WHERE (g.lead_id=b.lead_id OR g.merged_into=b.lead_id) AND c.kind='phone') AS phone_found,
        (w.domain IS NOT NULL AND (SELECT COUNT(*) FROM websites w2 JOIN businesses b2 ON b2.lead_id=w2.lead_id
-            WHERE w2.domain=w.domain AND b2.merged_into IS NULL) >= 10) AS chain
+            WHERE w2.domain=w.domain AND b2.merged_into IS NULL) >= 10) AS chain_domain,
+       EXISTS(SELECT 1 FROM social_accounts s WHERE s.lead_id=b.lead_id AND s.platform='instagram'
+            AND (SELECT COUNT(DISTINCT s2.lead_id) FROM social_accounts s2 JOIN businesses b3 ON b3.lead_id=s2.lead_id
+                 WHERE s2.platform='instagram' AND s2.username=s.username AND b3.merged_into IS NULL) >= 5) AS chain_ig
 FROM businesses b LEFT JOIN websites w ON w.lead_id=b.lead_id
 WHERE b.merged_into IS NULL
 """
@@ -111,8 +116,9 @@ def score_all(con) -> int:
     n = 0
     for r in con.execute(LEAD_SQL).fetchall():
         lead = dict(r)
-        if N.is_portal(lead.get("domain")) or N.is_free_site(lead.get("domain")):
-            lead["chain"] = False  # 共有プラットフォームはチェーン扱いしない
+        shared_platform = N.is_portal(lead.get("domain")) or N.is_free_site(lead.get("domain"))
+        # 同じドメインを10件以上（共有プラットフォームは除く）または同じInstagramを5件以上が共有 → チェーン
+        lead["chain"] = bool(lead.pop("chain_domain") and not shared_platform) or bool(lead.pop("chain_ig"))
         s = compute(lead)
         con.execute("INSERT OR REPLACE INTO scores VALUES (?,?,?,?,?,?,?,?,?,?)",
                     (r["lead_id"], s["web_need_score"], s["web_need_level"], s["reason_1"], s["reason_2"],

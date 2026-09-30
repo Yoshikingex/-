@@ -4,6 +4,7 @@
                      配分: 不動産30%（7都県に均等）/ 歯科25% / クリニック25% / 介護20%
   crawl              未巡回の公式サイトを巡回（途中再開可）
   retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
+  repair-merges      旧方式の統合（行を移していた）を取り消す一回限りの修復
   finalize           統合→採点→CSV出力→集計→ダッシュボード
   stats              集計をJSONで表示
 """
@@ -41,6 +42,7 @@ def main(argv=None):
     p.add_argument("--n", type=int, default=100)
     sub.add_parser("crawl")
     sub.add_parser("retry-sites")
+    sub.add_parser("repair-merges")
     sub.add_parser("finalize")
     sub.add_parser("stats")
     a = ap.parse_args(argv)
@@ -69,6 +71,9 @@ def main(argv=None):
         print(json.dumps({"crawled": crawl.crawl_all(con, f), "fetch": f.stats}, ensure_ascii=False))
     elif a.cmd == "retry-sites":
         print(json.dumps({"reset": crawl.retry_sites(con)}, ensure_ascii=False))
+    elif a.cmd == "repair-merges":
+        from . import repair
+        print(json.dumps(repair.unmerge_all(con), ensure_ascii=False))
     elif a.cmd == "finalize":
         print(json.dumps(finalize(con), ensure_ascii=False, indent=1))
     elif a.cmd == "stats":

@@ -246,13 +246,47 @@ class DedupTest(DbTestBase):
         conf = self.con.execute("SELECT data_confidence FROM businesses WHERE lead_id=?", (a,)).fetchone()[0]
         self.assertEqual(conf, "HIGH")
 
-    def test_instagram_merge(self):
-        a = self.biz("S1:1", "A", "埼玉県1")
-        b = self.biz("S2:1", "B", "埼玉県2")
-        for lid in (a, b):
-            self.con.execute("INSERT INTO social_accounts (lead_id, platform, username, confidence) VALUES (?,?,?,?)",
-                             (lid, "instagram", "same_user", "HIGH"))
+    def _ig(self, lid, user="same_user"):
+        self.con.execute("INSERT INTO social_accounts (lead_id, platform, username, confidence) VALUES (?,?,?,?)",
+                         (lid, "instagram", user, "HIGH"))
+
+    def test_instagram_chain_branches_not_merged(self):
+        a = self.biz("S1:1", "ツクイ練馬春日町", "東京都練馬区春日町2-9-33")
+        b = self.biz("S1:2", "ツクイ恋ヶ窪", "東京都国分寺市西恋ヶ窪3-6-10")
+        self._ig(a); self._ig(b)
+        self.assertEqual(dedup.run(self.con), 0)
+
+    def test_instagram_same_entity_merged_without_moving_rows(self):
+        a = self.biz("S1:1", "みどり苑", "埼玉県川越市1-1", "049-111-2222", "S1")
+        b = self.biz("S2:1", "みどり苑", "埼玉県川越市9-9", None, "S2")
+        self._ig(a); self._ig(b)
+        db.add_contact(self.con, b, "email", "info@midori.jp", source_code="S8")
         self.assertEqual(dedup.run(self.con), 1)
+        # 子の行はそのまま（取り消し可能）で、出力ではまとめて見える
+        self.assertEqual(self.con.execute("SELECT lead_id FROM contacts WHERE kind='email'").fetchone()[0], b)
+        self.assertEqual(dedup.group_ids(self.con, a), [a, b])
+        rows = [r for r in export.build_rows(self.con) if r["lead_id"] == a]
+        self.assertEqual(rows[0]["email"], "info@midori.jp")
+        self.assertEqual(rows[0]["phone"], "049-111-2222")
+
+    def test_merge_depth_one(self):
+        a = self.biz("S1:1", "A", "埼玉県1")
+        b = self.biz("S1:2", "B", "埼玉県2")
+        c = self.biz("S1:3", "C", "埼玉県3")
+        dedup._merge(self.con, b, c)
+        dedup._merge(self.con, a, b)
+        self.assertEqual({r[0] for r in self.con.execute("SELECT merged_into FROM businesses WHERE merged_into IS NOT NULL")}, {a})
+
+    def test_instagram_shared_by_5_is_chain(self):
+        ids = [self.biz(f"S1:{i}", f"店{i}", f"埼玉県{i}", f"049-111-{2220 + i}") for i in range(5)]
+        for i in ids:
+            self._ig(i, "chain_hq")
+            self.con.execute("INSERT INTO websites (lead_id, status, quality_score, https_enabled, mobile_friendly) "
+                             "VALUES (?, 'OLD', 10, 0, 0)", (i,))
+        score.score_all(self.con)
+        got = {r[0] for r in self.con.execute("SELECT web_need_score FROM scores")}
+        # OLD20+スマホ15+SSL15+極端に古い10+導線なし10+IG&OLD10-チェーン15 = 65（care は非ビジュアル業種）
+        self.assertEqual(got, {65})
 
 
 class JobResumeTest(DbTestBase):
