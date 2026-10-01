@@ -72,7 +72,7 @@ def now() -> str:
 
 def connect(path) -> sqlite3.Connection:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(str(path), timeout=30)
+    con = sqlite3.connect(str(path), timeout=120)  # 並列巡回の書き込み待ちに余裕を持たせる
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA journal_mode=WAL")
     con.executescript(SCHEMA)

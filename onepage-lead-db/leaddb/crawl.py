@@ -1,12 +1,15 @@
 """P4/P5/P6: 公式サイトの巡回（最大3ページ）と抽出結果の保存。"""
 import logging
+import queue
+import threading
+import time
 
 import requests
 
 from . import config, db
 from . import extract as X
 from . import normalize as N
-from .fetch import GuardViolation, RobotsUnreachable
+from .fetch import Fetcher, GuardViolation, RobotsUnreachable
 
 log = logging.getLogger("leaddb.crawl")
 
@@ -95,23 +98,82 @@ def crawl_one(con, fetcher, lead_id, seed_url):
     return q["status"]
 
 
-def crawl_all(con, fetcher, limit=None):
-    """未巡回の事業者を巡回。ジョブ単位で状態を残すので途中停止しても続きから再開できる。"""
-    rows = con.execute("SELECT b.lead_id, b.seed_website_url FROM businesses b "
+def _pending(con):
+    return con.execute("SELECT b.lead_id, b.seed_website_url FROM businesses b "
                        "LEFT JOIN crawl_jobs j ON j.kind='site' AND j.key=b.lead_id "
                        "WHERE b.merged_into IS NULL AND b.industry != 'real_estate' "
                        "AND (j.status IS NULL OR j.status IN ('PENDING','RUNNING')) "
                        "ORDER BY b.lead_id").fetchall()
+
+
+def instagram_leads(con) -> int:
+    return con.execute("SELECT COUNT(DISTINCT lead_id) FROM social_accounts WHERE platform='instagram'").fetchone()[0]
+
+
+def _run_one(con, fetcher, lead_id, seed):
+    db.set_job(con, "site", lead_id, "RUNNING")
+    try:
+        st = crawl_one(con, fetcher, lead_id, seed)
+        con.commit()
+        db.set_job(con, "site", lead_id, "COMPLETE", st)
+    except Exception as e:  # noqa: BLE001
+        log.exception("crawl failed %s", lead_id)
+        con.rollback()
+        db.set_job(con, "site", lead_id, "FAILED", str(e)[:200])
+
+
+def crawl_all(con, fetcher, limit=None, workers=1, max_minutes=None, until_instagram=None, db_path=None):
+    """未巡回の事業者を巡回。ジョブ単位で状態を残すので途中停止しても続きから再開できる。
+    workers>1 のときは別々のホストを並列に巡回する（同じホストへは HostGate で同時1本・3秒間隔を維持）。
+    max_minutes / until_instagram に達したら新しいサイトの取得をやめて区切りよく終える。"""
+    rows = _pending(con)
+    rows = rows[:limit] if limit else rows
+    deadline = time.monotonic() + max_minutes * 60 if max_minutes else None
+
+    def should_stop(c):
+        if deadline and time.monotonic() > deadline:
+            return True
+        return bool(until_instagram) and instagram_leads(c) >= until_instagram
+
     done = 0
-    for r in rows[:limit] if limit else rows:
-        db.set_job(con, "site", r["lead_id"], "RUNNING")
-        try:
-            st = crawl_one(con, fetcher, r["lead_id"], r["seed_website_url"])
-            db.set_job(con, "site", r["lead_id"], "COMPLETE", st)
-        except Exception as e:  # noqa: BLE001
-            log.exception("crawl failed %s", r["lead_id"])
-            db.set_job(con, "site", r["lead_id"], "FAILED", str(e)[:200])
-        done += 1
+    if workers <= 1:
+        for r in rows:
+            if should_stop(con):
+                break
+            _run_one(con, fetcher, r["lead_id"], r["seed_website_url"])
+            done += 1
+    else:
+        q = queue.Queue()
+        for r in rows:
+            q.put((r["lead_id"], r["seed_website_url"]))
+        shared_robots = {"parsed": fetcher._robots, "unreachable": fetcher._robots_unreachable}
+        counter = {"done": 0}
+        lock = threading.Lock()
+
+        def worker():
+            wcon = db.connect(db_path or config.DB_PATH)
+            wf = Fetcher(wcon, interval=fetcher.interval, backoff=fetcher.backoff, gate=fetcher.gate, robots=shared_robots)
+            try:
+                while not should_stop(wcon):
+                    try:
+                        lead_id, seed = q.get_nowait()
+                    except queue.Empty:
+                        return
+                    _run_one(wcon, wf, lead_id, seed)
+                    with lock:
+                        counter["done"] += 1
+            finally:
+                with lock:
+                    for k, v in wf.stats.items():
+                        fetcher.stats[k] = fetcher.stats.get(k, 0) + v
+                wcon.close()
+
+        threads = [threading.Thread(target=worker, daemon=True) for _ in range(workers)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        done = counter["done"]
     # 宅建業者（S4）はURLを持たないため、サイト状態は UNKNOWN として記録（推測で NONE にしない）
     for r in con.execute("SELECT lead_id FROM businesses WHERE industry='real_estate' AND merged_into IS NULL "
                          "AND lead_id NOT IN (SELECT lead_id FROM websites)").fetchall():

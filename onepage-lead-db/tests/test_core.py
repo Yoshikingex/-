@@ -513,14 +513,16 @@ class ChainTest(DbTestBase):
     def test_rules(self):
         from leaddb import chains
         self.add("S1:a", corporate_number="111")
-        self.add("S1:b", corporate_number="222")          # 関東では4施設 → 対象のまま
+        self.add("S1:b", corporate_number="222")          # 関東4＋大阪3＝全国7施設 → 除外（全国で数える）
+        self.add("S1:c", corporate_number="333")          # 1施設 → 対象のまま
         self.add("S4:takken:1", staff_count=30)
         self.add("S4:takken:2", staff_count=29)
         self.con.commit()
-        self.assertEqual(chains.compute(self.con), 2)
+        self.assertEqual(chains.compute(self.con), 3)
         r = self.reasons()
-        self.assertIn("5施設", r["S1:a"])
-        self.assertIsNone(r["S1:b"])
+        self.assertIn("全国で5施設", r["S1:a"])
+        self.assertIn("全国で7施設", r["S1:b"])
+        self.assertIsNone(r["S1:c"])
         self.assertIn("30人", r["S4:takken:1"])
         self.assertIsNone(r["S4:takken:2"])
 
@@ -628,6 +630,70 @@ class ZehScopeTest(unittest.TestCase):
         self.assertEqual(len(zeh.select(rows, "kanto")), 1)
         self.assertEqual(len(zeh.select(rows, "nationwide")), 2)
         self.assertEqual(len(zeh.select(rows, "nationwide", max_areas=5)), 3)
+
+
+class HostGateTest(unittest.TestCase):
+    def test_same_host_serialized_and_spaced(self):
+        import threading, time as T
+        from leaddb.fetch import HostGate
+        g = HostGate(0.2)
+        log = []
+
+        def hit(h):
+            with g.slot(h):
+                log.append((h, T.monotonic()))
+        ts = [threading.Thread(target=hit, args=(h,)) for h in ("a.jp", "a.jp", "a.jp", "b.jp")]
+        t0 = T.monotonic()
+        for t in ts:
+            t.start()
+        for t in ts:
+            t.join()
+        a = sorted(t for h, t in log if h == "a.jp")
+        self.assertTrue(all(y - x >= 0.19 for x, y in zip(a, a[1:])))       # 同一ホストは間隔を守る
+        self.assertLess(min(t for h, t in log if h == "b.jp") - t0, 0.15)  # 別ホストは待たない
+
+
+class ParallelCrawlTest(DbTestBase):
+    def test_parallel_processes_each_once_and_stops(self):
+        from leaddb import crawl as C
+        path = Path(self.tmp.name) / "t.db"
+        for i in range(12):
+            db.upsert_business(self.con, {"source_key": f"S2:x:{i}", "business_name": f"b{i}", "industry": "dental",
+                                          "seed_website_url": f"https://s{i}.jp/"})
+        self.con.commit()
+        seen = []
+
+        def fake(con, fetcher, lead_id, seed):
+            seen.append(lead_id)
+            return "GOOD"
+        with mock.patch.object(C, "crawl_one", side_effect=fake):
+            f = Fetcher(self.con, interval=0, backoff=[0, 0, 0])
+            n = C.crawl_all(self.con, f, workers=4, db_path=path)
+        self.assertEqual((n, len(seen), len(set(seen))), (12, 12, 12))
+        st = {r[0] for r in self.con.execute("SELECT status FROM crawl_jobs WHERE kind='site'")}
+        self.assertEqual(st, {"COMPLETE"})
+        self.assertEqual(C.crawl_all(self.con, f, workers=4, db_path=path), 0)  # 再実行しても二重に巡回しない
+
+    def test_until_instagram_stops(self):
+        from leaddb import crawl as C
+        path = Path(self.tmp.name) / "t.db"
+        for i in range(5):
+            db.upsert_business(self.con, {"source_key": f"S2:y:{i}", "business_name": f"c{i}", "industry": "dental",
+                                          "seed_website_url": f"https://t{i}.jp/"})
+        self.con.execute("INSERT INTO social_accounts (lead_id, platform, username) VALUES ('Lx', 'instagram', 'u')")
+        self.con.commit()
+        with mock.patch.object(C, "crawl_one", return_value="GOOD"):
+            f = Fetcher(self.con, interval=0, backoff=[0, 0, 0])
+            self.assertEqual(C.crawl_all(self.con, f, until_instagram=1), 0)
+
+
+class OpendataScopeTest(unittest.TestCase):
+    def test_keep(self):
+        from leaddb.sources import opendata as O
+        self.assertFalse(O._keep({"URL": "x.jp"}, "kanto", False, "URL", "大阪府"))
+        self.assertTrue(O._keep({"URL": "x.jp"}, "nationwide", True, "URL", "大阪府"))
+        self.assertFalse(O._keep({"URL": ""}, "nationwide", True, "URL", "大阪府"))
+        self.assertTrue(O._keep({"URL": ""}, "kanto", False, "URL", "東京都"))
 
 
 class MigrationTest(unittest.TestCase):

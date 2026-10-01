@@ -3,7 +3,9 @@ import gzip
 import hashlib
 import logging
 import re
+import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from urllib import robotparser
 from urllib.parse import urlsplit
@@ -61,16 +63,42 @@ def check_guard(url: str) -> None:
         raise GuardViolation(f"forbidden url: {url}")
 
 
+class HostGate:
+    """ホスト単位の通行証（G6）: 同じホストへは同時に1本だけ、前回から interval 秒以上あけて送る。
+    並列巡回の各スレッドで共有する。"""
+
+    def __init__(self, interval):
+        self.interval = interval
+        self._lock = threading.Lock()
+        self._host_locks = {}
+        self._last = {}
+
+    @contextmanager
+    def slot(self, host):
+        with self._lock:
+            hl = self._host_locks.setdefault(host, threading.Lock())
+        with hl:
+            wait = self.interval - (time.monotonic() - self._last.get(host, -1e9))
+            if wait > 0:
+                time.sleep(wait)
+            try:
+                yield
+            finally:
+                self._last[host] = time.monotonic()
+
+
 class Fetcher:
-    def __init__(self, con, interval=None, backoff=None, session=None):
+    def __init__(self, con, interval=None, backoff=None, session=None, gate=None, robots=None):
         self.con = con
         self.interval = config.PER_HOST_INTERVAL if interval is None else interval
         self.backoff = config.BACKOFF if backoff is None else backoff
         self.s = session or requests.Session()
         self.s.headers.update({"User-Agent": config.USER_AGENT, "Accept-Language": "ja,en;q=0.5"})
-        self._last = {}
-        self._robots = {}
-        self._robots_unreachable = set()
+        self.gate = gate or HostGate(self.interval)
+        # robots.txt の解析結果は並列スレッド間で共有できる（dict の単純な読み書きのみ）
+        shared = robots if robots is not None else {"parsed": {}, "unreachable": set()}
+        self._robots = shared["parsed"]
+        self._robots_unreachable = shared["unreachable"]
         self.stats = {"network": 0, "cache": 0, "robots_block": 0, "errors": 0}
         config.CACHE.mkdir(parents=True, exist_ok=True)
 
@@ -129,13 +157,11 @@ class Fetcher:
         host = urlsplit(url).netloc
         last_err = None
         for attempt in range(config.MAX_RETRIES):
-            wait = self.interval - (time.monotonic() - self._last.get(host, -1e9))
-            if wait > 0:
-                time.sleep(wait)
-            self._last[host] = time.monotonic()
             try:
                 self.stats["network"] += 1
-                r = self._follow(method, url, data)
+                with self.gate.slot(host):
+                    r = self.s.request(method, url, data=data, timeout=config.TIMEOUT, allow_redirects=False)
+                r = self._follow(method, r, data)
                 if r.status_code in (429, 503) and attempt < config.MAX_RETRIES - 1:
                     log.warning("HTTP %s %s -> backoff %ss", r.status_code, url, self.backoff[attempt])
                     time.sleep(self.backoff[attempt])
@@ -154,9 +180,8 @@ class Fetcher:
                 time.sleep(min(self.backoff[attempt], config.CONN_RETRY_WAIT))
         raise last_err or requests.RequestException(f"failed: {url}")
 
-    def _follow(self, method, url, data, hops=5):
+    def _follow(self, method, r, data, hops=5):
         """リダイレクトを自前で辿り、遷移先ごとに G2/G3 と robots.txt を先に検査する。"""
-        r = self.s.request(method, url, data=data, timeout=config.TIMEOUT, allow_redirects=False)
         for _ in range(hops):
             if r.status_code not in (301, 302, 303, 307, 308) or "Location" not in r.headers:
                 return r
@@ -164,15 +189,11 @@ class Fetcher:
             check_guard(nxt)
             if not self.allowed(nxt):
                 raise GuardViolation(f"robots.txt disallow (redirect): {nxt}")
-            host = urlsplit(nxt).netloc
-            wait = self.interval - (time.monotonic() - self._last.get(host, -1e9))
-            if wait > 0:
-                time.sleep(wait)
-            self._last[host] = time.monotonic()
-            if r.status_code in (307, 308):
-                r = self.s.request(method, nxt, data=data, timeout=config.TIMEOUT, allow_redirects=False)
-            else:
-                r = self.s.get(nxt, timeout=config.TIMEOUT, allow_redirects=False)
+            with self.gate.slot(urlsplit(nxt).netloc):
+                if r.status_code in (307, 308):
+                    r = self.s.request(method, nxt, data=data, timeout=config.TIMEOUT, allow_redirects=False)
+                else:
+                    r = self.s.get(nxt, timeout=config.TIMEOUT, allow_redirects=False)
         return r
 
     def _store(self, key, page: Page):

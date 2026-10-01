@@ -4,7 +4,10 @@
                      配分: 不動産30%（7都県に均等）/ 歯科25% / クリニック25% / 介護20%
   ingest-zeh [--scope kanto|nationwide] [--max-areas 3] [--limit N]
                      SII ZEHビルダー一覧（地元工務店＝営業エリアが max-areas 都道府県以内）を取り込む
-  crawl              未巡回の公式サイトを巡回（途中再開可）
+  ingest-opendata --kind dental|clinic|care [--scope kanto|nationwide] [--require-url] [--exclude-chain] [--limit N]
+                     厚労省オープンデータ（歯科・クリニック・介護）を取り込む
+  crawl [--workers 8] [--max-minutes 110] [--until-instagram N]
+                     未巡回の公式サイトを巡回（途中再開可。別ホストを並列、同一ホストは1本・3秒間隔）
   retry-sites        到達不能/取得不可だったサイトを再巡回の対象に戻す
   repair-merges      旧方式の統合（行を移していた）を取り消す一回限りの修復
   import-review --file PATH   Instagram目視確認の記入済みCSVを取り込む（その後 finalize で反映）
@@ -51,7 +54,16 @@ def main(argv=None):
     pz.add_argument("--limit", type=int, default=None)
     pz.add_argument("--scope", choices=["kanto", "nationwide"], default="kanto")
     pz.add_argument("--max-areas", type=int, default=zeh.MAX_AREAS)
-    sub.add_parser("crawl")
+    po = sub.add_parser("ingest-opendata")
+    po.add_argument("--kind", choices=["dental", "clinic", "care"], required=True)
+    po.add_argument("--scope", choices=["kanto", "nationwide"], default="kanto")
+    po.add_argument("--require-url", action="store_true")
+    po.add_argument("--exclude-chain", action="store_true")
+    po.add_argument("--limit", type=int, default=None)
+    pc = sub.add_parser("crawl")
+    pc.add_argument("--workers", type=int, default=1)
+    pc.add_argument("--max-minutes", type=float, default=None)
+    pc.add_argument("--until-instagram", type=int, default=None)
     sub.add_parser("retry-sites")
     sub.add_parser("repair-merges")
     pr = sub.add_parser("import-review")
@@ -83,8 +95,14 @@ def main(argv=None):
     elif a.cmd == "ingest-zeh":
         print(json.dumps({"ingested": zeh.ingest_zeh(con, f, target=a.limit, scope=a.scope, max_areas=a.max_areas)},
                          ensure_ascii=False))
+    elif a.cmd == "ingest-opendata":
+        kw = dict(target=a.limit, scope=a.scope, require_url=a.require_url, exclude_chain=a.exclude_chain)
+        n = (opendata.ingest_kaigo(con, f, **kw) if a.kind == "care" else opendata.ingest_iryou(con, f, a.kind, **kw))
+        print(json.dumps({"ingested": n}, ensure_ascii=False))
     elif a.cmd == "crawl":
-        print(json.dumps({"crawled": crawl.crawl_all(con, f), "fetch": f.stats}, ensure_ascii=False))
+        n = crawl.crawl_all(con, f, workers=a.workers, max_minutes=a.max_minutes, until_instagram=a.until_instagram)
+        print(json.dumps({"crawled": n, "remaining": len(crawl._pending(con)), "instagram_leads": crawl.instagram_leads(con),
+                          "fetch": f.stats}, ensure_ascii=False))
     elif a.cmd == "retry-sites":
         print(json.dumps({"reset": crawl.retry_sites(con)}, ensure_ascii=False))
     elif a.cmd == "repair-merges":

@@ -45,16 +45,29 @@ def resolve_kaigo_url(fetcher, code):
     return "https://www.mhlw.go.jp" + sorted(m)[-1]
 
 
-def ingest_kaigo(con, fetcher, target=None, code="150"):
+def _keep(r, scope, require_url, url_col, pref):
+    if scope == "kanto" and pref not in config.PREF_ORDER:
+        return False
+    if scope == "nationwide" and not pref:
+        return False
+    return not require_url or bool(N.clean_url(r.get(url_col)))
+
+
+def ingest_kaigo(con, fetcher, target=None, code="150", scope="kanto", require_url=False, exclude_chain=False):
     url = resolve_kaigo_url(fetcher, code)
     dest = config.RAW / url.rsplit("/", 1)[-1]
     fetcher.download(url, dest)
+    from ..chains import CHAIN_MIN_FACILITIES, s1_counts
+    chain = s1_counts() if exclude_chain else {}
     rows = []
     with open(dest, encoding="utf-8-sig", newline="") as f:
         for r in csv.DictReader(f):
-            if r.get("都道府県名") in config.PREF_ORDER:
-                r["_pref"] = r["都道府県名"]
-                rows.append(r)
+            if not _keep(r, scope, require_url, "URL", r.get("都道府県名")):
+                continue
+            if exclude_chain and chain.get((r.get("法人番号") or "").strip(), 0) >= CHAIN_MIN_FACILITIES:
+                continue
+            r["_pref"] = r["都道府県名"]
+            rows.append(r)
     picked = pick_new(con, rows, target, lambda r: f"S1:{r.get('事業所番号')}")
     n = 0
     for r in picked:
@@ -74,22 +87,27 @@ def ingest_kaigo(con, fetcher, target=None, code="150"):
         db.add_source(con, lead_id, "S1", url)
         n += 1
     con.commit()
-    log.info("S1 kaigo(%s): kanto rows=%d new=%d", code, len(rows), n)
+    log.info("S1 kaigo(%s, %s): rows=%d new=%d", code, scope, len(rows), n)
     return n
 
 
-def ingest_iryou(con, fetcher, kind="dental", target=None):
+def ingest_iryou(con, fetcher, kind="dental", target=None, scope="kanto", require_url=False, exclude_chain=False):
     url = IRYOU_FILES[kind]
     dest = config.RAW / url.rsplit("/", 1)[-1]
     fetcher.download(url, dest)
+    from ..chains import CHAIN_MIN_FACILITIES, corp_key, s2_counts
+    chain = s2_counts() if exclude_chain else {}
     rows = []
     with zipfile.ZipFile(dest) as z:
         with z.open(z.namelist()[0]) as fh:
             for r in csv.DictReader(io.TextIOWrapper(fh, encoding="utf-8-sig", newline="")):
-                pref = N.pref_from_code(r.get("都道府県コード", ""))
-                if pref:
-                    r["_pref"] = pref
-                    rows.append(r)
+                pref = config.ALL_PREFS.get(str(r.get("都道府県コード", "")).zfill(2)[:2])
+                if not _keep(r, scope, require_url, "案内用ホームページアドレス", pref):
+                    continue
+                if exclude_chain and chain.get(corp_key(r.get("正式名称")), 0) >= CHAIN_MIN_FACILITIES:
+                    continue
+                r["_pref"] = pref
+                rows.append(r)
     picked = pick_new(con, rows, target, lambda r: f"S2:{kind}:{r.get('ID')}")
     n = 0
     for r in picked:
@@ -104,5 +122,5 @@ def ingest_iryou(con, fetcher, kind="dental", target=None):
         db.add_source(con, lead_id, "S2", url)
         n += 1
     con.commit()
-    log.info("S2 iryou(%s): kanto rows=%d new=%d", kind, len(rows), n)
+    log.info("S2 iryou(%s, %s): rows=%d new=%d", kind, scope, len(rows), n)
     return n
