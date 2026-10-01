@@ -27,6 +27,6 @@ cd site && python3 -m http.server 8000   # → http://localhost:8000
 ※電話番号・受付時間・予約フォームはサンプルです（送信されません）。
 
 ## 公開先（本番）
-- URL: https://yoshikingex.github.io/-/
-- 仕組み: GitHub Pages（`gh-pages` ブランチの中身をそのまま配信）
-- 更新手順: `site/` の `index.html` と `assets/` を `gh-pages` ブランチの直下にコピーして push すると、1〜2分で反映
+- URL: https://seitai-sample-c6l.pages.dev/ （Cloudflare Pages。旧 GitHub Pages は公開終了）
+- 仕組み: Cloudflare Pages の Direct Upload（`index.html` と `assets/` をzipにしてアップロード）
+- 更新手順: Cloudflare の Workers & Pages → seitai-sample → 新しいデプロイを作成 → zip をアップロード
