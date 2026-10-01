@@ -1,0 +1,25 @@
+{
+  "project": "整骨院 スクロール連動ヒーロー動画",
+  "higgsfield_project_id": "6dd09ae3-f77a-4fca-ba4f-4f46bbfd8cb0",
+  "duration_sec": 20,
+  "fps": 24,
+  "frames": 480,
+  "chapters": [
+    {"no": 1, "name": "悩み", "sec": [0, 5],   "frames": [0, 119]},
+    {"no": 2, "name": "来院", "sec": [5, 10],  "frames": [120, 239]},
+    {"no": 3, "name": "施術", "sec": [10, 15], "frames": [240, 359]},
+    {"no": 4, "name": "回復", "sec": [15, 20], "frames": [360, 479]}
+  ],
+  "models": {"keyframe": "gpt_image_2_5", "video": "kling3_0 (pro, 5s, sound off)"},
+  "clip_base_url": "https://d8j0ntlcm91z4.cloudfront.net/user_3I5r9ng25zVfdv1OvPY5Da2tZcU/",
+  "clips": {
+    "c1_16x9": "hf_20261001_064747_70416583-1d44-448b-a9fb-48797f2476fc.mp4",
+    "c2_16x9": "hf_20261001_064748_2bc06e4e-1c5c-4a66-ae77-c369f0f8ea59.mp4",
+    "c3_16x9": "hf_20261001_064747_ddd0954a-5d1e-49a5-b4a6-6a8aea55d061.mp4",
+    "c4_16x9": "hf_20261001_064747_ae3931a1-49ac-45a2-afa6-41b359480c7e.mp4",
+    "c1_9x16": "hf_20261001_064747_b340282c-273f-442d-8f3d-316cf941bc0c.mp4",
+    "c2_9x16": "hf_20261001_064748_90feefb5-4531-4a1d-bc88-bef0bc3ae711.mp4",
+    "c3_9x16": "hf_20261001_064747_7ac660bf-840d-4fd2-8aa2-5f4c8314ca6e.mp4",
+    "c4_9x16": "hf_20261001_064747_fa7e70c2-ecbc-44ba-a90e-ad3f8c322198.mp4"
+  }
+}
