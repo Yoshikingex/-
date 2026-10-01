@@ -1,0 +1,1184 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>整体接骨院 サンプルサイト</title>
+<meta name="description" content="スクロールに合わせて動画が進む、整体接骨院のサンプルサイトです。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* レイアウト: 背骨のように縦へ連なる章。固定ステージの動画 → さわる体験 → 情報 → 予約 */
+:root{
+  --paper:#F5F7F2;
+  --paper-2:#E7EEE3;
+  --ink:#1D2A22;
+  --ink-soft:#55635A;
+  --leaf:#2F7D4F;
+  --leaf-soft:#D3E7D6;
+  --wood:#B98A5E;
+  --coral:#E0674C;
+  --white:#FFFFFF;
+  --line:rgba(29,42,34,.14);
+  --shade:rgba(16,24,19,.55);
+
+  --f-hand:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+
+  --step--1:clamp(.78rem,.74rem + .15vw,.86rem);
+  --step-0:clamp(.95rem,.9rem + .2vw,1.05rem);
+  --step-1:clamp(1.12rem,1.02rem + .45vw,1.35rem);
+  --step-2:clamp(1.45rem,1.15rem + 1.3vw,2.15rem);
+  --step-3:clamp(1.95rem,1.35rem + 2.6vw,3.5rem);
+  --step-4:clamp(2.3rem,1.45rem + 4vw,4.9rem);
+
+  --gutter:clamp(16px,4vw,48px);
+  --radius:18px;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:var(--step-0);line-height:1.85;overflow-x:clip;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+h1,h2,h3{margin:0;line-height:1.35;text-wrap:balance;font-weight:700;word-break:auto-phrase}
+.lead,.chap-text,.copy{word-break:auto-phrase}
+p{margin:0}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--leaf);outline-offset:3px;border-radius:6px}
+.wrap{padding-inline:var(--gutter);max-width:1240px;margin-inline:auto}
+.eyebrow{font-size:var(--step--1);letter-spacing:.18em;color:var(--leaf);font-weight:700}
+.hand{font-family:var(--f-hand);font-weight:600}
+.lead{color:var(--ink-soft);max-width:34em}
+.sample{display:inline-block;font-size:.7rem;letter-spacing:.12em;padding:.1em .6em;border:1px solid currentColor;border-radius:99px;vertical-align:middle;opacity:.8}
+
+/* ---------- ヘッダー ---------- */
+.topbar{position:fixed;inset:0 0 auto 0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 12px) var(--gutter) 12px;color:var(--white);transition:background .4s,color .4s,box-shadow .4s}
+.topbar.solid{background:rgba(245,247,242,.9);color:var(--ink);box-shadow:0 1px 0 var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;letter-spacing:.08em}
+.brand svg{width:30px;height:30px;flex:none}
+.brand .sample{margin-left:4px}
+.top-cta{display:inline-flex;align-items:center;gap:8px;padding:.55em 1.2em;border-radius:99px;background:var(--leaf);color:var(--white);text-decoration:none;font-weight:700;font-size:var(--step--1);letter-spacing:.06em}
+
+/* ---------- 背骨ナビ ---------- */
+.spine{position:fixed;right:clamp(8px,2vw,28px);top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:7px;transition:opacity .4s,visibility .4s}
+.spine.off{opacity:0;visibility:hidden}
+.vert{display:flex;align-items:center;gap:10px;background:none;border:0;padding:4px 0;cursor:pointer;color:var(--white)}
+.vert .bone{width:26px;height:15px;border-radius:7px 7px 9px 9px;border:1.5px solid rgba(255,255,255,.8);background:rgba(255,255,255,.12);transition:transform .35s,background .35s,border-color .35s}
+.vert .bone::after{content:"";display:block;width:14px;height:3px;margin:16px auto 0;border-radius:2px;background:rgba(255,255,255,.55)}
+.vert:last-child .bone::after{display:none}
+.vert .lbl{font-size:.72rem;letter-spacing:.12em;opacity:0;transform:translateX(6px);transition:opacity .3s,transform .3s;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+.vert.on .bone{background:var(--leaf);border-color:var(--leaf-soft);transform:scale(1.22)}
+.vert.on .lbl,.vert:hover .lbl,.vert:focus-visible .lbl{opacity:1;transform:none}
+
+/* ---------- ストーリー（スクロール連動動画） ---------- */
+.story{position:relative;height:540vh;background:#0F1612}
+.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;color:var(--white)}
+.stage video,.stage .poster,.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.stage video,.stage .poster{object-fit:cover}
+.stage .poster{transition:opacity .4s}
+.stage canvas{pointer-events:none}
+.veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,16,12,.38) 0%,rgba(10,16,12,0) 26%,rgba(10,16,12,0) 48%,rgba(10,16,12,.62) 100%);pointer-events:none}
+.chap{position:absolute;left:var(--gutter);right:var(--gutter);bottom:calc(env(safe-area-inset-bottom,0px) + 92px);max-width:640px;will-change:opacity,transform}
+.chap-label{display:flex;align-items:baseline;gap:.7em;font-size:var(--step--1);letter-spacing:.2em;font-weight:700;opacity:.92}
+.chap-label .num{font-variant-numeric:tabular-nums;font-size:1.25em}
+.chap-label .num::after{content:"/04";opacity:.6;font-size:.75em;margin-left:.15em}
+.chap-title{font-family:var(--f-hand);font-weight:600;font-size:var(--step-4);line-height:1.25;margin:.25em 0 .35em;text-shadow:0 2px 24px rgba(0,0,0,.35)}
+.chap-text{max-width:30em;font-size:var(--step-1);line-height:1.8;text-shadow:0 1px 12px rgba(0,0,0,.45)}
+.finale{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;text-align:center;gap:14px;padding-inline:var(--gutter);color:var(--ink);opacity:0;visibility:hidden}
+.finale .logo{width:clamp(64px,10vw,96px);height:auto}
+.finale .name{font-size:var(--step-3);letter-spacing:.14em;font-weight:700;color:var(--leaf)}
+.finale .copy{font-family:var(--f-hand);font-weight:600;font-size:var(--step-2)}
+.finale .sub{font-size:var(--step--1);letter-spacing:.08em;color:var(--ink-soft)}
+.finale-glow{position:absolute;inset:-20%;background:radial-gradient(closest-side,rgba(255,255,255,.88),rgba(255,255,255,.55) 55%,rgba(255,255,255,0));z-index:-1}
+.stage-foot{position:absolute;left:var(--gutter);right:var(--gutter);bottom:calc(env(safe-area-inset-bottom,0px) + 28px);display:flex;align-items:center;gap:14px;font-size:.75rem;letter-spacing:.12em}
+.scrub{position:relative;flex:1;height:2px;background:rgba(255,255,255,.3);border-radius:2px}
+.scrub-fill{position:absolute;inset:0;background:var(--white);transform-origin:left;transform:scaleX(0)}
+.scrub i{position:absolute;top:-3px;width:1.5px;height:8px;background:rgba(255,255,255,.7)}
+.tc{font-variant-numeric:tabular-nums;white-space:nowrap}
+.hint{white-space:nowrap;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(4px)}}
+.load-pill{position:absolute;top:calc(env(safe-area-inset-top,0px) + 72px);left:50%;transform:translateX(-50%);padding:.35em 1em;border-radius:99px;background:rgba(15,22,18,.55);font-size:.75rem;letter-spacing:.1em;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-variant-numeric:tabular-nums}
+
+/* ---------- 共通セクション ---------- */
+.sec{padding-block:clamp(72px,12vw,150px);overflow-x:clip}
+.sec-head{display:grid;gap:14px;margin-bottom:clamp(28px,5vw,56px)}
+.sec-title{font-size:var(--step-3)}
+
+/* ---------- コリほぐし体験 ---------- */
+.knot{background:var(--paper)}
+.knot-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(24px,5vw,72px);align-items:center}
+.knot-copy{display:grid;gap:18px;min-width:0}
+.knot-stage{position:relative;aspect-ratio:1/1;max-width:100%;width:100%;max-height:72svh;margin-inline:auto;border-radius:50%;background:radial-gradient(circle at 50% 45%,var(--white),var(--paper-2) 70%);outline-offset:6px;cursor:grab;touch-action:none}
+.knot-stage:active{cursor:grabbing}
+.knot-stage canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%}
+.knot-ring{position:absolute;inset:6%;border-radius:50%;border:1.5px dashed var(--line);pointer-events:none;animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gauge{display:grid;gap:8px;padding:18px 20px;border-radius:var(--radius);background:var(--white);box-shadow:0 1px 0 var(--line),0 12px 30px -18px rgba(29,42,34,.35)}
+.gauge-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.gauge-num{font-size:var(--step-3);font-weight:700;font-variant-numeric:tabular-nums;line-height:1;color:var(--coral);transition:color .4s}
+.gauge-num small{font-size:.45em;margin-left:.1em}
+.gauge-state{font-family:var(--f-hand);font-weight:600;font-size:var(--step-1)}
+.gauge-bar{height:8px;border-radius:99px;background:var(--paper-2);overflow:hidden}
+.gauge-bar span{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--leaf),var(--coral));transform-origin:left;transition:transform .15s}
+.knot-done{display:grid;gap:12px;padding:18px 20px;border-radius:var(--radius);background:var(--leaf-soft)}
+.knot-done p{font-family:var(--f-hand);font-weight:600;font-size:var(--step-1)}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px}
+.leaf-bit{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;pointer-events:none}
+
+/* ---------- ボタン ---------- */
+.btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:.85em 1.6em;border-radius:99px;border:1.5px solid var(--leaf);background:var(--leaf);color:var(--white);font-weight:700;letter-spacing:.06em;text-decoration:none;cursor:pointer;transition:transform .25s,background .25s}
+.btn.ghost{background:transparent;color:var(--leaf)}
+.btn:hover{background:#286C44}
+.btn.ghost:hover{background:var(--leaf-soft)}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);pointer-events:none;animation:rip .6s ease-out forwards}
+.btn.ghost .ripple{background:rgba(47,125,79,.25)}
+@keyframes rip{to{transform:scale(1);opacity:0}}
+
+/* ---------- お悩みボディマップ ---------- */
+.bodymap{background:var(--paper-2)}
+.bm-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,5vw,64px);align-items:start}
+.bm-figure{position:relative;max-width:360px;width:100%;margin-inline:auto}
+.bm-figure svg{width:100%;height:auto;overflow:visible}
+.body-shape{fill:var(--white);stroke:rgba(29,42,34,.22);stroke-width:1.2}
+.spine-dot{fill:rgba(29,42,34,.18)}
+.zone{fill:var(--coral);opacity:0;transition:opacity .35s}
+.zone.on{opacity:.28}
+.hot{cursor:pointer}
+.hot circle.core{fill:var(--coral);stroke:var(--white);stroke-width:3;transition:r .25s}
+.hot circle.pulse{fill:none;stroke:var(--coral);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:pulse 2s ease-out infinite}
+.hot.on circle.core{fill:var(--leaf)}
+.hot.on circle.pulse{stroke:var(--leaf)}
+.hot:focus{outline:none}
+.hot:focus-visible circle.core{stroke:var(--ink)}
+@keyframes pulse{from{transform:scale(.6);opacity:.9}to{transform:scale(2.1);opacity:0}}
+.bm-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.bm-tab{padding:.45em 1.1em;border-radius:99px;border:1.5px solid var(--line);background:var(--white);cursor:pointer;font-weight:400}
+.bm-tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.bm-panel{position:relative;display:grid;gap:16px;padding:clamp(20px,3vw,32px);border-radius:var(--radius);background:var(--white);box-shadow:0 18px 40px -26px rgba(29,42,34,.45);overflow:hidden}
+.bm-panel h3{font-size:var(--step-2)}
+.bm-panel .tagline{font-family:var(--f-hand);font-weight:600;color:var(--leaf);font-size:var(--step-1)}
+.bm-panel ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.bm-panel li{display:flex;gap:10px;align-items:baseline}
+.bm-panel li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--coral);transform:translateY(-1px)}
+.bm-meta{display:flex;flex-wrap:wrap;gap:8px 18px;padding-top:14px;border-top:1px dashed var(--line);font-size:var(--step--1);color:var(--ink-soft)}
+.bm-meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.note{font-size:var(--step--1);color:var(--ink-soft)}
+
+/* ---------- 施術の流れ（横スクロール） ---------- */
+.flow{background:var(--paper);overflow:hidden}
+.flow-pin{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(72px,9vh,110px) 40px}
+.flow-view{overflow:visible}
+.flow-track{display:flex;gap:clamp(16px,2.5vw,32px);padding-inline:var(--gutter);width:max-content;will-change:transform}
+.step{flex:none;width:min(78vw,440px);display:grid;gap:14px;align-content:start;padding:14px 14px 22px;border-radius:var(--radius);background:var(--white);box-shadow:0 1px 0 var(--line);transform-style:preserve-3d;position:relative}
+.step figure{margin:0;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:var(--paper-2)}
+.step img{width:100%;height:100%;object-fit:cover}
+.step-body{display:grid;gap:6px;padding-inline:6px}
+.step-no{font-size:var(--step--1);letter-spacing:.2em;color:var(--leaf);font-weight:700;font-variant-numeric:tabular-nums}
+.step h3{font-size:var(--step-1)}
+.step p{color:var(--ink-soft);font-size:var(--step--1);line-height:1.8}
+.flow-progress{margin:28px var(--gutter) 0;height:2px;background:var(--line);border-radius:2px;max-width:1240px}
+.flow-progress span{display:block;height:100%;background:var(--leaf);transform-origin:left;transform:scaleX(0)}
+.no-pin .flow-view{overflow-x:auto}
+
+/* ---------- ビフォーアフター ---------- */
+.ba{background:var(--paper-2)}
+.ba-box{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:var(--radius);overflow:hidden;--pos:50%;user-select:none;-webkit-user-select:none;box-shadow:0 26px 50px -30px rgba(29,42,34,.6)}
+.ba-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ba-before{position:absolute;inset:0;overflow:hidden;clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+.ba-before img{transform:translateX(-15%) scale(1.35)}
+.ba-after{transform:translateX(15%) scale(1.35)}
+.ba-line{position:absolute;top:0;bottom:0;left:var(--pos);width:2px;margin-left:-1px;background:var(--white);pointer-events:none}
+.ba-knob{position:absolute;top:50%;left:var(--pos);width:54px;height:54px;margin:-27px;border-radius:50%;background:var(--white);display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;color:var(--leaf);font-weight:700}
+.ba-tag{position:absolute;top:16px;padding:.1em .7em;border-radius:8px;background:rgba(15,22,18,.5);color:var(--white);font-family:var(--f-hand);font-weight:600;font-size:var(--step-1);pointer-events:none}
+.ba-tag.l{left:16px}.ba-tag.r{right:16px}
+.ba-range{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.ba-range:focus-visible + .ba-focus{outline:3px solid var(--leaf);outline-offset:3px}
+.ba-focus{position:absolute;inset:0;border-radius:var(--radius);pointer-events:none}
+
+/* ---------- 通いやすさ ---------- */
+.clinic{background:var(--paper)}
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,1.6vw,20px)}
+.card{position:relative;display:grid;gap:10px;align-content:start;padding:16px;border-radius:var(--radius);background:var(--white);box-shadow:0 1px 0 var(--line);overflow:hidden;transition:transform .25s ease-out;--mx:50%;--my:50%}
+.card::after{content:"";position:absolute;inset:0;background:radial-gradient(260px circle at var(--mx) var(--my),rgba(47,125,79,.10),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+.card:hover::after{opacity:1}
+.card.photo{grid-column:span 2}
+.card figure{margin:0;border-radius:12px;overflow:hidden;aspect-ratio:16/9;background:var(--paper-2)}
+.card figure img{width:100%;height:100%;object-fit:cover}
+.card h3{font-size:var(--step-1)}
+.card p{color:var(--ink-soft);font-size:var(--step--1)}
+.card .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--leaf-soft);color:var(--leaf)}
+.card .ico svg{width:26px;height:26px}
+.hours{grid-column:1/-1}
+.table-scroll{overflow-x:auto}
+table.hours-t{width:100%;min-width:520px;border-collapse:collapse;font-variant-numeric:tabular-nums;text-align:center;font-size:var(--step--1)}
+.hours-t th,.hours-t td{padding:.7em .4em;border-bottom:1px solid var(--line)}
+.hours-t thead th{font-weight:700;color:var(--ink-soft)}
+.hours-t tbody th{text-align:left;font-weight:700;white-space:nowrap}
+.hours-t .o{color:var(--leaf);font-weight:700}
+.hours-t .x{color:var(--ink-soft)}
+.hours-t .t{color:var(--wood);font-weight:700}
+
+/* ---------- 予約 ---------- */
+.reserve{background:linear-gradient(180deg,var(--paper-2),var(--leaf-soft))}
+.res-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:start}
+.res-title{font-family:var(--f-hand);font-weight:600;font-size:var(--step-3);line-height:1.4}
+.form{display:grid;gap:14px;padding:clamp(20px,3vw,32px);border-radius:var(--radius);background:var(--white);box-shadow:0 18px 40px -26px rgba(29,42,34,.45)}
+.field{display:grid;gap:6px}
+.field label{font-size:var(--step--1);font-weight:700}
+.field input,.field select{width:100%;padding:.75em .9em;border-radius:12px;border:1.5px solid var(--line);background:var(--paper)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--leaf)}
+.form-msg{padding:12px 14px;border-radius:12px;background:var(--leaf-soft);font-size:var(--step--1)}
+.tel{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:22px}
+.tel-num{font-size:var(--step-2);font-weight:700;letter-spacing:.06em;font-variant-numeric:tabular-nums;user-select:all;-webkit-user-select:all}
+
+footer{padding:40px var(--gutter) calc(env(safe-area-inset-bottom,0px) + 110px);font-size:var(--step--1);color:var(--ink-soft);text-align:center;background:var(--paper)}
+
+/* ---------- スマホ固定予約バー ---------- */
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:45;display:none;gap:10px;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);background:rgba(245,247,242,.94);box-shadow:0 -1px 0 var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transform:translateY(110%);transition:transform .4s}
+.mbar.show{transform:none}
+.mbar .btn{flex:1;padding:.75em 1em}
+
+@media (max-width:860px){
+  .knot-grid,.bm-grid,.res-grid{grid-template-columns:minmax(0,1fr)}
+  .knot-stage{max-width:min(100%,62svh)}
+  .bento{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card.photo{grid-column:span 2}
+  .mbar{display:flex}
+  .top-cta{display:none}
+  .chap{bottom:calc(env(safe-area-inset-bottom,0px) + 78px)}
+  .stage-foot .hint{display:none}
+  .bm-figure{max-width:240px}
+}
+@media (pointer:coarse){
+  .topbar.solid,.mbar,.load-pill{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .topbar.solid,.mbar{background:rgba(245,247,242,.97)}
+  .load-pill{background:rgba(15,22,18,.72)}
+}
+/* 画面外のループアニメは止める */
+.idle .knot-ring,.idle .hot circle.pulse{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <a class="brand" href="#story" aria-label="整体接骨院 トップへ">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23 42C10 40 6 26 13 15c4 7 10 11 10 27z" fill="#3E9A5F"/><path d="M25 42c2-16 8-24 18-29 3 15-5 27-18 29z" fill="#2F7D4F"/></svg>
+    <span>整体接骨院</span><span class="sample">SAMPLE</span>
+  </a>
+  <a class="top-cta" href="#reserve">WEB予約</a>
+</header>
+
+<nav class="spine" id="spine" aria-label="ストーリーの章">
+  <button class="vert on" type="button" data-ch="0"><span class="lbl">01 悩み</span><span class="bone"></span></button>
+  <button class="vert" type="button" data-ch="1"><span class="lbl">02 来院</span><span class="bone"></span></button>
+  <button class="vert" type="button" data-ch="2"><span class="lbl">03 施術</span><span class="bone"></span></button>
+  <button class="vert" type="button" data-ch="3"><span class="lbl">04 回復</span><span class="bone"></span></button>
+</nav>
+
+<main>
+  <!-- ストーリー：スクロール量と動画の再生位置が連動 -->
+  <section id="story" class="story" aria-label="来院ストーリー">
+    <div class="stage">
+      <img class="poster" id="poster" src="assets/poster_16x9.webp" alt="" aria-hidden="true">
+      <video id="hero" muted playsinline preload="none" aria-hidden="true"></video>
+      <canvas id="fx" aria-hidden="true"></canvas>
+      <div class="veil" aria-hidden="true"></div>
+
+      <article class="chap" data-i="0">
+        <p class="chap-label"><span class="num">01</span>悩み</p>
+        <h1 class="chap-title">その痛み、<br>あきらめないで。</h1>
+        <p class="chap-text">肩こり・腰痛・ひざの痛み。毎日のつらさは、慣れるものではありません。</p>
+      </article>
+      <article class="chap" data-i="1">
+        <p class="chap-label"><span class="num">02</span>来院</p>
+        <h2 class="chap-title">一歩、<br>踏み出してみる。</h2>
+        <p class="chap-text">明るく入りやすい院内で、まずはお話をうかがいます。</p>
+      </article>
+      <article class="chap" data-i="2">
+        <p class="chap-label"><span class="num">03</span>施術</p>
+        <h2 class="chap-title">整えて、<br>動けるカラダへ。</h2>
+        <p class="chap-text">原因を確かめてから、手技でやさしく筋肉の緊張をほぐします。</p>
+      </article>
+      <article class="chap" data-i="3">
+        <p class="chap-label"><span class="num">04</span>回復</p>
+        <h2 class="chap-title">軽やかな毎日を、<br>もう一度。</h2>
+        <p class="chap-text">ストレッチやセルフケアで、再発しにくい体づくりまでサポートします。</p>
+      </article>
+
+      <div class="finale" id="finale">
+        <div class="finale-glow" aria-hidden="true"></div>
+        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><path d="M23 42C10 40 6 26 13 15c4 7 10 11 10 27z" fill="#3E9A5F"/><path d="M25 42c2-16 8-24 18-29 3 15-5 27-18 29z" fill="#2F7D4F"/></svg>
+        <p class="copy">健康なカラダで、<br>もっと楽しい毎日を</p>
+        <p class="name">整体接骨院</p>
+        <p class="sub">地域の皆さまの健康な毎日をサポートします</p>
+      </div>
+
+      <div class="stage-foot" aria-hidden="true">
+        <span class="tc"><span id="tc">00:00</span> / 00:20</span>
+        <div class="scrub"><span class="scrub-fill" id="scrubFill"></span><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div>
+        <span class="hint">スクロールで再生 ↓</span>
+      </div>
+      <div class="load-pill" id="loadPill" hidden>動画を読み込み中 <span id="loadPct"></span></div>
+    </div>
+  </section>
+
+  <!-- コリほぐし体験（Three.js） -->
+  <section id="knot" class="sec knot" aria-labelledby="knot-title">
+    <div class="wrap knot-grid">
+      <div class="knot-copy">
+        <p class="eyebrow">さわって体験</p>
+        <h2 class="sec-title" id="knot-title">コリを、<br>ほぐしてみる。</h2>
+        <p class="lead">トゲトゲの球が、あなたの肩のコリです。指やマウスで球をこすってください。少しずつほぐれて、やわらかくなっていきます。</p>
+        <div class="gauge" aria-live="polite">
+          <div class="gauge-row">
+            <span class="gauge-state" id="knotState">ガチガチ</span>
+            <span class="gauge-num"><span id="knotPct">100</span><small>%</small></span>
+          </div>
+          <div class="gauge-bar"><span id="knotBar"></span></div>
+          <p class="note">コリ度（体験用の表示です）</p>
+        </div>
+        <div class="knot-done" id="knotDone" hidden>
+          <p>スッキリ。<br>実際の施術は、もっと心地いいですよ。</p>
+          <div class="btn-row">
+            <a class="btn" href="#reserve">予約に進む</a>
+            <button class="btn ghost" type="button" id="knotReset">もう一度ためす</button>
+          </div>
+        </div>
+      </div>
+      <div class="knot-stage" id="knotStage" tabindex="0" role="application" aria-label="コリほぐし体験。EnterキーかSpaceキーでもほぐせます">
+        <div class="knot-ring" aria-hidden="true"></div>
+        <canvas id="knotCanvas"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- お悩みボディマップ -->
+  <section id="bodymap" class="sec bodymap" aria-labelledby="bm-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">こんなお悩みに対応しています</p>
+        <h2 class="sec-title" id="bm-title">どこが、<br>つらいですか？</h2>
+        <p class="lead">体の図の気になる場所をタップすると、当院でのケア方法が表示されます。</p>
+      </div>
+      <div class="bm-grid">
+        <div class="bm-figure">
+          <svg viewBox="0 0 200 420" role="img" aria-label="背中側から見た体の図">
+            <g class="body-shape">
+              <circle cx="100" cy="38" r="24"/>
+              <rect x="91" y="58" width="18" height="20" rx="7"/>
+              <path d="M60 82 Q100 68 140 82 L148 150 Q142 198 134 216 L66 216 Q58 198 52 150 Z"/>
+              <path d="M60 84 Q42 92 38 132 L30 206 Q29 216 37 216 Q44 216 45 206 L56 142 Z"/>
+              <path d="M140 84 Q158 92 162 132 L170 206 Q171 216 163 216 Q156 216 155 206 L144 142 Z"/>
+              <path d="M67 213 L98 213 L96 300 L94 394 Q93 406 84 406 Q75 406 75 394 L72 300 Z"/>
+              <path d="M102 213 L133 213 L128 300 L125 394 Q125 406 116 406 Q107 406 106 394 L104 300 Z"/>
+            </g>
+            <g id="spineDots"></g>
+            <ellipse class="zone" data-zone="shoulder" cx="100" cy="90" rx="48" ry="15"/>
+            <rect class="zone" data-zone="posture" x="92" y="78" width="16" height="136" rx="8"/>
+            <ellipse class="zone" data-zone="lumbar" cx="100" cy="192" rx="32" ry="18"/>
+            <circle class="zone" data-zone="knee" cx="85" cy="300" r="15"/>
+            <circle class="zone" data-zone="knee" cx="117" cy="300" r="15"/>
+            <g class="hot" data-zone="shoulder" tabindex="0" role="button" aria-label="肩こり"><circle class="pulse" cx="130" cy="90" r="9"/><circle class="core" cx="130" cy="90" r="9"/></g>
+            <g class="hot" data-zone="posture" tabindex="0" role="button" aria-label="姿勢の改善"><circle class="pulse" cx="100" cy="140" r="9"/><circle class="core" cx="100" cy="140" r="9"/></g>
+            <g class="hot" data-zone="lumbar" tabindex="0" role="button" aria-label="腰痛"><circle class="pulse" cx="100" cy="192" r="9"/><circle class="core" cx="100" cy="192" r="9"/></g>
+            <g class="hot" data-zone="knee" tabindex="0" role="button" aria-label="ひざの痛み"><circle class="pulse" cx="85" cy="300" r="9"/><circle class="core" cx="85" cy="300" r="9"/></g>
+          </svg>
+        </div>
+        <div>
+          <div class="bm-tabs" role="tablist" aria-label="お悩み">
+            <button class="bm-tab" role="tab" type="button" data-zone="shoulder" aria-selected="true">肩こり</button>
+            <button class="bm-tab" role="tab" type="button" data-zone="lumbar" aria-selected="false">腰痛</button>
+            <button class="bm-tab" role="tab" type="button" data-zone="knee" aria-selected="false">ひざの痛み</button>
+            <button class="bm-tab" role="tab" type="button" data-zone="posture" aria-selected="false">姿勢の改善</button>
+          </div>
+          <div class="bm-panel" id="bmPanel" role="tabpanel" aria-live="polite">
+            <h3 id="bmTitle">肩こり</h3>
+            <p class="tagline" id="bmTag">つらい肩・首のこりをやわらげる</p>
+            <ul id="bmList"><li>デスクワークで、夕方になると肩が重い</li><li>首を回すとゴリッと音がする</li><li>頭痛をともなうことがある</li></ul>
+            <p id="bmCare">首から肩甲骨まわりの筋肉を手技でゆるめ、姿勢のくせも一緒に確認します。</p>
+            <div class="bm-meta"><span>施術時間 <b id="bmTime">約30分</b></span><span>通院の目安 <b id="bmFreq">週1〜2回から</b></span></div>
+          </div>
+          <p class="note" style="margin-top:12px">※施術内容・時間・通院の目安は一例です。状態を確認したうえでご提案します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 施術の流れ（横スクロール） -->
+  <section id="flow" class="flow" aria-labelledby="flow-title">
+    <div class="flow-pin">
+      <div class="wrap sec-head" style="width:100%">
+        <p class="eyebrow">施術の流れ</p>
+        <h2 class="sec-title" id="flow-title">来院から、<br>セルフケアまで。</h2>
+      </div>
+      <div class="flow-view" id="flowView">
+        <div class="flow-track" id="flowTrack">
+          <article class="step" data-tilt>
+            <figure><img src="assets/flow_reception.webp" alt="受付で問診票を手にスタッフが笑顔で話を聞く様子" loading="lazy"></figure>
+            <div class="step-body"><p class="step-no">STEP 1</p><h3>受付・カウンセリング</h3><p>いつから、どんな時に痛むのか。一人ひとりのお悩みをていねいにうかがいます。</p></div>
+          </article>
+          <article class="step" data-tilt>
+            <figure><img src="assets/flow_explain.webp" alt="背骨の模型を使って体の状態を説明する施術者" loading="lazy"></figure>
+            <div class="step-body"><p class="step-no">STEP 2</p><h3>状態の説明</h3><p>骨格模型を使って、今の体の状態をわかりやすく説明し、施術プランをご提案します。</p></div>
+          </article>
+          <article class="step" data-tilt>
+            <figure><img src="assets/flow_treatment.webp" alt="施術ベッドで横になった女性の肩を手技でほぐす施術者" loading="lazy"></figure>
+            <div class="step-body"><p class="step-no">STEP 3</p><h3>施術</h3><p>手技によるやさしい施術で、こわばった筋肉の緊張をほぐしていきます。</p></div>
+          </article>
+          <article class="step" data-tilt>
+            <figure><img src="assets/flow_selfcare.webp" alt="脚のストレッチを補助する施術者" loading="lazy"></figure>
+            <div class="step-body"><p class="step-no">STEP 4</p><h3>運動指導・セルフケア</h3><p>自宅でできるストレッチや体の使い方をお伝えし、再発しにくい体づくりをサポートします。</p></div>
+          </article>
+        </div>
+      </div>
+      <div class="flow-progress" aria-hidden="true"><span id="flowBar"></span></div>
+    </div>
+  </section>
+
+  <!-- ビフォーアフター -->
+  <section id="ba" class="sec ba" aria-labelledby="ba-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">ビフォー・アフター</p>
+        <h2 class="sec-title" id="ba-title">痛みから、<br>笑顔で動ける毎日へ。</h2>
+        <p class="lead">画像の上を左右にドラッグしてください。</p>
+      </div>
+      <div class="ba-box" id="baBox">
+        <img class="ba-after" src="assets/after.webp" alt="公園で笑顔で大きく伸びをする女性（アフターのイメージ）" loading="lazy">
+        <div class="ba-before"><img src="assets/before.webp" alt="肩を押さえてつらそうな女性（ビフォーのイメージ）" loading="lazy"></div>
+        <span class="ba-line"></span>
+        <span class="ba-knob" aria-hidden="true">⇆</span>
+        <span class="ba-tag l">Before</span><span class="ba-tag r">After</span>
+        <input class="ba-range" id="baRange" type="range" min="0" max="100" value="50" aria-label="ビフォーとアフターの境目">
+        <span class="ba-focus"></span>
+      </div>
+      <p class="note" style="margin-top:12px">※画像はAIで生成したイメージです。効果には個人差があります。</p>
+    </div>
+  </section>
+
+  <!-- 通いやすさ -->
+  <section id="clinic" class="sec clinic" aria-labelledby="clinic-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">院内・通いやすさ</p>
+        <h2 class="sec-title" id="clinic-title">通いやすさも、ケアのうち。</h2>
+      </div>
+      <div class="bento">
+        <article class="card photo" data-tilt>
+          <figure><img src="assets/room.webp" alt="施術ベッドと観葉植物が並ぶ明るい院内" loading="lazy"></figure>
+          <h3>院内の様子</h3><p>清潔で落ち着いた、通いやすい空間です。</p>
+        </article>
+        <article class="card photo" data-tilt>
+          <figure><img src="assets/kids.webp" alt="笑顔の母親と女の子" loading="lazy"></figure>
+          <h3>子連れでも安心</h3><p>キッズスペースがあるので、ママ・パパも施術に集中できます。</p>
+        </article>
+        <article class="card" data-tilt>
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></span>
+          <h3>駐車場あり</h3><p>お車でも安心してご来院いただけます。</p>
+        </article>
+        <article class="card" data-tilt>
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+          <h3>土日も受付</h3><p>お仕事帰りや休日でも通いやすい受付時間です。</p>
+        </article>
+        <article class="card" data-tilt>
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <h3>予約優先制</h3><p>待ち時間を短く。WEBからいつでも予約できます。</p>
+        </article>
+        <article class="card" data-tilt>
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16v10H4z"/><path d="M8 12h8"/></svg></span>
+          <h3>各種保険の取扱い</h3><p>ケガ（捻挫・打撲など）は健康保険が使える場合があります。</p>
+        </article>
+        <article class="card hours">
+          <h3>受付時間 <span class="sample">SAMPLE</span></h3>
+          <div class="table-scroll">
+            <table class="hours-t">
+              <thead><tr><th scope="col">時間</th><th scope="col">月</th><th scope="col">火</th><th scope="col">水</th><th scope="col">木</th><th scope="col">金</th><th scope="col">土</th><th scope="col">日</th><th scope="col">祝</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">9:00〜12:30</th><td class="o">●</td><td class="o">●</td><td class="o">●</td><td class="o">●</td><td class="o">●</td><td class="o">●</td><td class="t">▲</td><td class="x">／</td></tr>
+                <tr><th scope="row">15:00〜20:00</th><td class="o">●</td><td class="o">●</td><td class="x">／</td><td class="o">●</td><td class="o">●</td><td class="o">●</td><td class="x">／</td><td class="x">／</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">▲ 日曜は9:00〜13:00　／ 休診：水曜午後・祝日</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 予約 -->
+  <section id="reserve" class="sec reserve" aria-labelledby="res-title">
+    <div class="wrap res-grid">
+      <div>
+        <p class="eyebrow">ご予約</p>
+        <h2 class="res-title" id="res-title" style="margin-top:12px">健康なカラダで、<br>もっと楽しい<br>毎日を。</h2>
+        <p class="lead" style="margin-top:16px">初めての方も、まずはお気軽にご相談ください。</p>
+        <div class="tel">
+          <span class="note">お電話</span>
+          <span class="tel-num" id="telNum">000-0000-0000</span>
+          <button class="btn ghost" type="button" id="copyTel">番号をコピー</button>
+          <span class="sample">サンプル番号</span>
+        </div>
+      </div>
+      <form class="form" id="resForm" novalidate>
+        <div class="field"><label for="f-name">お名前</label><input id="f-name" name="name" autocomplete="name" placeholder="例）山田 花子" required></div>
+        <div class="field"><label for="f-date">ご希望日</label><input id="f-date" name="date" type="date" required></div>
+        <div class="field"><label for="f-worry">お悩み</label>
+          <select id="f-worry" name="worry"><option>肩こり</option><option>腰痛</option><option>ひざの痛み</option><option>姿勢の改善</option><option>その他</option></select>
+        </div>
+        <button class="btn" type="submit" id="resSubmit">予約内容を確認する</button>
+        <p class="form-msg" id="formMsg" hidden></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>© 整体接骨院（サンプルサイト）　動画・画像はAIで生成したイメージです。</p>
+</footer>
+
+<div class="mbar" id="mbar">
+  <a class="btn ghost" href="#bodymap">お悩みチェック</a>
+  <a class="btn" href="#reserve">WEB予約</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const buzz = (p) => { try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(p); } catch (e) {} };
+  const hasGsap = !!(window.gsap && window.ScrollTrigger);
+  if (hasGsap) gsap.registerPlugin(ScrollTrigger);
+
+  /* ---------- なめらかスクロール ---------- */
+  let lenis = null;
+  if (hasGsap && !reduce && !coarse && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((t) => lenis.raf(t * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+  const scrollToY = (y) => lenis ? lenis.scrollTo(y, { duration: 1.4 }) : window.scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' });
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const t = document.getElementById(a.getAttribute('href').slice(1));
+    if (!t) return;
+    e.preventDefault();
+    scrollToY(t.getBoundingClientRect().top + window.scrollY);
+  }));
+
+  /* ---------- ボタンの波紋 ---------- */
+  document.addEventListener('pointerdown', (e) => {
+    const b = e.target.closest('.btn');
+    if (!b) return;
+    const r = b.getBoundingClientRect();
+    const s = Math.max(r.width, r.height) * 2.2;
+    const sp = document.createElement('span');
+    sp.className = 'ripple';
+    sp.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX - r.left - s / 2}px;top:${e.clientY - r.top - s / 2}px`;
+    b.appendChild(sp);
+    setTimeout(() => sp.remove(), 650);
+    buzz(6);
+  });
+
+  /* ---------- スクロール連動動画 ---------- */
+  const DUR = 20;
+  const video = $('#hero'), poster = $('#poster');
+  const loadPill = $('#loadPill'), loadPct = $('#loadPct');
+  const chaps = $$('.chap'), finale = $('#finale');
+  const verts = $$('.vert'), scrubFill = $('#scrubFill'), tc = $('#tc');
+  const FPS = 24;
+  let target = 0, cur = 0, ready = false, chapter = 0, lastFrame = -1, storyOn = true;
+  let setFxChapter = () => {};
+  const isPortrait = () => window.innerHeight > window.innerWidth * 1.05;
+  let portrait = isPortrait();
+  const blobs = {};
+  let loadToken = 0;
+
+  async function loadVideo(p) {
+    const token = ++loadToken;
+    const url = p ? 'assets/hero_9x16.mp4' : 'assets/hero_16x9.mp4';
+    poster.src = p ? 'assets/poster_9x16.webp' : 'assets/poster_16x9.webp';
+    ready = false; lastFrame = -1;
+    loadPill.hidden = false; loadPct.textContent = '';
+    try {
+      if (!blobs[url]) {
+        const res = await fetch(url);
+        if (!res.ok || !res.body) throw new Error('fetch failed');
+        const total = +res.headers.get('content-length') || 0;
+        const reader = res.body.getReader();
+        const chunks = []; let got = 0;
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value); got += value.length;
+          if (total && token === loadToken) loadPct.textContent = Math.min(99, Math.round(got / total * 100)) + '%';
+        }
+        blobs[url] = URL.createObjectURL(new Blob(chunks, { type: 'video/mp4' }));
+      }
+      if (token !== loadToken) return;
+      video.src = blobs[url];
+    } catch (e) {
+      if (token !== loadToken) return;
+      video.src = url;
+    }
+    video.preload = 'auto';
+    video.load();
+    await new Promise((r) => video.readyState >= 1 ? r() : video.addEventListener('loadedmetadata', r, { once: true }));
+    if (token !== loadToken) return;
+    lastFrame = -1;
+    ready = true;
+    loadPill.hidden = true;
+    video.addEventListener('seeked', () => { poster.style.opacity = '0'; }, { once: true });
+  }
+  loadVideo(portrait);
+
+  // iOS対策：最初のタッチで一度だけ再生→停止して、シークを有効にする
+  const unlock = () => { const pr = video.play(); if (pr) pr.then(() => video.pause()).catch(() => {}); };
+  window.addEventListener('touchstart', unlock, { once: true, passive: true });
+
+  let rz;
+  window.addEventListener('resize', () => {
+    clearTimeout(rz);
+    rz = setTimeout(() => {
+      const p = isPortrait();
+      if (p !== portrait) { portrait = p; poster.style.opacity = '1'; loadVideo(p); }
+    }, 250);
+  });
+
+  const band = (p, a, b, f = 0.05) => {
+    if (p < a - f || p > b + f) return 0;
+    if (p < a) return (p - (a - f)) / f;
+    if (p > b) return 1 - (p - b) / f;
+    return 1;
+  };
+  const RANGES = [[-1, 0.19], [0.30, 0.44], [0.55, 0.69], [0.80, 0.85]];
+  const fmt = (s) => '00:' + String(Math.floor(s)).padStart(2, '0');
+
+  function updateStory(p) {
+    target = p * (DUR - 0.05);
+    chaps.forEach((c, i) => {
+      const o = band(p, RANGES[i][0], RANGES[i][1]);
+      c.style.opacity = o.toFixed(3);
+      c.style.transform = `translate3d(0,${((1 - o) * 26).toFixed(1)}px,0)`;
+      c.style.visibility = o < 0.01 ? 'hidden' : 'visible';
+    });
+    const fo = band(p, 0.93, 2, 0.05);
+    finale.style.opacity = fo.toFixed(3);
+    finale.style.visibility = fo < 0.01 ? 'hidden' : 'visible';
+    finale.style.transform = `scale(${(0.96 + fo * 0.04).toFixed(3)})`;
+    const ch = Math.min(3, Math.floor(p * 4));
+    if (ch !== chapter) { chapter = ch; verts.forEach((v, i) => v.classList.toggle('on', i === ch)); setFxChapter(ch); }
+    scrubFill.style.transform = `scaleX(${p.toFixed(4)})`;
+    tc.textContent = fmt(p * DUR);
+  }
+
+  if (hasGsap) {
+    ScrollTrigger.create({ trigger: '#story', start: 'top top', end: 'bottom bottom', onUpdate: (s) => updateStory(s.progress) });
+    ScrollTrigger.create({
+      trigger: '#story', start: 'bottom top+=72',
+      onEnter: () => { $('#topbar').classList.add('solid'); $('#spine').classList.add('off'); },
+      onLeaveBack: () => { $('#topbar').classList.remove('solid'); $('#spine').classList.remove('off'); }
+    });
+    ScrollTrigger.create({ trigger: '#story', start: 'bottom bottom', onEnter: () => $('#mbar').classList.add('show'), onLeaveBack: () => $('#mbar').classList.remove('show') });
+    new IntersectionObserver(([en]) => { storyOn = en.isIntersecting; }).observe($('#story'));
+    gsap.ticker.add(() => {
+      if (!storyOn) return;
+      cur += (target - cur) * (reduce ? 1 : 0.18);
+      if (Math.abs(target - cur) < 0.002) cur = target;
+      // 同じコマへの無駄なシークをしない（1秒24コマ単位に丸める）
+      const frame = Math.min(DUR * FPS - 1, Math.max(0, Math.round(cur * FPS)));
+      if (ready && !video.seeking && frame !== lastFrame) {
+        lastFrame = frame;
+        try { video.currentTime = (frame + 0.25) / FPS; } catch (e) {}
+      }
+    });
+  }
+  updateStory(0);
+
+  verts.forEach((v, i) => v.addEventListener('click', () => {
+    const st = $('#story');
+    const top = st.getBoundingClientRect().top + window.scrollY;
+    const len = st.offsetHeight - window.innerHeight;
+    const mid = [0.06, 0.37, 0.62, 0.82][i];
+    scrollToY(top + len * mid);
+    buzz(8);
+  }));
+
+  /* ---------- 光の粒（Three.js） ---------- */
+  (function initFx() {
+    if (!window.THREE) return;
+    const canvas = $('#fx');
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'low-power' }); }
+    catch (e) { return; }
+    const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.75);
+    renderer.setPixelRatio(dpr);
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    cam.position.z = 10;
+    const N = reduce ? 120 : (coarse ? 240 : 480);
+    const pos = new Float32Array(N * 3), seed = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 20;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 11;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 6;
+      seed[i] = Math.random();
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    const U = {
+      uTime: { value: 0 }, uPR: { value: dpr }, uSize: { value: 1 }, uRise: { value: 0.15 },
+      uOpacity: { value: 0.5 }, uColor: { value: new THREE.Color('#dfe7ee') }, uPointer: { value: new THREE.Vector2(99, 99) }
+    };
+    const mat = new THREE.ShaderMaterial({
+      uniforms: U, transparent: true, depthWrite: false,
+      vertexShader: `
+        attribute float aSeed;
+        uniform float uTime, uPR, uSize, uRise;
+        uniform vec2 uPointer;
+        varying float vA; varying float vGlow;
+        void main(){
+          vec3 p = position;
+          p.y = mod(p.y + uTime * uRise * (0.4 + aSeed) + 5.5, 11.0) - 5.5;
+          p.x += sin(uTime * (0.3 + aSeed * 0.5) + aSeed * 6.2831) * 0.35;
+          vec2 d = p.xy - uPointer;
+          float f = exp(-dot(d, d) * 0.5);
+          p.xy += normalize(d + vec2(0.0001)) * f * 1.3;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = uSize * uPR * (5.0 + aSeed * 15.0) * (10.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+          vA = 0.3 + 0.7 * fract(aSeed * 7.13);
+          vGlow = f;
+        }`,
+      fragmentShader: `
+        uniform vec3 uColor; uniform float uOpacity;
+        varying float vA; varying float vGlow;
+        void main(){
+          float d = length(gl_PointCoord - 0.5);
+          float a = smoothstep(0.5, 0.0, d); a *= a;
+          gl_FragColor = vec4(uColor * (1.0 + vGlow * 0.6), a * uOpacity * vA * (1.0 + vGlow * 1.2));
+        }`
+    });
+    scene.add(new THREE.Points(geo, mat));
+
+    const PAL = [
+      { c: '#dfe7ee', o: 0.45, r: 0.12, s: 0.85 },
+      { c: '#fff4dc', o: 0.75, r: 0.30, s: 1.0 },
+      { c: '#ffe0b5', o: 0.65, r: 0.22, s: 1.0 },
+      { c: '#b9e58f', o: 0.85, r: 0.55, s: 1.25 }
+    ];
+    const tgtColor = new THREE.Color(PAL[0].c);
+    let tgt = PAL[0];
+    setFxChapter = (i) => { tgt = PAL[i]; tgtColor.set(tgt.c); };
+
+    let halfH = 1, halfW = 1;
+    function size() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false);
+      cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix();
+      halfH = Math.tan(THREE.MathUtils.degToRad(25)) * 10; halfW = halfH * cam.aspect;
+    }
+    size(); window.addEventListener('resize', size);
+    const ptr = new THREE.Vector2(99, 99), ptrT = new THREE.Vector2(99, 99);
+    window.addEventListener('pointermove', (e) => {
+      const r = canvas.getBoundingClientRect();
+      ptrT.set(((e.clientX - r.left) / r.width * 2 - 1) * halfW, -((e.clientY - r.top) / r.height * 2 - 1) * halfH);
+    }, { passive: true });
+
+    let visible = true;
+    new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe($('#story'));
+    const clock = new THREE.Clock();
+    let skip = false;
+    const loop = () => {
+      if (!visible) { clock.getDelta(); return; }
+      if (coarse && (skip = !skip)) return;
+      const dt = Math.min(clock.getDelta(), 0.1);
+      U.uTime.value += dt * (reduce ? 0.2 : 1);
+      ptr.lerp(ptrT, 0.12); U.uPointer.value.copy(ptr);
+      U.uColor.value.lerp(tgtColor, 0.04);
+      U.uOpacity.value += (tgt.o - U.uOpacity.value) * 0.04;
+      U.uRise.value += (tgt.r - U.uRise.value) * 0.04;
+      U.uSize.value += (tgt.s - U.uSize.value) * 0.04;
+      renderer.render(scene, cam);
+    };
+    hasGsap ? gsap.ticker.add(loop) : (function raf() { loop(); requestAnimationFrame(raf); })();
+  })();
+
+  /* ---------- コリほぐし体験（Three.js） ---------- */
+  (function initKnot() {
+    const stage = $('#knotStage'), canvas = $('#knotCanvas');
+    const pctEl = $('#knotPct'), barEl = $('#knotBar'), stateEl = $('#knotState');
+    const doneEl = $('#knotDone');
+    let tension = 1, shown = 1, done = false;
+
+    function gauge() {
+      const v = Math.round(tension * 100);
+      pctEl.textContent = v;
+      barEl.style.transform = `scaleX(${tension.toFixed(3)})`;
+      stateEl.textContent = v >= 70 ? 'ガチガチ' : v >= 35 ? 'ほぐれてきた' : v > 0 ? 'あと少し' : 'スッキリ！';
+      pctEl.parentElement.style.color = v >= 35 ? 'var(--coral)' : 'var(--leaf)';
+    }
+    function burst() {
+      for (let i = 0; i < 16; i++) {
+        const el = document.createElement('span');
+        el.className = 'leaf-bit';
+        el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 20C4 9 11 4 20 4c0 10-6 16-16 16z" fill="' + (i % 2 ? '#3E9A5F' : '#7BC47F') + '"/></svg>';
+        stage.appendChild(el);
+        const a = Math.random() * Math.PI * 2, d = 120 + Math.random() * 140;
+        if (hasGsap) {
+          gsap.fromTo(el, { x: 0, y: 0, rotate: 0, scale: 0.4, opacity: 1 },
+            { x: Math.cos(a) * d, y: Math.sin(a) * d, rotate: (Math.random() - 0.5) * 540, scale: 1 + Math.random(), opacity: 0, duration: 1.4 + Math.random() * 0.6, ease: 'power3.out', onComplete: () => el.remove() });
+        } else { setTimeout(() => el.remove(), 100); }
+      }
+    }
+    function finish() {
+      if (done) return;
+      done = true; tension = 0; gauge();
+      buzz([20, 40, 20]);
+      burst();
+      doneEl.hidden = false;
+    }
+    function relax(amount) {
+      if (done) return;
+      tension = Math.max(0, tension - amount);
+      gauge();
+      if (tension <= 0) finish();
+    }
+    $('#knotReset').addEventListener('click', () => {
+      done = false; doneEl.hidden = true;
+      tension = 1; gauge();
+    });
+    stage.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); relax(0.1); buzz(8); }
+    });
+    gauge();
+
+    // こする操作（WebGLが使えない環境でも円の内側ならほぐせる）
+    let U = null, pickFn = null;
+    let pressing = false, hovering = false, last = null, buzzAcc = 0;
+    const rotV = { x: 0, y: 0.004 };
+    function pick(e) {
+      if (pickFn) return pickFn(e);
+      const r = stage.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      return Math.hypot(x, y) < 0.42 ? { x, y } : null;
+    }
+    stage.addEventListener('pointerdown', (e) => {
+      pressing = true; last = { x: e.clientX, y: e.clientY };
+      try { stage.setPointerCapture(e.pointerId); } catch (er) {}
+      const p = pick(e); if (p && U && p.isVector3) U.uPointer.value.copy(p);
+      buzz(8);
+    });
+    stage.addEventListener('pointermove', (e) => {
+      const p = pick(e);
+      hovering = !!p;
+      if (p && U && p.isVector3) U.uPointer.value.copy(p);
+      if (!pressing || !last) return;
+      const dx = e.clientX - last.x, dy = e.clientY - last.y;
+      last = { x: e.clientX, y: e.clientY };
+      const d = Math.hypot(dx, dy);
+      rotV.y += dx * 0.00018; rotV.x += dy * 0.00018;
+      if (p) {
+        relax(d * 0.00055);
+        buzzAcc += d;
+        if (buzzAcc > 90 && !done) { buzz(5); buzzAcc = 0; }
+      }
+    });
+    const up = () => { pressing = false; last = null; };
+    ['pointerup', 'pointercancel'].forEach((t) => stage.addEventListener(t, up));
+    stage.addEventListener('pointerleave', () => { up(); hovering = false; });
+
+    if (!window.THREE) return;
+    // 画面に近づいたときに初めて3Dを準備する（読み込み直後の負荷を減らす）
+    // 準備のタイミング：①読み込みが落ち着いた空き時間 ②それより先に近づいた時 の早いほう
+    let started = false;
+    const kick = () => { if (started) return; started = true; lazy.disconnect(); startGL(); };
+    const lazy = new IntersectionObserver(([en]) => { if (en.isIntersecting) kick(); }, { rootMargin: '600px 0px' });
+    lazy.observe(stage);
+    window.addEventListener('load', () => setTimeout(() => {
+      (window.requestIdleCallback || ((f) => setTimeout(f, 200)))(kick, { timeout: 3000 });
+    }, 1200));
+    new IntersectionObserver(([en]) => { $('#knot').classList.toggle('idle', !en.isIntersecting); }).observe(stage);
+    function startGL() {
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !coarse }); }
+    catch (e) { return; }
+    let pr = Math.min(window.devicePixelRatio || 1, 2);
+    renderer.setPixelRatio(pr);
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+    cam.position.z = 5.4;
+    U = {
+      uTime: { value: 0 }, uTension: { value: 1 }, uPress: { value: 0 },
+      uPointer: { value: new THREE.Vector3(0, 0, 1) },
+      uTense: { value: new THREE.Color('#E0674C') }, uRelax: { value: new THREE.Color('#5FB27A') }
+    };
+    const NOISE = `
+      vec3 mod289(vec3 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
+      vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
+      vec4 permute(vec4 x){return mod289(((x * 34.0) + 1.0) * x);}
+      vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+      float snoise(vec3 v){
+        const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+        const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+        vec3 i = floor(v + dot(v, C.yyy));
+        vec3 x0 = v - i + dot(i, C.xxx);
+        vec3 g = step(x0.yzx, x0.xyz);
+        vec3 l = 1.0 - g;
+        vec3 i1 = min(g.xyz, l.zxy);
+        vec3 i2 = max(g.xyz, l.zxy);
+        vec3 x1 = x0 - i1 + C.xxx;
+        vec3 x2 = x0 - i2 + C.yyy;
+        vec3 x3 = x0 - D.yyy;
+        i = mod289(i);
+        vec4 p = permute(permute(permute(
+                  i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+        float n_ = 0.142857142857;
+        vec3 ns = n_ * D.wyz - D.xzx;
+        vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+        vec4 x_ = floor(j * ns.z);
+        vec4 y_ = floor(j - 7.0 * x_);
+        vec4 x = x_ * ns.x + ns.yyyy;
+        vec4 y = y_ * ns.x + ns.yyyy;
+        vec4 h = 1.0 - abs(x) - abs(y);
+        vec4 b0 = vec4(x.xy, y.xy);
+        vec4 b1 = vec4(x.zw, y.zw);
+        vec4 s0 = floor(b0) * 2.0 + 1.0;
+        vec4 s1 = floor(b1) * 2.0 + 1.0;
+        vec4 sh = -step(h, vec4(0.0));
+        vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+        vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+        vec3 p0 = vec3(a0.xy, h.x);
+        vec3 p1 = vec3(a0.zw, h.y);
+        vec3 p2 = vec3(a1.xy, h.z);
+        vec3 p3 = vec3(a1.zw, h.w);
+        vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+        p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+        vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+        m = m * m;
+        return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+      }`;
+    const mat = new THREE.ShaderMaterial({
+      uniforms: U,
+      extensions: { derivatives: true },
+      vertexShader: NOISE + `
+        uniform float uTime, uTension, uPress;
+        uniform vec3 uPointer;
+        varying vec3 vPos; varying float vDisp;
+        void main(){
+          vec3 n = normalize(position);
+          float soft = snoise(n * 1.6 + vec3(0.0, uTime * 0.25, 0.0));
+          float spikes = pow(abs(snoise(n * 4.2 + vec3(uTime * 0.08))), 1.4);
+          float breathe = sin(uTime * 1.6) * 0.025;
+          float disp = mix(0.05 * soft + breathe, 0.16 * soft + 0.42 * spikes, uTension);
+          float d = distance(n, normalize(uPointer));
+          disp -= uPress * 0.22 * exp(-d * d * 9.0);
+          vec3 p = position * (1.0 + disp);
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          vPos = mv.xyz; vDisp = disp;
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        uniform vec3 uTense, uRelax; uniform float uTension;
+        varying vec3 vPos; varying float vDisp;
+        void main(){
+          vec3 N = normalize(cross(dFdx(vPos), dFdy(vPos)));
+          vec3 L = normalize(vec3(0.5, 0.8, 0.7));
+          float diff = max(dot(N, L), 0.0);
+          float fres = pow(1.0 - max(dot(N, normalize(-vPos)), 0.0), 2.0);
+          vec3 base = mix(uRelax, uTense, smoothstep(0.0, 1.0, uTension));
+          base *= 0.85 + vDisp * 0.6;
+          vec3 col = base * (0.42 + 0.7 * diff) + vec3(1.0) * fres * 0.28;
+          gl_FragColor = vec4(col, 1.0);
+        }`
+    });
+    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, coarse ? 28 : 44), mat);
+    scene.add(mesh);
+
+    function size() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false);
+      cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix();
+    }
+    size(); window.addEventListener('resize', size);
+
+    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    const sphere = new THREE.Sphere(new THREE.Vector3(), 1.3), hit = new THREE.Vector3();
+    pickFn = (e) => {
+      const r = canvas.getBoundingClientRect();
+      ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, cam);
+      if (!ray.ray.intersectSphere(sphere, hit)) return null;
+      return mesh.worldToLocal(hit.clone()).normalize();
+    };
+
+    let visible = true;
+    new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(stage);
+    const clock = new THREE.Clock();
+    let pop = 1, slow = 0, frames = 0;
+    const loop = () => {
+      if (!visible) { clock.getDelta(); return; }
+      const raw = clock.getDelta(), dt = Math.min(raw, 0.05);
+      // 描画が追いつかない端末だけ、解像度を段階的に下げる（最低1倍）
+      if (++frames > 30) {
+        slow = raw > 1 / 40 ? slow + 1 : Math.max(0, slow - 1);
+        if (slow > 40 && pr > 1) { pr = Math.max(1, pr - 0.25); renderer.setPixelRatio(pr); size(); slow = 0; }
+      }
+      U.uTime.value += dt;
+      shown += (tension - shown) * 0.1;
+      U.uTension.value = shown;
+      U.uPress.value += ((pressing ? 1 : hovering ? 0.35 : 0) - U.uPress.value) * 0.15;
+      rotV.y += (0.004 - rotV.y) * 0.03; rotV.x += (0 - rotV.x) * 0.05;
+      mesh.rotation.y += rotV.y; mesh.rotation.x += rotV.x;
+      const tremble = reduce ? 0 : shown * 0.012;
+      mesh.position.set((Math.random() - 0.5) * tremble, (Math.random() - 0.5) * tremble, 0);
+      pop += ((done ? 1.06 + Math.sin(U.uTime.value * 2) * 0.02 : 1) - pop) * 0.08;
+      mesh.scale.setScalar(pop);
+      renderer.render(scene, cam);
+    };
+    hasGsap ? gsap.ticker.add(loop) : (function raf() { loop(); requestAnimationFrame(raf); })();
+    }
+  })();
+
+  /* ---------- お悩みボディマップ ---------- */
+  (function initBodymap() {
+    const DATA = {
+      shoulder: { t: '肩こり', g: 'つらい肩・首のこりをやわらげる', l: ['デスクワークで、夕方になると肩が重い', '首を回すとゴリッと音がする', '頭痛をともなうことがある'], c: '首から肩甲骨まわりの筋肉を手技でゆるめ、姿勢のくせも一緒に確認します。', time: '約30分', freq: '週1〜2回から' },
+      lumbar: { t: '腰痛', g: 'つらい腰の痛みを根本からケア', l: ['朝起きると腰が固まっている', '長く座っていると腰が痛む', '前かがみの姿勢がつらい'], c: '骨盤まわりと股関節の動きを確かめ、腰だけでなく原因になっている部位から整えます。', time: '約30〜40分', freq: '週1〜2回から' },
+      knee: { t: 'ひざの痛み', g: '歩く・動くをもっと快適に', l: ['階段の上り下りがつらい', '立ち上がるときにひざが痛む', '正座がしにくい'], c: '太もも・ふくらはぎの筋肉のバランスを整え、ひざへの負担を減らす運動もお伝えします。', time: '約30分', freq: '週1回から' },
+      posture: { t: '姿勢の改善', g: '正しい姿勢で健康なカラダへ', l: ['猫背を指摘されることがある', '写真で左右の肩の高さが違う', '反り腰が気になる'], c: '立ち姿勢を一緒に確認し、背骨と骨盤のバランスを整えます。自宅でできるストレッチもご案内します。', time: '約40分', freq: '2週に1回から' }
+    };
+    const dots = $('#spineDots');
+    let s = '';
+    for (let y = 84; y <= 208; y += 8) s += `<rect class="spine-dot" x="96" y="${y}" width="8" height="5" rx="2"/>`;
+    dots.innerHTML = s;
+    const panel = $('#bmPanel');
+    function select(z, fromUser) {
+      const d = DATA[z]; if (!d) return;
+      $$('.zone').forEach((el) => el.classList.toggle('on', el.dataset.zone === z));
+      $$('.hot').forEach((el) => el.classList.toggle('on', el.dataset.zone === z));
+      $$('.bm-tab').forEach((el) => el.setAttribute('aria-selected', String(el.dataset.zone === z)));
+      $('#bmTitle').textContent = d.t; $('#bmTag').textContent = d.g;
+      $('#bmList').innerHTML = d.l.map((x) => `<li>${x}</li>`).join('');
+      $('#bmCare').textContent = d.c; $('#bmTime').textContent = d.time; $('#bmFreq').textContent = d.freq;
+      if (fromUser) {
+        buzz(10);
+        if (hasGsap && !reduce) gsap.fromTo(panel, { y: 14, scale: 0.98 }, { y: 0, scale: 1, duration: 0.5, ease: 'back.out(2)' });
+      }
+    }
+    $$('.hot, .bm-tab').forEach((el) => {
+      el.addEventListener('click', () => select(el.dataset.zone, true));
+      el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(el.dataset.zone, true); } });
+    });
+    select('shoulder', false);
+    new IntersectionObserver(([en]) => { $('#bodymap').classList.toggle('idle', !en.isIntersecting); }).observe($('#bodymap'));
+  })();
+
+  /* ---------- 施術の流れ（横スクロール） ---------- */
+  (function initFlow() {
+    const track = $('#flowTrack'), view = $('#flowView'), bar = $('#flowBar');
+    if (!hasGsap || reduce) { $('#flow').classList.add('no-pin'); return; }
+    const dist = () => Math.max(0, track.scrollWidth - view.clientWidth);
+    gsap.to(track, {
+      x: () => -dist(), ease: 'none',
+      scrollTrigger: {
+        trigger: '#flow', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.6, invalidateOnRefresh: true,
+        onUpdate: (s) => { bar.style.transform = `scaleX(${s.progress.toFixed(4)})`; }
+      }
+    });
+  })();
+
+  /* ---------- カードの傾き ---------- */
+  if (!coarse && !reduce) {
+    $$('[data-tilt]').forEach((el) => {
+      el.addEventListener('pointermove', (e) => {
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = `perspective(900px) rotateX(${(-y * 6).toFixed(2)}deg) rotateY(${(x * 8).toFixed(2)}deg)`;
+        el.style.setProperty('--mx', ((x + 0.5) * 100).toFixed(1) + '%');
+        el.style.setProperty('--my', ((y + 0.5) * 100).toFixed(1) + '%');
+      });
+      el.addEventListener('pointerleave', () => { el.style.transform = ''; });
+    });
+  }
+
+  /* ---------- ビフォーアフター ---------- */
+  (function initBA() {
+    const box = $('#baBox'), range = $('#baRange');
+    let lastStep = 50;
+    const apply = () => {
+      box.style.setProperty('--pos', range.value + '%');
+      const step = Math.round(range.value / 10);
+      if (step !== lastStep) { lastStep = step; buzz(4); }
+    };
+    range.addEventListener('input', apply);
+    apply();
+    if (hasGsap && !reduce) {
+      ScrollTrigger.create({
+        trigger: box, start: 'top 70%', once: true,
+        onEnter: () => {
+          const o = { v: 50 };
+          gsap.timeline()
+            .to(o, { v: 28, duration: 0.7, ease: 'power2.inOut', onUpdate: () => { range.value = o.v; box.style.setProperty('--pos', o.v + '%'); } })
+            .to(o, { v: 72, duration: 1.0, ease: 'power2.inOut', onUpdate: () => { range.value = o.v; box.style.setProperty('--pos', o.v + '%'); } })
+            .to(o, { v: 50, duration: 0.7, ease: 'power2.inOut', onUpdate: () => { range.value = o.v; box.style.setProperty('--pos', o.v + '%'); } });
+        }
+      });
+    }
+  })();
+
+  /* ---------- 見出しの出現（見える状態から少し動くだけ） ---------- */
+  if (hasGsap && !reduce) {
+    $$('.sec-head, .res-title').forEach((el) => {
+      gsap.from(el, { y: 36, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+    });
+    $$('.bento .card').forEach((el, i) => {
+      gsap.from(el, { y: 28, duration: 0.8, delay: (i % 4) * 0.06, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 92%', once: true } });
+    });
+  }
+
+  /* ---------- 予約フォーム（サンプル） ---------- */
+  $('#resForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('#f-name').value.trim(), date = $('#f-date').value, msg = $('#formMsg');
+    msg.hidden = false;
+    if (!name || !date) {
+      msg.textContent = 'お名前とご希望日を入力してください。';
+      buzz([10, 40, 10]);
+      (name ? $('#f-date') : $('#f-name')).focus();
+      return;
+    }
+    msg.textContent = `【サンプル】${name} 様、${date.replace(/-/g, '/')}（${$('#f-worry').value}）で受け付けました。これはサンプルサイトのため、実際には送信されません。`;
+    buzz(15);
+  });
+  $('#copyTel').addEventListener('click', (e) => {
+    const btn = e.currentTarget, num = $('#telNum').textContent;
+    const done = (t) => { btn.textContent = t; setTimeout(() => { btn.textContent = '番号をコピー'; }, 1800); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($('#telNum')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); done('選択しました'); };
+    try { navigator.clipboard.writeText(num).then(() => done('コピーしました'), fallback); } catch (er) { fallback(); }
+  });
+
+  /* ---------- フォント・画像の読み込み後に位置を再計算 ---------- */
+  if (hasGsap) {
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
+  }
+})();
+</script>
+</body>
+</html>
