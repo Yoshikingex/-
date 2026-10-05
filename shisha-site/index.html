@@ -1,0 +1,795 @@
+<meta charset="utf-8">
+<title>YURAGI Shisha Lounge</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one pinned film (scroll scrubs the 15s video), then hands-on sections — puff, flavor mixer, menu, space, visit — all floating under a live smoke layer. */
+:root{
+  --ink:#0f0c0a;        /* smoked walnut black */
+  --char:#1b1612;       /* charcoal surface */
+  --char-2:#262019;     /* raised surface */
+  --smoke:#ece5d8;      /* smoke white, main text */
+  --ash:#a39a8c;        /* muted text */
+  --brass:#d6a35a;      /* pendant-lamp brass, the accent */
+  --ember:#ff8a4c;      /* charcoal glow, used only for heat */
+  --moss:#7d9468;       /* the plants */
+  --line:rgba(236,229,216,.14);
+  --f-display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --s-1:.8125rem; --s0:1rem; --s1:1.25rem; --s2:1.75rem; --s3:clamp(2rem,5vw,3.25rem); --s4:clamp(2.6rem,8vw,6rem);
+  --gutter:clamp(16px,4vw,48px);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:auto}
+body{background:var(--ink);color:var(--smoke);font-family:var(--f-body);font-size:var(--s0);line-height:1.8;letter-spacing:.02em;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;line-height:1.25;text-wrap:balance;word-break:auto-phrase;margin:0}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.eyebrow{font-family:var(--f-mono);font-size:var(--s-1);letter-spacing:.22em;text-transform:uppercase;color:var(--brass)}
+.wrap{padding-inline:var(--gutter);max-width:1240px;margin-inline:auto}
+
+/* smoke layer sits above section backgrounds, below content */
+#smoke{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.layer{position:relative;z-index:3}
+
+/* header */
+.top{position:fixed;top:0;left:0;right:0;z-index:20;padding-top:env(safe-area-inset-top,0px);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding-inline:var(--gutter);height:64px;
+  background:linear-gradient(to bottom,rgba(15,12,10,.75),rgba(15,12,10,0));}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.25rem;letter-spacing:.32em;text-decoration:none}
+.logo small{display:block;font-family:var(--f-mono);font-size:.625rem;letter-spacing:.3em;color:var(--ash);font-weight:400;margin-top:-4px}
+.top nav{display:flex;gap:clamp(10px,2vw,28px);font-size:var(--s-1)}
+.top nav a{text-decoration:none;color:var(--ash);transition:color .2s}
+.top nav a:hover{color:var(--smoke)}
+.badge{font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.18em;border:1px solid var(--brass);color:var(--brass);padding:2px 8px;border-radius:2px;white-space:nowrap}
+@media (max-width:720px){.top nav{display:none}}
+
+/* ---------- film ---------- */
+#film{position:relative;height:560vh}
+.film-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;background:var(--ink)}
+#frames{position:absolute;inset:0;width:100%;height:100%;display:block}
+.film-stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 55%,rgba(15,12,10,0) 40%,rgba(15,12,10,.72) 100%),linear-gradient(to top,rgba(15,12,10,.85),rgba(15,12,10,0) 35%)}
+.chap{position:absolute;z-index:3;left:var(--gutter);right:var(--gutter);bottom:clamp(64px,12vh,120px);max-width:34rem;display:grid;gap:14px;pointer-events:none}
+.chap h2{font-size:var(--s3)}
+.chap p{color:var(--smoke);opacity:.86;max-width:28rem}
+.chap .btn{pointer-events:auto;justify-self:start}
+.hero-title{position:absolute;z-index:3;right:var(--gutter);top:50%;transform:translateY(-46%);
+  writing-mode:vertical-rl;white-space:nowrap;font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,min(7vw,9.5vh),6rem);line-height:1.35;letter-spacing:.12em;margin:0;
+  text-shadow:0 0 40px rgba(15,12,10,.6)}
+.hero-title span{display:block;color:var(--brass)}
+.hero-meta{position:absolute;z-index:3;left:var(--gutter);bottom:clamp(64px,12vh,120px);display:grid;gap:10px;max-width:24rem}
+.hero-meta p{color:var(--ash)}
+.scroll-cue{display:flex;align-items:center;gap:12px;font-family:var(--f-mono);font-size:var(--s-1);letter-spacing:.24em;color:var(--smoke)}
+.scroll-cue i{width:1px;height:42px;background:linear-gradient(var(--smoke),transparent);animation:drip 1.8s ease-in-out infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+.reel{position:absolute;z-index:3;right:var(--gutter);bottom:clamp(64px,12vh,120px);display:grid;gap:8px;justify-items:end;font-family:var(--f-mono);font-size:var(--s-1)}
+.reel ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;justify-items:end}
+.reel li{color:var(--ash);transition:color .3s;display:flex;gap:10px;align-items:center}
+.reel li::after{content:"";width:18px;height:1px;background:currentColor;transition:width .3s}
+.reel li.on{color:var(--brass)}
+.reel li.on::after{width:40px}
+.reel .tc{color:var(--smoke)}
+@media (max-width:720px){.hero-title{top:40%;font-size:min(2.6rem,7.5vh)}.reel{display:none}.chap{bottom:84px}}
+
+/* ---------- shared section ---------- */
+section.block{position:relative;padding-block:clamp(88px,14vw,160px)}
+.head{display:grid;gap:14px;max-width:40rem;margin-bottom:clamp(36px,6vw,64px)}
+.head h2{font-size:var(--s3)}
+.head p{color:var(--ash)}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:999px;border:1px solid var(--brass);background:transparent;color:var(--smoke);
+  font-weight:500;cursor:pointer;text-decoration:none;transition:background .25s,color .25s,transform .15s}
+.btn:hover{background:var(--brass);color:var(--ink)}
+.btn:active{transform:scale(.96)}
+.btn.solid{background:var(--brass);color:var(--ink)}
+.btn.solid:hover{background:var(--smoke)}
+
+/* ---------- puff ---------- */
+#puff{background:radial-gradient(ellipse at 30% 40%,var(--char-2),var(--ink) 70%)}
+.puff-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,6vw,80px);align-items:center}
+@media (max-width:820px){.puff-grid{grid-template-columns:1fr}}
+.hookah-wrap{position:relative;display:grid;place-items:center;min-height:440px}
+.hookah{width:min(260px,62vw);height:auto;overflow:visible}
+.hookah .coal{fill:var(--char-2);transition:fill .3s}
+.hookah .glow{fill:var(--ember);opacity:calc(.15 + var(--heat,0) * .85);filter:blur(calc(4px + var(--heat,0) * 10px))}
+.hookah .glass{fill:rgba(236,229,216,.07);stroke:rgba(236,229,216,.45);stroke-width:1.5}
+.hookah .water{fill:rgba(125,148,104,.22)}
+.hookah .metal{fill:var(--brass)}
+.hookah .stem{fill:#7b2a22}
+.hookah .hose{fill:none;stroke:var(--ash);stroke-width:5;stroke-linecap:round}
+.bubbles circle{fill:none;stroke:rgba(236,229,216,.7);stroke-width:1}
+.puff-ui{display:grid;gap:22px}
+.puff-btn{position:relative;width:168px;height:168px;border-radius:50%;border:none;background:var(--char);cursor:pointer;display:grid;place-items:center;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .2s;box-shadow:0 0 0 1px var(--line),0 0 calc(var(--heat,0)*70px) calc(var(--heat,0)*8px) rgba(255,138,76,.35)}
+.puff-btn.holding{transform:scale(.94)}
+.puff-btn svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.puff-btn .track{fill:none;stroke:var(--line);stroke-width:3}
+.puff-btn .meter{fill:none;stroke:var(--brass);stroke-width:3;stroke-linecap:round;stroke-dasharray:502;stroke-dashoffset:502}
+.puff-btn .meter.over{stroke:var(--ember)}
+.puff-btn b{font-family:var(--f-display);font-size:1.375rem;font-weight:800}
+.puff-btn small{display:block;font-size:.75rem;color:var(--ash);text-align:center;margin-top:2px}
+.puff-read{display:grid;gap:6px;min-height:6.5em}
+.puff-read .verdict{font-family:var(--f-display);font-size:var(--s2);font-weight:700}
+.puff-read .sub{color:var(--ash)}
+.puff-scale{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-family:var(--f-mono);font-size:.75rem;color:var(--ash);max-width:360px}
+.puff-scale span{border-top:2px solid var(--line);padding-top:6px}
+.puff-scale span.sweet{border-color:var(--brass);color:var(--smoke)}
+.toggle{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:var(--s-1);color:var(--ash);cursor:pointer;justify-self:start}
+.toggle[aria-pressed="true"]{color:var(--smoke);border-color:var(--ash)}
+
+/* ---------- flavor ---------- */
+#flavor{background:var(--char)}
+.flavor-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:clamp(32px,5vw,72px);align-items:start}
+@media (max-width:860px){.flavor-grid{grid-template-columns:1fr}}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.chip{position:relative;text-align:left;padding:16px 16px 14px;border-radius:14px;border:1px solid var(--line);background:var(--ink);cursor:pointer;display:grid;gap:4px;overflow:hidden;
+  transition:border-color .2s,transform .2s}
+.chip::before{content:"";position:absolute;inset:auto -30% -60% auto;width:120px;height:120px;border-radius:50%;background:var(--c);opacity:.18;filter:blur(18px);transition:opacity .3s,transform .4s}
+.chip:hover{transform:translateY(-3px)}
+.chip[aria-pressed="true"]{border-color:var(--c)}
+.chip[aria-pressed="true"]::before{opacity:.55;transform:scale(1.4)}
+.chip .k{font-family:var(--f-display);font-size:2rem;font-weight:800;line-height:1;color:var(--c)}
+.chip .n{font-weight:700}
+.chip .d{font-size:.75rem;color:var(--ash);line-height:1.5}
+.mix{border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,32px);background:var(--ink);display:grid;gap:18px;position:sticky;top:90px}
+.mix-name{font-family:var(--f-display);font-size:var(--s3);font-weight:800;line-height:1.1;min-height:1.1em}
+.mix-name small{display:block;font-family:var(--f-body);font-size:var(--s-1);font-weight:400;color:var(--ash);margin-top:8px}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:4.5em minmax(0,1fr) 2em;gap:10px;align-items:center;font-size:var(--s-1)}
+.bar .t{height:6px;border-radius:3px;background:var(--char-2);overflow:hidden}
+.bar .t i{display:block;height:100%;width:0;background:var(--brass);border-radius:3px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar .v{font-family:var(--f-mono);color:var(--ash);text-align:right}
+.mix-note{font-size:var(--s-1);color:var(--ash)}
+
+/* ---------- menu ---------- */
+#menu{background:var(--ink)}
+.price{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));border-top:1px solid var(--line)}
+.price > div{padding:28px 24px 28px 0;border-bottom:1px solid var(--line);display:grid;gap:6px;align-content:start}
+.price .label{color:var(--ash);font-size:var(--s-1)}
+.price .yen{font-family:var(--f-mono);font-size:var(--s2);color:var(--smoke)}
+.price .yen small{font-size:var(--s-1);color:var(--ash)}
+.price p.note{font-size:var(--s-1);color:var(--ash)}
+.steps{list-style:none;margin:clamp(48px,7vw,80px) 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:28px}
+.steps li{display:grid;gap:8px;align-content:start}
+.steps .no{font-family:var(--f-mono);color:var(--brass);font-size:var(--s-1);letter-spacing:.2em}
+.steps h3{font-size:var(--s1)}
+.steps p{color:var(--ash);font-size:.9375rem}
+.fine{margin-top:28px;font-size:.75rem;color:var(--ash)}
+
+/* ---------- space ---------- */
+#space{background:linear-gradient(var(--ink),var(--char))}
+.gallery{display:grid;grid-template-columns:1.25fr 1fr .8fr;gap:16px;perspective:1000px}
+@media (max-width:820px){.gallery{grid-template-columns:1fr 1fr}.gallery figure:first-child{grid-column:1 / -1}}
+.gallery figure{margin:0;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:3/4;max-width:100%;transform-style:preserve-3d;transition:transform .25s ease-out;will-change:transform;background:var(--char-2)}
+.gallery figure:first-child{aspect-ratio:4/5}
+.gallery img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.08);transition:transform .25s ease-out}
+.gallery figcaption{position:absolute;left:14px;bottom:12px;font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;background:rgba(15,12,10,.65);padding:4px 10px;border-radius:999px}
+.gallery .sheen{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(214,163,90,.28),transparent 45%);opacity:0;transition:opacity .3s}
+.gallery figure:hover .sheen{opacity:1}
+.facts{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.facts span{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:var(--s-1);color:var(--ash)}
+
+/* ---------- visit ---------- */
+#visit{background:var(--char)}
+.visit-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(32px,6vw,80px)}
+@media (max-width:860px){.visit-grid{grid-template-columns:1fr}}
+.hours{width:100%;border-collapse:collapse;font-size:.9375rem}
+.hours th,.hours td{padding:12px 0;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.hours th{color:var(--ash)}
+.hours td{font-family:var(--f-mono);text-align:right}
+.addr{margin-top:24px;display:grid;gap:4px;color:var(--ash);font-size:.9375rem}
+form.reserve{display:grid;grid-template-columns:1fr 1fr;gap:16px;background:var(--ink);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,32px)}
+form.reserve .full{grid-column:1 / -1}
+form.reserve label{display:grid;gap:6px;font-size:var(--s-1);color:var(--ash)}
+form.reserve input,form.reserve select{background:var(--char);border:1px solid var(--line);border-radius:10px;padding:11px 12px;min-width:0;width:100%}
+form.reserve input:focus,form.reserve select:focus{border-color:var(--brass);outline:none}
+@media (max-width:480px){form.reserve{grid-template-columns:1fr}}
+
+footer{position:relative;background:var(--ink);padding-block:48px;border-top:1px solid var(--line);font-size:var(--s-1);color:var(--ash)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:40;background:var(--smoke);color:var(--ink);
+  padding:14px 20px;border-radius:12px;max-width:min(92vw,520px);font-size:.9375rem;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.toast.show{transform:translate(-50%,0)}
+
+/* ember cursor (fine pointers only) */
+.cursor{position:fixed;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;pointer-events:none;z-index:50;
+  background:radial-gradient(circle,var(--ember),rgba(255,138,76,0) 70%);mix-blend-mode:screen;display:none}
+@media (hover:hover) and (pointer:fine){.cursor{display:block}}
+
+.loader{position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:4;font-family:var(--f-mono);font-size:.6875rem;letter-spacing:.2em;color:var(--ash);transition:opacity .6s}
+.loader.done{opacity:0}
+
+@media (prefers-reduced-motion:reduce){
+  .scroll-cue i{animation:none}
+  .gallery figure,.gallery img,.chip{transition:none}
+}
+</style>
+
+<header class="top">
+  <a class="logo" href="#film" aria-label="YURAGI トップへ">YURAGI<small>SHISHA LOUNGE</small></a>
+  <nav aria-label="ページ内">
+    <a href="#puff">一服を試す</a><a href="#flavor">フレーバー</a><a href="#menu">料金</a><a href="#space">店内</a><a href="#visit">予約</a>
+  </nav>
+  <span class="badge" title="提案用のサンプルページです">SAMPLE</span>
+</header>
+
+<canvas id="smoke" aria-hidden="true"></canvas>
+<div class="cursor" aria-hidden="true"></div>
+
+<main>
+  <!-- FILM: scroll scrubs the 15-second one-take -->
+  <section id="film" aria-label="店内映像">
+    <div class="film-stage">
+      <canvas id="frames" aria-hidden="true"></canvas>
+      <p class="loader mono" id="loader">LOADING FILM 0%</p>
+
+      <h1 class="hero-title" data-chap="0">ゆらぎに、<span>身をゆだねる。</span></h1>
+      <div class="hero-meta" data-chap="0">
+        <p class="eyebrow">Shisha Lounge · B1F</p>
+        <p>炭の熱、白い煙、木の灯り。<br>仕事帰りに寄れる、地下のシーシャラウンジ。</p>
+        <div class="scroll-cue"><i></i>SCROLL</div>
+      </div>
+
+      <div class="chap" data-chap="1">
+        <p class="eyebrow">01 · 炭</p>
+        <h2>熱が、味をつくる。</h2>
+        <p>炭の置き方ひとつで、甘さも重さも変わります。スタッフが一台ずつ、火加減を見ながら仕上げます。</p>
+      </div>
+      <div class="chap" data-chap="2">
+        <p class="eyebrow">02 · 煙</p>
+        <h2>煙は、ゆっくり。</h2>
+        <p>深く吸って、ゆっくり吐く。立ちのぼる白い煙が、会話の間をやわらかく埋めていきます。</p>
+      </div>
+      <div class="chap" data-chap="3">
+        <p class="eyebrow">03 · 灯</p>
+        <h2>灯りの下で、ほどける。</h2>
+        <p>木の壁、革のソファ、植物の緑。ペンダントライトの下で、時間の速さが変わります。</p>
+      </div>
+      <div class="chap" data-chap="4">
+        <p class="eyebrow">04 · 一服</p>
+        <h2>さあ、あなたの一台を。</h2>
+        <p>まずは画面の上で、一服を試してみてください。</p>
+        <a class="btn solid" href="#puff">一服を試す ↓</a>
+      </div>
+
+      <div class="reel" aria-hidden="true">
+        <ol>
+          <li data-r="1">炭</li><li data-r="2">煙</li><li data-r="3">灯</li><li data-r="4">一服</li>
+        </ol>
+        <span class="tc" id="tc">00:00 / 00:15</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PUFF: hold to inhale, release to exhale -->
+  <section id="puff" class="block">
+    <div class="wrap layer puff-grid">
+      <div class="hookah-wrap">
+        <svg class="hookah" id="hookah" viewBox="0 0 200 420" aria-hidden="true">
+          <ellipse class="glow" cx="100" cy="38" rx="34" ry="14"/>
+          <rect class="coal" x="78" y="28" width="12" height="12" rx="2"/>
+          <rect class="coal" x="94" y="26" width="12" height="12" rx="2"/>
+          <rect class="coal" x="110" y="28" width="12" height="12" rx="2"/>
+          <path class="metal" d="M66 42 h68 l-6 10 h-56z"/>
+          <path class="stem" d="M84 52 h32 l-6 28 h-20z"/>
+          <path class="metal" d="M44 84 q56 -14 112 0 q-56 12 -112 0z"/>
+          <rect class="stem" x="94" y="90" width="12" height="150" rx="5"/>
+          <circle class="metal" cx="100" cy="150" r="10"/>
+          <circle class="metal" cx="100" cy="196" r="7"/>
+          <path class="hose" d="M108 210 q80 10 70 90 q-6 60 -50 70"/>
+          <path class="glass" d="M88 240 h24 v18 c40 22 58 60 58 96 c0 36 -30 58 -70 58 s-70 -22 -70 -58 c0 -36 18 -74 58 -96z"/>
+          <path class="water" d="M38 336 c0 0 20 -6 62 -6 s62 6 62 6 c3 6 4 12 4 18 c0 32 -28 50 -66 50 s-66 -18 -66 -50 c0 -6 1 -12 4 -18z"/>
+          <g class="bubbles" id="bubbles"></g>
+        </svg>
+      </div>
+      <div class="puff-ui">
+        <div class="head" style="margin-bottom:0">
+          <p class="eyebrow">Try a puff</p>
+          <h2>長押しで、<br>吸ってみる。</h2>
+          <p>ボタンを押しているあいだが「吸う」時間です。指をはなすと、煙を吐きます。2〜4秒がちょうどいい一服。</p>
+        </div>
+        <button class="puff-btn" id="puffBtn" type="button" aria-describedby="puffRead">
+          <svg viewBox="0 0 168 168" aria-hidden="true"><circle class="track" cx="84" cy="84" r="80"/><circle class="meter" id="meter" cx="84" cy="84" r="80"/></svg>
+          <span><b>吸う</b><small>長押し</small></span>
+        </button>
+        <div class="puff-scale" aria-hidden="true"><span>0–2秒 浅め</span><span class="sweet">2–4秒 ちょうどいい</span><span>4秒〜 むせる</span></div>
+        <div class="puff-read" id="puffRead" aria-live="polite">
+          <p class="verdict mono" id="puffTime">0.0 秒</p>
+          <p class="sub" id="puffMsg">押しているあいだ、ボトルの水が泡立ちます。スマホでは指先に振動が伝わります（対応端末のみ）。</p>
+        </div>
+        <button class="toggle" id="soundBtn" type="button" aria-pressed="true">泡の音 ON</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLAVOR mixer -->
+  <section id="flavor" class="block">
+    <div class="wrap layer">
+      <div class="head">
+        <p class="eyebrow">Flavor mix</p>
+        <h2>3つまで混ぜて、<br>あなたの煙に。</h2>
+        <p>選んだフレーバーで、画面の煙の色も変わります。気に入ったミックスは、そのまま予約フォームに入ります。</p>
+      </div>
+      <div class="flavor-grid">
+        <div class="chips" id="chips" role="group" aria-label="フレーバー"></div>
+        <aside class="mix" aria-live="polite">
+          <p class="eyebrow">Your mix</p>
+          <p class="mix-name" id="mixName">—<small>フレーバーを選んでください</small></p>
+          <div class="bars" id="bars"></div>
+          <p class="mix-note" id="mixNote">迷ったら、ダブルアップルとミントの組み合わせが定番です。</p>
+          <a class="btn" href="#visit" id="mixReserve">このミックスで予約する</a>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu" class="block">
+    <div class="wrap layer">
+      <div class="head">
+        <p class="eyebrow">System</p>
+        <h2>料金は、シンプルに。</h2>
+        <p>1台を何人でシェアしても大丈夫です。炭の交換は何度でも無料で承ります。</p>
+      </div>
+      <div class="price">
+        <div><p class="label">シーシャ 1台</p><p class="yen">¥2,500<small> 税込</small></p><p class="note">約90〜120分お楽しみいただけます</p></div>
+        <div><p class="label">シェア（2人目から）</p><p class="yen">+¥1,500<small> / 人</small></p><p class="note">1台を複数人で</p></div>
+        <div><p class="label">ドリンク</p><p class="yen">¥500<small>〜</small></p><p class="note">ソフトドリンク・チャイ・アルコール</p></div>
+        <div><p class="label">炭交換</p><p class="yen">¥0</p><p class="note">何度でもお声がけください</p></div>
+      </div>
+      <ol class="steps">
+        <li><span class="no">STEP 1</span><h3>フレーバーを選ぶ</h3><p>甘い系、爽やか系、スパイス系。好みを伝えればスタッフが組み合わせを提案します。</p></li>
+        <li><span class="no">STEP 2</span><h3>炭が温まるのを待つ</h3><p>セットしてから約5分。ボウル全体に熱が回ると、煙が濃くなります。</p></li>
+        <li><span class="no">STEP 3</span><h3>ゆっくり吸う</h3><p>2〜4秒かけて、深く。ボトルの水がぽこぽこ鳴るのが合図です。</p></li>
+        <li><span class="no">STEP 4</span><h3>味を確かめる</h3><p>薄い・辛いと感じたら炭を調整します。遠慮なく呼んでください。</p></li>
+      </ol>
+      <p class="fine">※ 料金・内容は提案用のサンプルです。20歳未満の方はご利用いただけません。</p>
+    </div>
+  </section>
+
+  <!-- SPACE -->
+  <section id="space" class="block">
+    <div class="wrap layer">
+      <div class="head">
+        <p class="eyebrow">The room</p>
+        <h2>木と、<br>コンクリートと、緑。</h2>
+        <p>写真に触れると、少しだけ傾きます。ゆっくり眺めてみてください。</p>
+      </div>
+      <div class="gallery" id="gallery">
+        <figure><img src="img/lounge-hookah.webp" alt="木の壁に沿って革のソファと小さなテーブルが並ぶ店内。手前のテーブルにシーシャ" loading="lazy"><span class="sheen"></span><figcaption>LOUNGE</figcaption></figure>
+        <figure><img src="img/lounge-wall.webp" alt="ペンダントライトに照らされた木の壁と黒い革のチェア" loading="lazy"><span class="sheen"></span><figcaption>WOOD WALL</figcaption></figure>
+        <figure><img src="img/lounge-entrance.webp" alt="ガラス扉の入口とカウンター、植物とスピーカー" loading="lazy"><span class="sheen"></span><figcaption>ENTRANCE</figcaption></figure>
+      </div>
+      <div class="facts"><span>Free Wi-Fi</span><span>電源あり</span><span>プロジェクター</span><span>ソファ席</span><span>おひとりさま歓迎</span></div>
+    </div>
+  </section>
+
+  <!-- VISIT -->
+  <section id="visit" class="block">
+    <div class="wrap layer visit-grid">
+      <div>
+        <div class="head">
+          <p class="eyebrow">Visit</p>
+          <h2>今夜、<br>寄っていきませんか。</h2>
+        </div>
+        <table class="hours">
+          <tr><th scope="row">日〜木</th><td>17:00 – 25:00</td></tr>
+          <tr><th scope="row">金・土・祝前日</th><td>14:00 – 27:00</td></tr>
+          <tr><th scope="row">定休日</th><td>不定休</td></tr>
+        </table>
+        <div class="addr">
+          <p>〒000-0000 サンプル市 中央町 1-2-3 B1F</p>
+          <p>サンプル駅 東口より徒歩3分</p>
+          <p class="mono">TEL 000-0000-0000</p>
+        </div>
+      </div>
+      <form class="reserve" id="reserve" novalidate>
+        <label>日付<input type="date" id="rDate" required></label>
+        <label>時間
+          <select id="rTime">
+            <option>17:00</option><option>18:00</option><option selected>19:00</option><option>20:00</option><option>21:00</option><option>22:00</option>
+          </select>
+        </label>
+        <label>人数
+          <select id="rPeople"><option>1名</option><option selected>2名</option><option>3名</option><option>4名</option><option>5名以上</option></select>
+        </label>
+        <label>お名前<input type="text" id="rName" placeholder="山田" autocomplete="name"></label>
+        <label class="full">フレーバー（任意）<input type="text" id="rMix" placeholder="上のミックスで選ぶと入ります"></label>
+        <button class="btn solid full" type="submit" style="justify-content:center">予約内容を確認する</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>YURAGI Shisha Lounge — 提案用サンプルページ。店名・住所・料金は仮のものです。</p>
+    <p class="mono">FILM: 15s one-take / scroll-scrubbed</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+(() => {
+"use strict";
+const FRAME_COUNT = 181;
+const FILM_SECONDS = 15;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const vib = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+/* ================= SMOKE (three.js) ================= */
+const Smoke = (() => {
+  const canvas = $("#smoke");
+  if (!window.THREE) return { burst(){}, setTint(){}, setAmbient(){} };
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, premultipliedAlpha: false }); }
+  catch (e) { return { burst(){}, setTint(){}, setAmbient(){} }; }
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(dpr);
+  const scene = new THREE.Scene();
+  let W = innerWidth, H = innerHeight;
+  const cam = new THREE.OrthographicCamera(0, W, 0, -H, -10, 10);
+  const MAX = 900;
+  const pos = new Float32Array(MAX * 3), size = new Float32Array(MAX), alpha = new Float32Array(MAX), seed = new Float32Array(MAX);
+  const vel = new Float32Array(MAX * 2), life = new Float32Array(MAX), maxLife = new Float32Array(MAX), grow = new Float32Array(MAX), peak = new Float32Array(MAX);
+  for (let i = 0; i < MAX; i++) { seed[i] = Math.random(); pos[i*3+2] = 0; }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute("aSize", new THREE.BufferAttribute(size, 1).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute("aAlpha", new THREE.BufferAttribute(alpha, 1).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute("aSeed", new THREE.BufferAttribute(seed, 1));
+  const tint = new THREE.Color("#ece5d8"), tintTarget = new THREE.Color("#ece5d8");
+  const mat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, depthTest: false,
+    uniforms: { uDpr: { value: dpr }, uColor: { value: tint }, uTime: { value: 0 } },
+    vertexShader: `
+      attribute float aSize; attribute float aAlpha; attribute float aSeed;
+      uniform float uDpr; varying float vA; varying float vS;
+      void main(){ vA=aAlpha; vS=aSeed; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); gl_PointSize=aSize*uDpr; }`,
+    fragmentShader: `
+      uniform vec3 uColor; uniform float uTime; varying float vA; varying float vS;
+      void main(){
+        vec2 p=gl_PointCoord-0.5; float r=length(p); if(r>0.5) discard;
+        float ang=atan(p.y,p.x);
+        float lump=0.82+0.18*sin(ang*3.0+vS*40.0+uTime*0.6)*sin(ang*5.0-vS*17.0);
+        float a=smoothstep(0.5*lump,0.0,r); a=a*a;
+        gl_FragColor=vec4(uColor,a*vA);
+      }`
+  });
+  scene.add(new THREE.Points(geo, mat));
+  let head = 0, ambient = 1;
+  function spawn(x, y, vx, vy, s, l, pk) {
+    const i = head; head = (head + 1) % MAX;
+    pos[i*3] = x; pos[i*3+1] = -y; vel[i*2] = vx; vel[i*2+1] = vy;
+    size[i] = s; grow[i] = 18 + Math.random() * 30; life[i] = l; maxLife[i] = l; peak[i] = pk;
+  }
+  function burst(x, y, count, power, dirX = 0, dirY = -1) {
+    for (let k = 0; k < count; k++) {
+      const a = Math.atan2(dirY, dirX) + (Math.random() - .5) * 1.1;
+      const sp = (40 + Math.random() * 160) * power;
+      spawn(x + (Math.random()-.5)*20, y + (Math.random()-.5)*20, Math.cos(a)*sp, -Math.sin(a)*sp, 30 + Math.random()*60, 3 + Math.random()*3.5, .22 + Math.random()*.2);
+    }
+  }
+  // pointer
+  let px = -999, py = -999, pvx = 0, pvy = 0, lastT = 0;
+  function onMove(x, y) {
+    const t = performance.now(), dt = Math.max(16, t - lastT);
+    if (px > -900) { pvx = (x - px) / dt * 1000; pvy = (y - py) / dt * 1000; }
+    px = x; py = y; lastT = t;
+    const sp = Math.hypot(pvx, pvy);
+    if (!reduce && sp > 120 && Math.random() < .7) spawn(x, y, pvx * .12, -pvy * .12, 22 + Math.random()*26, 1.6 + Math.random()*1.6, .13);
+  }
+  addEventListener("pointermove", e => onMove(e.clientX, e.clientY), { passive: true });
+  addEventListener("touchmove", e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }, { passive: true });
+  function resize() {
+    W = innerWidth; H = innerHeight;
+    renderer.setSize(W, H, false);
+    cam.right = W; cam.bottom = -H; cam.updateProjectionMatrix();
+  }
+  addEventListener("resize", resize); resize();
+  let prev = performance.now(), emitAcc = 0;
+  function tick(now) {
+    const dt = Math.min(.05, (now - prev) / 1000); prev = now;
+    mat.uniforms.uTime.value = now / 1000;
+    tint.lerp(tintTarget, .04);
+    if (!reduce) {
+      emitAcc += dt * 9 * ambient;
+      while (emitAcc > 1) { emitAcc--; spawn(Math.random()*W, H + 40, (Math.random()-.5)*14, 18 + Math.random()*26, 60 + Math.random()*90, 7 + Math.random()*5, .07 + Math.random()*.05); }
+    }
+    pvx *= .9; pvy *= .9;
+    const drift = now / 1000;
+    for (let i = 0; i < MAX; i++) {
+      if (life[i] <= 0) { alpha[i] = 0; continue; }
+      life[i] -= dt;
+      const x = pos[i*3], y = -pos[i*3+1];
+      // gentle curl-like wobble + buoyancy
+      vel[i*2]   += Math.sin(y * .012 + drift * .8 + seed[i]*6.28) * 16 * dt;
+      vel[i*2+1] += 14 * dt;
+      // pointer push
+      const dx = x - px, dy = y - py, d2 = dx*dx + dy*dy;
+      if (d2 < 140*140) { const f = (1 - Math.sqrt(d2)/140) * dt * 3; vel[i*2] += pvx * f * .25 + dx * f; vel[i*2+1] += -pvy * f * .25 - dy * f; }
+      vel[i*2] *= 1 - .9 * dt; vel[i*2+1] *= 1 - .6 * dt;
+      pos[i*3] += vel[i*2] * dt; pos[i*3+1] += vel[i*2+1] * dt;
+      size[i] += grow[i] * dt;
+      const t = 1 - life[i] / maxLife[i];
+      alpha[i] = peak[i] * Math.min(1, t * 5) * (1 - t);
+    }
+    geo.attributes.position.needsUpdate = true; geo.attributes.aSize.needsUpdate = true; geo.attributes.aAlpha.needsUpdate = true;
+    renderer.render(scene, cam);
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  return { burst, setTint(hex){ tintTarget.set(hex); }, setAmbient(v){ ambient = v; } };
+})();
+
+/* ================= FILM (frame scrub) ================= */
+const Film = (() => {
+  const cv = $("#frames"), ctx = cv.getContext("2d");
+  const frames = new Array(FRAME_COUNT);
+  let loaded = 0, target = 0, current = 0, drawn = -1;
+  const src = i => `frames/${String(i + 1).padStart(4, "0")}.webp`;
+  function load(i) {
+    return new Promise(res => {
+      const im = new Image(); im.decoding = "async";
+      im.onload = () => { frames[i] = im; loaded++; $("#loader").textContent = `LOADING FILM ${Math.round(loaded / FRAME_COUNT * 100)}%`; if (loaded === FRAME_COUNT) $("#loader").classList.add("done"); res(); };
+      im.onerror = () => { loaded++; res(); };
+      im.src = src(i);
+    });
+  }
+  // first frame, then a coarse pass (every 8th), then fill in
+  async function preload() {
+    await load(0); drawn = -1;
+    const order = []; for (let step of [8, 4, 2, 1]) for (let i = 0; i < FRAME_COUNT; i += step) if (!order.includes(i) && i !== 0) order.push(i);
+    let p = 0; const lanes = 6;
+    await Promise.all(Array.from({ length: lanes }, async () => { while (p < order.length) await load(order[p++]); }));
+  }
+  function nearest(i) {
+    if (frames[i]) return frames[i];
+    for (let d = 1; d < FRAME_COUNT; d++) { if (frames[i - d]) return frames[i - d]; if (frames[i + d]) return frames[i + d]; }
+    return null;
+  }
+  function size() {
+    const d = Math.min(devicePixelRatio || 1, 2);
+    cv.width = Math.round(cv.clientWidth * d); cv.height = Math.round(cv.clientHeight * d); drawn = -1;
+  }
+  function draw(i) {
+    const im = nearest(i); if (!im) return;
+    const cw = cv.width, ch = cv.height, s = Math.max(cw / im.naturalWidth, ch / im.naturalHeight);
+    const w = im.naturalWidth * s, h = im.naturalHeight * s;
+    ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h);
+  }
+  function loop() {
+    current += (target - current) * (reduce ? 1 : .14);
+    const i = clamp(Math.round(current), 0, FRAME_COUNT - 1);
+    if (i !== drawn) { draw(i); if (frames[i]) drawn = i; }
+    requestAnimationFrame(loop);
+  }
+  addEventListener("resize", size); size();
+  preload(); requestAnimationFrame(loop);
+  return { set(p) { target = p * (FRAME_COUNT - 1); } };
+})();
+
+/* ================= SCROLL (GSAP ScrollTrigger, with a plain fallback) ================= */
+const chaps = $$("[data-chap]");
+const reel = $$(".reel li");
+const tc = $("#tc");
+// chapter windows on the 0..1 film progress
+const WIN = [[0, .13], [.15, .34], [.37, .58], [.61, .8], [.83, 1.01]];
+function onFilm(p) {
+  Film.set(p);
+  tc.textContent = `00:${String(Math.floor(p * FILM_SECONDS)).padStart(2, "0")} / 00:15`;
+  const on = WIN.findIndex(([a, b]) => p >= a && p < b);
+  reel.forEach(li => li.classList.toggle("on", +li.dataset.r === on));
+  Smoke.setAmbient(p > .25 && p < .6 ? 2.2 : 1);
+  return on;
+}
+if (window.gsap && window.ScrollTrigger) {
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.set(chaps.filter(c => c.dataset.chap !== "0"), { autoAlpha: 0, y: 40 });
+  const tl = gsap.timeline({ scrollTrigger: { trigger: "#film", start: "top top", end: "bottom bottom", scrub: .6, onUpdate: self => onFilm(self.progress) } });
+  tl.to({}, { duration: 1 }, 0);
+  WIN.forEach(([a, b], idx) => {
+    const els = chaps.filter(c => +c.dataset.chap === idx);
+    if (idx > 0) tl.to(els, { autoAlpha: 1, y: 0, duration: .05, ease: "power2.out" }, a);
+    if (idx < WIN.length - 1) tl.to(els, { autoAlpha: 0, y: -40, duration: .04, ease: "power2.in" }, b - .04);
+  });
+  // soft rise for section blocks (transform only, content stays visible)
+  if (!reduce) $$(".block .head, .price, .steps, .gallery, .chips, .mix, form.reserve").forEach(el => {
+    gsap.from(el, { y: 50, duration: 1, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+  });
+} else {
+  // CDN failed: drive the same film and chapters from plain scroll events
+  const film = $("#film");
+  const sync = () => {
+    const r = film.getBoundingClientRect();
+    const p = clamp(-r.top / Math.max(1, r.height - innerHeight), 0, 1);
+    const on = onFilm(p);
+    chaps.forEach(c => { const v = +c.dataset.chap === on; c.style.opacity = v ? 1 : 0; c.style.visibility = v ? "visible" : "hidden"; c.style.transition = "opacity .4s"; });
+  };
+  addEventListener("scroll", sync, { passive: true }); addEventListener("resize", sync); sync();
+}
+if (!window.gsap) window.gsap = {
+  to(t, v) { if (v && v.onComplete) setTimeout(v.onComplete, (v.duration || 0) * 1000); },
+  fromTo() {}, from() {}, set() {}
+};
+
+/* ================= PUFF ================= */
+(() => {
+  const btn = $("#puffBtn"), meter = $("#meter"), hook = $("#hookah"), bub = $("#bubbles");
+  const tEl = $("#puffTime"), msg = $("#puffMsg"), soundBtn = $("#soundBtn");
+  const CIRC = 2 * Math.PI * 80;
+  meter.style.strokeDasharray = CIRC; meter.style.strokeDashoffset = CIRC;
+  let holding = false, t0 = 0, raf = 0, nextBubble = 0, nextBuzz = 0, heat = 0, sound = true, ac = null;
+  soundBtn.addEventListener("click", () => { sound = !sound; soundBtn.setAttribute("aria-pressed", sound); soundBtn.textContent = sound ? "泡の音 ON" : "泡の音 OFF"; });
+  function blip() {
+    if (!sound) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain(), now = ac.currentTime;
+      const f = 180 + Math.random() * 260;
+      o.type = "sine"; o.frequency.setValueAtTime(f, now); o.frequency.exponentialRampToValueAtTime(f * 2.6, now + .06);
+      g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(.18, now + .008); g.gain.exponentialRampToValueAtTime(.0001, now + .09);
+      o.connect(g).connect(ac.destination); o.start(now); o.stop(now + .1);
+    } catch (e) {}
+  }
+  function bubble() {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    const x = 60 + Math.random() * 80, r = 2 + Math.random() * 5;
+    c.setAttribute("cx", x); c.setAttribute("cy", 396); c.setAttribute("r", r);
+    bub.appendChild(c);
+    gsap.to(c, { attr: { cy: 336 + Math.random() * 6, cx: x + (Math.random() - .5) * 16 }, duration: .5 + Math.random() * .4, ease: "power1.in", onComplete: () => c.remove() });
+  }
+  function frame(now) {
+    if (!holding) return;
+    const s = (now - t0) / 1000;
+    tEl.textContent = `${s.toFixed(1)} 秒`;
+    const frac = clamp(s / 4, 0, 1);
+    meter.style.strokeDashoffset = CIRC * (1 - frac);
+    meter.classList.toggle("over", s > 4);
+    heat = clamp(s / 3, 0, 1);
+    hook.style.setProperty("--heat", heat); btn.style.setProperty("--heat", heat);
+    if (now > nextBubble) { bubble(); blip(); nextBubble = now + 70 + Math.random() * 140 - heat * 40; }
+    if (now > nextBuzz) { vib(12); nextBuzz = now + 260; }
+    if (s > 2 && s < 4) msg.textContent = "いい感じ。そのまま、ゆっくり。";
+    else if (s >= 4) msg.textContent = "そろそろ限界かも…";
+    raf = requestAnimationFrame(frame);
+  }
+  function start(e) {
+    if (holding) return;
+    if (e) e.preventDefault();
+    holding = true; t0 = performance.now(); nextBubble = 0; nextBuzz = 0;
+    btn.classList.add("holding"); msg.textContent = "吸っています…";
+    if (e && e.pointerId != null) try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+    raf = requestAnimationFrame(frame);
+  }
+  function end() {
+    if (!holding) return;
+    holding = false; cancelAnimationFrame(raf); btn.classList.remove("holding");
+    const s = (performance.now() - t0) / 1000;
+    const r = btn.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let verdict, note, count, power;
+    if (s < .6) { verdict = "まだ吸えていません"; note = "ボタンを押したまま、2〜4秒待ってみてください。"; count = 8; power = .5; }
+    else if (s < 2) { verdict = "浅めの一服"; note = "煙が少し軽め。もう少し長く吸うと、味がはっきりします。"; count = 40; power = .9; }
+    else if (s <= 4) { verdict = "ちょうどいい一服"; note = "濃い白煙。フレーバーの香りがいちばん出るのがこの長さです。"; count = 110; power = 1.25; }
+    else { verdict = "むせちゃう…"; note = "吸いすぎると喉が熱くなります。お店では無理せず、ゆっくりどうぞ。"; count = 140; power = 1.5; }
+    tEl.textContent = `${s.toFixed(1)} 秒 — ${verdict}`; msg.textContent = note;
+    Smoke.burst(cx, cy - 20, reduce ? Math.round(count / 3) : count, power, 0, 1);
+    vib(s >= 2 && s <= 4 ? [40, 50, 90] : s > 4 ? [20, 30, 20, 30, 20, 30, 120] : 25);
+    gsap.to({ h: heat }, { h: 0, duration: 1.6, ease: "power2.out", onUpdate() { hook.style.setProperty("--heat", this.targets()[0].h); btn.style.setProperty("--heat", this.targets()[0].h); } });
+    gsap.to(meter, { strokeDashoffset: CIRC, duration: .8, ease: "power2.out", delay: .4 });
+  }
+  btn.addEventListener("pointerdown", start);
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach(ev => btn.addEventListener(ev, end));
+  btn.addEventListener("contextmenu", e => e.preventDefault());
+  btn.addEventListener("keydown", e => { if ((e.key === " " || e.key === "Enter") && !e.repeat) start(e); });
+  btn.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") end(); });
+  btn.addEventListener("blur", end);
+})();
+
+/* ================= FLAVOR MIX ================= */
+(() => {
+  const F = [
+    { id: "apple", n: "ダブルアップル", k: "紅", c: "#d4785a", d: "アニスの香る王道。甘く深い", v: [4, 1, 1, 5] },
+    { id: "mint",  n: "ミント",         k: "霧", c: "#9fd6c0", d: "喉にすっと抜ける清涼感", v: [1, 5, 0, 3] },
+    { id: "berry", n: "ブルーベリー",   k: "宵", c: "#a99ad6", d: "ジャムのような甘酸っぱさ", v: [4, 1, 3, 3] },
+    { id: "peach", n: "ピーチ",         k: "桃", c: "#efb79a", d: "やわらかく、まるい甘さ", v: [5, 0, 1, 4] },
+    { id: "lemon", n: "レモン",         k: "晴", c: "#e6d779", d: "皮ごと搾ったような爽快さ", v: [2, 2, 5, 3] },
+    { id: "chai",  n: "チャイ",         k: "燻", c: "#c9a06e", d: "シナモンとカルダモンの温もり", v: [3, 0, 0, 5] },
+  ];
+  const AXES = ["甘さ", "清涼感", "酸味", "香り"];
+  const chips = $("#chips"), name = $("#mixName"), bars = $("#bars"), note = $("#mixNote");
+  const sel = [];
+  bars.innerHTML = AXES.map((a, i) => `<div class="bar"><span>${a}</span><span class="t"><i id="bar${i}"></i></span><span class="v" id="barv${i}">0.0</span></div>`).join("");
+  chips.innerHTML = F.map(f => `<button type="button" class="chip" aria-pressed="false" data-id="${f.id}" style="--c:${f.c}"><span class="k">${f.k}</span><span class="n">${f.n}</span><span class="d">${f.d}</span></button>`).join("");
+  const mix = (hexes) => {
+    if (!window.THREE) return "#ece5d8";
+    const c = new THREE.Color("#ece5d8");
+    hexes.forEach(h => c.lerp(new THREE.Color(h), .55 / hexes.length + .2));
+    return "#" + c.getHexString();
+  };
+  function render() {
+    $$(".chip", chips).forEach(b => b.setAttribute("aria-pressed", sel.includes(b.dataset.id)));
+    const fs = sel.map(id => F.find(f => f.id === id));
+    if (!fs.length) {
+      name.innerHTML = "—<small>フレーバーを選んでください</small>";
+      AXES.forEach((_, i) => { $("#bar" + i).style.width = "0"; $("#barv" + i).textContent = "0.0"; });
+      note.textContent = "迷ったら、ダブルアップルとミントの組み合わせが定番です。";
+      Smoke.setTint("#ece5d8"); return;
+    }
+    name.innerHTML = `${fs.map(f => f.k).join("")}の煙<small>${fs.map(f => f.n).join(" × ")}</small>`;
+    AXES.forEach((_, i) => { const v = fs.reduce((s, f) => s + f.v[i], 0) / fs.length; $("#bar" + i).style.width = (v / 5 * 100) + "%"; $("#barv" + i).textContent = v.toFixed(1); });
+    const ids = sel.join("+");
+    note.textContent = ids.includes("apple") && ids.includes("mint") ? "定番の組み合わせ。甘さと清涼感のバランスが良く、初めての方にもおすすめです。"
+      : fs.length === 3 ? "3種ミックス。香りが重なるぶん、炭はやや弱めで仕上げます。"
+      : "スタッフが配合の比率を調整して仕上げます。";
+    Smoke.setTint(mix(fs.map(f => f.c)));
+  }
+  chips.addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const id = b.dataset.id, i = sel.indexOf(id);
+    if (i >= 0) sel.splice(i, 1);
+    else { if (sel.length >= 3) sel.shift(); sel.push(id); const r = b.getBoundingClientRect(); Smoke.burst(r.left + r.width / 2, r.top + r.height / 2, 26, .7, 0, 1); vib(15); }
+    gsap.fromTo(b, { scale: .94 }, { scale: 1, duration: .5, ease: "elastic.out(1,.4)" });
+    render();
+  });
+  $("#mixReserve").addEventListener("click", () => {
+    const fs = sel.map(id => F.find(f => f.id === id));
+    if (fs.length) $("#rMix").value = fs.map(f => f.n).join(" × ");
+  });
+  render();
+})();
+
+/* ================= GALLERY tilt ================= */
+$$("#gallery figure").forEach(fig => {
+  const img = $("img", fig);
+  fig.addEventListener("pointermove", e => {
+    if (reduce) return;
+    const r = fig.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    fig.style.transform = `rotateY(${(x - .5) * 10}deg) rotateX(${(.5 - y) * 10}deg)`;
+    img.style.transform = `scale(1.12) translate(${(x - .5) * -12}px, ${(y - .5) * -12}px)`;
+    fig.style.setProperty("--mx", x * 100 + "%"); fig.style.setProperty("--my", y * 100 + "%");
+  });
+  fig.addEventListener("pointerleave", () => { fig.style.transform = ""; img.style.transform = ""; });
+});
+
+/* ================= RESERVE (sample) ================= */
+(() => {
+  const d = $("#rDate"); const t = new Date(); t.setMinutes(t.getMinutes() - t.getTimezoneOffset());
+  d.value = t.toISOString().slice(0, 10); d.min = d.value;
+  const toast = $("#toast"); let tid;
+  $("#reserve").addEventListener("submit", e => {
+    e.preventDefault();
+    const nm = $("#rName").value.trim() || "お客";
+    toast.textContent = `${nm}様、${d.value} ${$("#rTime").value}〜 ${$("#rPeople").value}で承りました（サンプルのため実際の予約は送信されません）。`;
+    toast.classList.add("show"); clearTimeout(tid); tid = setTimeout(() => toast.classList.remove("show"), 5200);
+    const r = e.submitter ? e.submitter.getBoundingClientRect() : null;
+    if (r) Smoke.burst(r.left + r.width / 2, r.top, 60, 1, 0, 1);
+    vib([30, 40, 30]);
+  });
+})();
+
+/* ================= EMBER CURSOR ================= */
+(() => {
+  const c = $(".cursor"); if (!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+  let x = -50, y = -50, cx = -50, cy = -50;
+  addEventListener("pointermove", e => { x = e.clientX; y = e.clientY; }, { passive: true });
+  (function f() { cx += (x - cx) * .25; cy += (y - cy) * .25; c.style.transform = `translate(${cx}px,${cy}px)`; requestAnimationFrame(f); })();
+})();
+})();
+</script>
