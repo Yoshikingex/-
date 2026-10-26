@@ -55,9 +55,8 @@
 
   /* ---------- Loader ---------- */
   const loader = $('#loader'), loaderBar = $('#loaderBar'), loaderNum = $('#loaderNum');
-  const CIRC = 2 * Math.PI * 52;
   const setLoad = p => {
-    loaderBar.style.strokeDashoffset = String(CIRC * (1 - p));
+    loaderBar.style.transform = `scaleX(${p})`;
     loaderNum.textContent = String(Math.round(p * 100));
   };
   let loaderDone = false;
@@ -190,10 +189,9 @@
   });
 
   /* ---------- Reveal ---------- */
-  ScrollTrigger.batch('.reveal', {
-    start: 'top 88%', once: true,
-    onEnter: els => gsap.to(els, { opacity: 1, y: 0, duration: 1.1, stagger: 0.1, ease: 'power3.out' }),
-  });
+  // onLeave/onEnterBack too, so content passed over by an anchor jump is never left hidden
+  const show = els => gsap.to(els, { opacity: 1, y: 0, duration: 1.1, stagger: 0.1, ease: 'power3.out', overwrite: true });
+  ScrollTrigger.batch('.reveal', { start: 'top 88%', once: true, onEnter: show, onLeave: show, onEnterBack: show });
   ScrollTrigger.batch('.svc', {
     start: 'top 92%', once: true,
     onEnter: els => gsap.fromTo(els, { opacity: 0, y: 60, rotate: 2 }, { opacity: 1, y: 0, rotate: 0, duration: 1.1, stagger: 0.12, ease: 'power3.out' }),
@@ -201,7 +199,7 @@
 
   /* ---------- Count-up stats ---------- */
   ScrollTrigger.create({
-    trigger: '.facts__grid', start: 'top 85%', once: true,
+    trigger: '.facts', start: 'top 85%', once: true,
     onEnter: () => $$('.facts .num').forEach((n, i) => {
       const o = { v: 0 };
       gsap.to(o, { v: +n.dataset.to, duration: 2, delay: i * 0.12, ease: 'power3.out', onUpdate: () => { n.textContent = formatNum(o.v, n); } });
