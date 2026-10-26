@@ -1,0 +1,29 @@
+{
+  "id": "V1",
+  "project": "CTF GROUP サンプルLP（スクロール連動）",
+  "phase": "動画生成（未実行：クレジット0のため停止中）",
+  "duration_sec": 15,
+  "duration_reason": "スクロール連動（動画スクラブ）はつなぎ目ゼロの1カット長回しが最も滑らか。Seedance 2.0 の1回あたり最長が15秒。15秒×24fps=約360コマで、スクロール量に十分な密度。スマホ容量も16MiB以内に収めやすい",
+  "storyboard_image": {
+    "model": "gpt_image_2_5",
+    "aspect_ratio": "16:9",
+    "cost_credits": 0.25,
+    "prompt": "A 6-panel storyboard grid (2 rows x 3 columns) showing 6 keyframes of ONE single continuous camera move, NOT six different scenes, no text anywhere. Cinematic premium tech brand film, deep ink-black background #05070D. Panel 1: a single tiny glowing spark floating in darkness, center frame. Panel 2: the spark expands into a thin perfect luminous ring (a glowing zero) in electric blue #2F6BFF. Panel 3: camera pushes closer; four ribbons of light emerge from the ring and spiral around it, colors electric blue #2F6BFF, cyan #3FE0D0, violet #8B5CFF, coral #FF6B5A. Panel 4: the ribbons weave into a 3D network of glowing nodes and fine lines, like connected businesses and data. Panel 5: the network rises into elegant ascending columns of light, like a growth chart made of glass and light. Panel 6: camera rises and pulls back; the ring glows warm gold #FFB547 like a sunrise over a horizon of light particles, closing beauty shot. Consistent lens, consistent lighting, subject always centered with clean dark negative space on left and right."
+  },
+  "video": {
+    "model": "seedance_2_0",
+    "params": {"duration": 15, "resolution": "1080p", "mode": "std", "aspect_ratio": "16:9", "generate_audio": false},
+    "media_role_for_storyboard": "image_references（start_image にはしない：1枚目が静止画になるため）",
+    "cost_credits_1080p": 180,
+    "cost_credits_720p_alt": 67.5,
+    "prompt": "One continuous single take, 15 seconds, no cuts. Premium cinematic tech brand film on a seamless deep ink-black background (#05070D). 0-2s: a single tiny glowing spark floats in darkness at the exact center. 2-5s: the spark slowly expands into a thin, perfect luminous ring of electric blue light (#2F6BFF), a glowing zero, as the camera begins a slow steady push-in. 5-9s: four silky ribbons of light emerge from the ring and spiral gracefully around it, colored electric blue #2F6BFF, cyan #3FE0D0, violet #8B5CFF and coral #FF6B5A. 9-12s: the ribbons weave into a delicate 3D network of glowing nodes connected by fine light lines, which then rise into elegant ascending columns of glass and light like a growth chart. 12-15s: the camera slowly rises and pulls back; the ring turns warm gold (#FFB547) and glows like a sunrise over a horizon of soft light particles, ending on a calm closing beauty shot. Subject always centered, clean dark negative space on the left and right for text. Slow steady motion at constant speed, gentle ease only at start and end, no camera shake, locked exposure and white balance, no flicker, minimal motion blur, no on-screen text, no logos, no watermark."
+  },
+  "scroll_chapters_plan": [
+    {"t": "0-2s",  "chapter": "Hero", "copy_sample": "常識に、違和感を。"},
+    {"t": "2-5s",  "chapter": "ZERO（0→1の思想）", "copy_sample": "ゼロから、事業を動かす。"},
+    {"t": "5-9s",  "chapter": "4つのサービス", "copy_sample": "ZERO SALES / MARKETING / PROMOTION / RECRUIT"},
+    {"t": "9-12s", "chapter": "AI×データで成果へ", "copy_sample": "つながる仕組みが、伸び続ける売上をつくる。"},
+    {"t": "12-15s","chapter": "CTA", "copy_sample": "無料相談を予約する"}
+  ],
+  "post_process": "ffmpeg でデスクトップ版(1080p, GOP8)・スマホ版(720p, GOP4)・ポスター画像を作成（音声なし、faststart）"
+}
