@@ -1,5 +1,5 @@
 // Renders scene.html frame-by-frame in headless Chromium and pipes JPEGs into ffmpeg.
-// usage: node render.js <out.mp4> [fps=30] [w=1920] [h=1080] [--stills t1,t2,...]
+// usage: [PAGE=scene.html] node render.js <out.mp4> [fps=30] [w=1920] [h=1080] [--stills t1,t2,...]
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -29,7 +29,7 @@ const server = http.createServer((req, res) => {
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   page.on('console', m => { if (m.type() === 'error') console.error('[page]', m.text()); });
   page.on('pageerror', e => console.error('[pageerror]', e.message));
-  await page.goto(`http://127.0.0.1:${port}/scene.html?w=${W}&h=${H}`);
+  await page.goto(`http://127.0.0.1:${port}/${process.env.PAGE || 'scene.html'}?w=${W}&h=${H}`);
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 60000 });
 
   const decode = d => Buffer.from(d.split(',')[1], 'base64');

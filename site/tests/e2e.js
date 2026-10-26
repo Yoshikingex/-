@@ -78,9 +78,21 @@ const noHScroll = page => page.evaluate(() => document.documentElement.scrollWid
     }
     check('PC: poster hidden once video paints', await page.evaluate(() => document.getElementById('filmPoster').classList.contains('is-hidden')));
 
+    // sales journey film
+    const jScrub = async sec => { await page.evaluate(s => { const j = document.getElementById('journey'); window.scrollTo(0, j.offsetTop + (j.offsetHeight - innerHeight) * (s / 15)); }, sec); await sleep(1800); };
+    await jScrub(0.5); await sleep(1500);
+    check('PC: journey film (16:9) requested', requests.some(u => u.endsWith('sales-desktop.mp4')) && !requests.some(u => u.endsWith('sales-mobile.mp4')));
+    for (const [sec, step] of [[7.5, 2], [12, 4], [3.5, 1]]) {
+      await jScrub(sec);
+      const r = await page.evaluate(() => ({ t: document.getElementById('journeyVideo').currentTime, a: [...document.querySelectorAll('.jstep')].findIndex(s => s.classList.contains('is-active')) }));
+      check(`PC: journey scroll → video ${sec}s, step ${step + 1}`, Math.abs(r.t - sec) < 0.35 && r.a === step, `currentTime=${r.t.toFixed(2)} step=${r.a + 1}`);
+      if (sec === 7.5) await page.screenshot({ path: path.join(SHOTS, 'pc-journey.png') });
+    }
+
     // horizontal services
+    await page.evaluate(() => window.scrollTo(0, document.getElementById('services').offsetTop - innerHeight)); await sleep(1500);
     const t0 = await page.evaluate(() => getComputedStyle(document.getElementById('servicesTrack')).transform);
-    await page.evaluate(() => { const s = document.querySelector('.services__pin'); window.scrollTo(0, s.getBoundingClientRect().top + scrollY + innerHeight * 0.5); });
+    await page.evaluate(() => { const s = document.getElementById('services'); window.scrollTo(0, s.getBoundingClientRect().top + scrollY + innerHeight * 0.5); }); // the section, not the (fixed) pin
     await sleep(1500);
     const t1 = await page.evaluate(() => new DOMMatrix(getComputedStyle(document.getElementById('servicesTrack')).transform).m41);
     check('PC: services track scrolls horizontally', t1 < -50, `before=${t0} x=${t1.toFixed(0)}`);
@@ -138,6 +150,11 @@ const noHScroll = page => page.evaluate(() => document.documentElement.scrollWid
     check('SP: menu link closes menu & scrolls', await page.evaluate(() => !document.getElementById('nav').classList.contains('is-open') && Math.abs(document.getElementById('news').getBoundingClientRect().top - 72) < 60));
     await page.evaluate(() => document.getElementById('services').scrollIntoView()); await sleep(1500);
     await page.screenshot({ path: path.join(SHOTS, 'sp-services.png') });
+    await page.evaluate(() => { const j = document.getElementById('journey'); window.scrollTo(0, j.offsetTop + (j.offsetHeight - innerHeight) * 0.68); }); await sleep(3500);
+    const jr = await page.evaluate(() => ({ t: document.getElementById('journeyVideo').currentTime, a: [...document.querySelectorAll('.jstep')].findIndex(s => s.classList.contains('is-active')), vis: [...document.querySelectorAll('.jstep')].filter(s => getComputedStyle(s).display !== 'none').length }));
+    check('SP: journey portrait film requested', requests.some(u => u.endsWith('sales-mobile.mp4')) && !requests.some(u => u.endsWith('sales-desktop.mp4')));
+    check('SP: journey shows only the active step (step 4)', jr.a === 3 && jr.vis === 1 && Math.abs(jr.t - 10.2) < 0.4, `t=${jr.t.toFixed(2)} step=${jr.a + 1} visible=${jr.vis}`);
+    await page.screenshot({ path: path.join(SHOTS, 'sp-journey.png') });
     check('SP: no horizontal scroll', await noHScroll(page));
     check('SP: console errors = 0', errors.length === 0, errors.join(' | '));
     check('SP: 4xx/5xx = 0', bad.length === 0, bad.join(' | '));

@@ -1,0 +1,365 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;background:#F4F1EA;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">
+{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}
+</script>
+</head>
+<body>
+<script type="module">
+// Sales journey film: target → approach → appointment → meeting → closing, one continuous camera move.
+import * as THREE from 'three';
+
+const q = new URLSearchParams(location.search);
+const W = +(q.get('w') || 1920), H = +(q.get('h') || 1080);
+const PORTRAIT = H > W;
+const DURATION = 15;
+const SPACING = 6;
+const ST = [1.2, 4.0, 6.8, 9.6, 12.4]; // time each station is framed
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rand = mulberry32(777);
+const clamp01 = x => Math.min(1, Math.max(0, x));
+const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const easeOutBack = x => { x = clamp01(x); const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const pulse = (a, b, x) => smooth(a, a + (b - a) * 0.25, x) * (1 - smooth(b - (b - a) * 0.25, b, x));
+
+const COL = {
+  bg: '#F4F1EA', ground: '#ECE7DA', disk: '#FFFFFF', gold: '#C7A64C', green: '#1C3A22', greenDark: '#16301C',
+  moss: '#3FA46A', skin: '#EFC7A4', hair: '#2B2420', client: '#3B4250', clientTie: '#8FA3B8', wood: '#D8BE98',
+  steel: '#3A3D40', bldg: '#D9D3C4', red: '#B23A2E', white: '#FFFFFF', paper: '#FBFAF6',
+};
+const matCache = {};
+const mat = (c, o = {}) => {
+  const k = c + JSON.stringify(o);
+  return matCache[k] || (matCache[k] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.65, metalness: 0, ...o }));
+};
+const goldMat = new THREE.MeshStandardMaterial({ color: COL.gold, roughness: 0.32, metalness: 0.65 });
+function mesh(geo, m, x = 0, y = 0, z = 0, parent) {
+  const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true;
+  if (parent) parent.add(o); return o;
+}
+
+// ---------- renderer ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(COL.bg);
+scene.fog = new THREE.Fog(COL.bg, 34, 80);
+const camera = new THREE.PerspectiveCamera(PORTRAIT ? 46 : 30, W / H, 0.1, 200);
+
+scene.add(new THREE.HemisphereLight(0xFFFDF6, 0xD9CFB8, 1.15));
+const sun = new THREE.DirectionalLight(0xFFF4E0, 2.2);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.radius = 4;
+scene.add(sun); scene.add(sun.target);
+
+// ---------- ground + path ----------
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), mat(COL.ground));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const PATH_FROM = -3.5, PATH_TO = SPACING * 4 + 3.5;
+const pathBase = new THREE.Mesh(new THREE.BoxGeometry(1, 0.02, 0.14), mat('#DCD4C2'));
+pathBase.scale.x = PATH_TO - PATH_FROM; pathBase.position.set((PATH_FROM + PATH_TO) / 2, 0.012, 0); scene.add(pathBase);
+const pathGeo = new THREE.BoxGeometry(1, 0.03, 0.16); pathGeo.translate(0.5, 0, 0);
+const pathGold = new THREE.Mesh(pathGeo, goldMat); pathGold.position.set(PATH_FROM, 0.02, 0); scene.add(pathGold);
+
+// ---------- stations (white disks with gold rims + hovering marker) ----------
+const stations = [];
+for (let i = 0; i < 5; i++) {
+  const g = new THREE.Group(); g.position.x = i * SPACING; scene.add(g);
+  mesh(new THREE.CylinderGeometry(2.6, 2.7, 0.16, 96), mat(COL.disk), 0, 0.08, 0, g);
+  const rimMat = new THREE.MeshStandardMaterial({ color: COL.gold, roughness: 0.3, metalness: 0.7, emissive: new THREE.Color(COL.gold), emissiveIntensity: 0 });
+  const rim = mesh(new THREE.TorusGeometry(2.62, 0.035, 12, 160), rimMat, 0, 0.165, 0, g); rim.rotation.x = Math.PI / 2;
+  const marker = mesh(new THREE.OctahedronGeometry(0.16), new THREE.MeshStandardMaterial({ color: COL.gold, roughness: 0.25, metalness: 0.8, emissive: new THREE.Color(COL.gold), emissiveIntensity: 0.15 }), 0, 3.1, -1.6, g);
+  marker.scale.y = 1.4;
+  stations.push({ g, rimMat, marker });
+}
+
+// ---------- original capsule figure ----------
+function person({ suit, pants, tie, hair = COL.hair, hairStyle = 'short' }) {
+  const g = new THREE.Group();
+  const P = { g };
+  const mSuit = mat(suit), mPants = mat(pants || suit), mSkin = mat(COL.skin), mHair = mat(hair), mShoe = mat('#2A2622');
+  for (const side of [-1, 1]) {
+    const hip = new THREE.Group(); hip.position.set(0.13 * side, 0.84, 0); g.add(hip);
+    mesh(new THREE.CapsuleGeometry(0.105, 0.26, 4, 10), mPants, 0, -0.2, 0, hip);
+    const knee = new THREE.Group(); knee.position.y = -0.42; hip.add(knee);
+    mesh(new THREE.CapsuleGeometry(0.095, 0.26, 4, 10), mPants, 0, -0.2, 0, knee);
+    const shoe = mesh(new THREE.SphereGeometry(0.11, 12, 8), mShoe, 0, -0.4, 0.05, knee); shoe.scale.set(0.9, 0.5, 1.4);
+    P[side < 0 ? 'hipR' : 'hipL'] = hip; P[side < 0 ? 'kneeR' : 'kneeL'] = knee;
+  }
+  const torso = mesh(new THREE.CapsuleGeometry(0.3, 0.46, 6, 18), mSuit, 0, 1.18, 0, g); torso.scale.z = 0.72;
+  mesh(new THREE.BoxGeometry(0.17, 0.24, 0.02), mat(COL.white), 0, 1.36, 0.215, g);
+  mesh(new THREE.BoxGeometry(0.06, 0.3, 0.02), tie === COL.gold ? goldMat : mat(tie), 0, 1.28, 0.228, g);
+  mesh(new THREE.CylinderGeometry(0.075, 0.08, 0.12, 12), mSkin, 0, 1.6, 0, g);
+  P.head = new THREE.Group(); P.head.position.y = 1.8; g.add(P.head);
+  mesh(new THREE.SphereGeometry(0.23, 24, 18), mSkin, 0, 0, 0, P.head);
+  const cap = mesh(new THREE.SphereGeometry(0.245, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.55), mHair, 0, 0.02, -0.015, P.head);
+  cap.rotation.x = -0.25;
+  if (hairStyle === 'bun') mesh(new THREE.SphereGeometry(0.11, 14, 10), mHair, 0, 0.12, -0.24, P.head);
+  for (const s of [-1, 1]) mesh(new THREE.SphereGeometry(0.022, 8, 6), mat('#1E1A18'), 0.075 * s, 0.01, 0.215, P.head);
+  for (const side of [-1, 1]) {
+    const sh = new THREE.Group(); sh.position.set(0.39 * side, 1.47, 0); g.add(sh);
+    mesh(new THREE.CapsuleGeometry(0.085, 0.42, 4, 10), mSuit, 0, -0.3, 0, sh);
+    mesh(new THREE.SphereGeometry(0.075, 12, 10), mSkin, 0, -0.62, 0, sh);
+    P[side < 0 ? 'armR' : 'armL'] = sh;
+  }
+  P.sit = (k) => { // 0 standing → 1 seated
+    for (const s of ['R', 'L']) { P['hip' + s].rotation.x = -Math.PI / 2 * k; P['knee' + s].rotation.x = Math.PI / 2 * k; }
+    g.position.y = -0.32 * k;
+  };
+  return P;
+}
+const SALES = { suit: COL.green, pants: COL.greenDark, tie: COL.gold };
+const CLIENT = { suit: COL.client, pants: '#30353F', tie: COL.clientTie, hair: '#4A3A30', hairStyle: 'bun' };
+const DOWN = new THREE.Vector3(0, -1, 0), tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion(), ID = new THREE.Quaternion();
+function aimArm(arm, dir, k) { // rotate an arm so it points along local dir, blended by k
+  tmpQ.setFromUnitVectors(DOWN, tmpV.copy(dir).normalize());
+  arm.quaternion.copy(ID).slerp(tmpQ, clamp01(k));
+}
+function chair(parent, x, z, rotY) {
+  const c = new THREE.Group(); c.position.set(x, 0.16, z); c.rotation.y = rotY; parent.add(c);
+  mesh(new THREE.BoxGeometry(0.55, 0.06, 0.55), mat('#2F3B33'), 0, 0.44, 0, c);
+  mesh(new THREE.BoxGeometry(0.55, 0.6, 0.06), mat('#2F3B33'), 0, 0.75, -0.26, c);
+  mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.42, 8), mat(COL.steel), 0, 0.21, 0, c);
+  return c;
+}
+function table(parent, x, z, w, d, h = 0.74) {
+  const t = new THREE.Group(); t.position.set(x, 0.16, z); parent.add(t);
+  mesh(new THREE.BoxGeometry(w, 0.05, d), mat(COL.wood), 0, h, 0, t);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) mesh(new THREE.CylinderGeometry(0.03, 0.03, h, 8), mat(COL.steel), sx * (w / 2 - 0.08), h / 2, sz * (d / 2 - 0.08), t);
+  return t;
+}
+
+// ---------- station 1: target selection ----------
+const s1 = stations[0].g;
+const bldgs = [];
+[[0.1, -1.3], [0.9, -1.35], [1.7, -1.2], [0.2, -0.45], [1.0, -0.5], [1.8, -0.35], [0.35, 0.4], [1.15, 0.35], [1.9, 0.5]].forEach(([x, z], i) => {
+  const h = 0.6 + rand() * 1.1;
+  const m = new THREE.MeshStandardMaterial({ color: COL.bldg, roughness: 0.6, emissive: new THREE.Color(COL.gold), emissiveIntensity: 0 });
+  const b = mesh(new THREE.BoxGeometry(0.55, h, 0.55), m, x, 0.16 + h / 2, z, s1);
+  const ring = mesh(new THREE.TorusGeometry(0.46, 0.03, 8, 48), goldMat, x, 0.18, z, s1); ring.rotation.x = Math.PI / 2; ring.scale.setScalar(0.001);
+  bldgs.push({ b, m, ring, x, target: [1, 5, 6].includes(i) });
+});
+const sweep = mesh(new THREE.BoxGeometry(0.03, 2.2, 3.0), new THREE.MeshBasicMaterial({ color: COL.gold, transparent: true, opacity: 0, depthWrite: false }), 0, 1.25, -0.4, s1);
+sweep.castShadow = false;
+const p1 = person(SALES); p1.g.position.set(-1.35, 0.16, 0.75); p1.g.rotation.y = Math.PI / 2 - 0.35; s1.add(p1.g);
+const tablet = mesh(new THREE.BoxGeometry(0.34, 0.24, 0.02), mat('#1F2422'), 0, -0.66, 0.06, p1.armL); tablet.rotation.x = -0.3;
+
+// ---------- station 2: approach (call + mail) ----------
+const s2 = stations[1].g;
+table(s2, -0.15, 0.2, 0.8, 1.3);
+chair(s2, -1.0, 0.2, Math.PI / 2);
+const laptop = new THREE.Group(); laptop.position.set(-0.15, 0.95, 0.2); s2.add(laptop);
+mesh(new THREE.BoxGeometry(0.42, 0.02, 0.3), mat('#B8BCC2', { metalness: 0.4, roughness: 0.4 }), 0, 0, 0, laptop);
+const scr = mesh(new THREE.BoxGeometry(0.02, 0.28, 0.42), new THREE.MeshStandardMaterial({ color: '#2B4A38', emissive: new THREE.Color('#9FD3B5'), emissiveIntensity: 0.6 }), 0.16, 0.15, 0, laptop);
+scr.rotation.z = 0.2;
+const p2 = person(SALES); p2.g.position.set(-1.0, 0.16, 0.2); p2.g.rotation.y = Math.PI / 2; s2.add(p2.g); p2.sit(1);
+const phone = mesh(new THREE.BoxGeometry(0.06, 0.16, 0.03), mat('#1F2422'), 0, -0.64, 0.05, p2.armL);
+const officeMat = new THREE.MeshStandardMaterial({ color: '#CFC7B5', roughness: 0.55, emissive: new THREE.Color(COL.gold), emissiveIntensity: 0 });
+const office = mesh(new THREE.BoxGeometry(0.9, 2.3, 0.9), officeMat, 1.6, 0.16 + 1.15, -0.5, s2);
+const winMat = new THREE.MeshStandardMaterial({ color: '#E9DDB5', emissive: new THREE.Color(COL.gold), emissiveIntensity: 0 });
+for (let r = 0; r < 5; r++) for (let c = 0; c < 2; c++) mesh(new THREE.BoxGeometry(0.02, 0.22, 0.22), winMat, 1.6 - 0.46, 0.55 + r * 0.38, -0.5 - 0.2 + c * 0.4, s2);
+const waves = [0, 1, 2].map(() => { const w = mesh(new THREE.TorusGeometry(0.3, 0.045, 8, 48), new THREE.MeshBasicMaterial({ color: COL.gold, transparent: true, opacity: 0 }), 0, 0, 0, s2); w.rotation.y = Math.PI / 2; w.castShadow = false; return w; });
+const mails = [0, 1].map(() => {
+  const e = new THREE.Group(); s2.add(e);
+  mesh(new THREE.BoxGeometry(0.34, 0.22, 0.02), mat(COL.paper), 0, 0, 0, e);
+  const flap = mesh(new THREE.ConeGeometry(0.17, 0.11, 3), goldMat, 0, 0.055, 0.012, e); flap.rotation.z = Math.PI; flap.scale.z = 0.05;
+  e.visible = false; return e;
+});
+
+// ---------- station 3: appointment ----------
+const s3 = stations[2].g;
+const board = new THREE.Group(); board.position.set(0.55, 0.16, -0.95); s3.add(board);
+mesh(new THREE.BoxGeometry(2.0, 1.5, 0.06), mat(COL.white), 0, 1.55, 0, board);
+mesh(new THREE.BoxGeometry(2.0, 0.22, 0.07), mat(COL.green), 0, 2.2, 0.005, board);
+for (const sx of [-0.8, 0.8]) mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.85, 8), mat(COL.steel), sx, 0.42, 0, board);
+const cells = [];
+for (let r = 0; r < 4; r++) for (let c = 0; c < 6; c++) {
+  const m = new THREE.MeshStandardMaterial({ color: '#E8E3D6', roughness: 0.7, emissive: new THREE.Color(COL.gold), emissiveIntensity: 0 });
+  cells.push({ m, o: mesh(new THREE.BoxGeometry(0.24, 0.2, 0.02), m, -0.75 + c * 0.3, 1.9 - r * 0.27, 0.04, board) });
+}
+const HIT = 15;
+const check = new THREE.Group(); check.position.set(0.55, 2.95, -0.7); s3.add(check);
+const ck1 = mesh(new THREE.BoxGeometry(0.12, 0.42, 0.1), goldMat, -0.17, -0.06, 0, check); ck1.rotation.z = 0.75;
+const ck2 = mesh(new THREE.BoxGeometry(0.12, 0.8, 0.1), goldMat, 0.13, 0.08, 0, check); ck2.rotation.z = -0.62;
+check.scale.setScalar(0.001);
+const p3 = person(SALES); p3.g.position.set(-1.25, 0.16, 0.55); p3.g.rotation.y = 2.35; s3.add(p3.g);
+mesh(new THREE.BoxGeometry(0.06, 0.16, 0.03), mat('#1F2422'), 0, -0.64, 0.05, p3.armL);
+const sparks3 = Array.from({ length: 14 }, (_, i) => { const s = mesh(new THREE.OctahedronGeometry(0.05), goldMat, 0, 0, 0, s3); s.userData = { a: (i / 14) * Math.PI * 2, r: 0.6 + rand() * 0.5 }; s.visible = false; return s; });
+
+// ---------- station 4: meeting & proposal ----------
+const s4 = stations[3].g;
+table(s4, 0, 0.35, 1.3, 0.85);
+chair(s4, -0.95, 0.35, Math.PI / 2); chair(s4, 0.95, 0.35, -Math.PI / 2);
+const p4 = person(SALES); p4.g.position.set(-0.95, 0.16, 0.35); p4.g.rotation.y = Math.PI / 2; s4.add(p4.g); p4.sit(1);
+const c4 = person(CLIENT); c4.g.position.set(0.95, 0.16, 0.35); c4.g.rotation.y = -Math.PI / 2; s4.add(c4.g); c4.sit(1);
+for (const [x, rz] of [[-0.25, 0.2], [0.28, -0.15]]) { const d = mesh(new THREE.BoxGeometry(0.3, 0.01, 0.4), mat(COL.paper), x, 0.93, 0.35, s4); d.rotation.y = rz; }
+const screen = new THREE.Group(); screen.position.set(0, 0.16, -1.45); s4.add(screen);
+mesh(new THREE.BoxGeometry(1.9, 1.15, 0.06), mat('#22302A'), 0, 1.75, 0, screen);
+mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.2, 8), mat(COL.steel), 0, 0.6, 0, screen);
+const bars = [0.3, 0.5, 0.72, 0.95].map((h, i) => {
+  const geo = new THREE.BoxGeometry(0.26, 1, 0.04); geo.translate(0, 0.5, 0);
+  const b = mesh(geo, i === 3 ? goldMat : mat(COL.moss, { emissive: new THREE.Color(COL.moss), emissiveIntensity: 0.25 }), -0.6 + i * 0.4, 1.25, 0.05, screen);
+  b.scale.y = 0.001; b.userData.h = h; return b;
+});
+function bubble(parent, x, y, z) {
+  const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g);
+  const body = mesh(new THREE.SphereGeometry(0.3, 20, 14), mat(COL.white), 0, 0, 0, g); body.scale.set(1.25, 0.8, 0.45);
+  const tail = mesh(new THREE.ConeGeometry(0.08, 0.2, 10), mat(COL.white), -0.12, -0.25, 0, g); tail.rotation.z = 0.5;
+  for (let i = -1; i <= 1; i++) mesh(new THREE.SphereGeometry(0.035, 8, 6), mat(COL.green), i * 0.11, 0, 0.14, g);
+  g.scale.setScalar(0.001); return g;
+}
+const bubC1 = bubble(s4, 1.05, 2.45, 0.35), bubS = bubble(s4, -1.05, 2.45, 0.35), bubC2 = bubble(s4, 1.05, 2.45, 0.35);
+
+// ---------- station 5: closing ----------
+const s5 = stations[4].g;
+table(s5, 0, -0.75, 1.2, 0.7);
+const contract = mesh(new THREE.BoxGeometry(0.42, 0.012, 0.56), mat(COL.paper), 0.05, 0.92, -0.75, s5);
+for (let i = 0; i < 4; i++) mesh(new THREE.BoxGeometry(0.28, 0.004, 0.02), mat('#BDB6A6'), 0.02, 0.93, -0.95 + i * 0.08, s5);
+const seal = mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.005, 24), mat(COL.red), 0.16, 0.93, -0.58, s5); seal.scale.setScalar(0.001);
+const stamp = new THREE.Group(); s5.add(stamp);
+mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.22, 20), goldMat, 0, 0.11, 0, stamp);
+mesh(new THREE.SphereGeometry(0.09, 16, 10), mat(COL.green), 0, 0.25, 0, stamp);
+const p5 = person(SALES); p5.g.position.set(-0.46, 0.16, 0.55); p5.g.rotation.y = Math.PI / 2; s5.add(p5.g);
+const c5 = person(CLIENT); c5.g.position.set(0.46, 0.16, 0.55); c5.g.rotation.y = -Math.PI / 2; s5.add(c5.g);
+const glowRing = mesh(new THREE.RingGeometry(0.98, 1.0, 96), new THREE.MeshBasicMaterial({ color: COL.gold, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }), 0, 0.18, 0.2, s5);
+glowRing.rotation.x = -Math.PI / 2; glowRing.castShadow = false;
+const CONF = 170;
+const confetti = Array.from({ length: CONF }, () => {
+  const c = [COL.gold, COL.gold, COL.moss, COL.white, '#E9DDB5'][Math.floor(rand() * 5)];
+  const m = mesh(new THREE.PlaneGeometry(0.09, 0.05), new THREE.MeshStandardMaterial({ color: c, side: THREE.DoubleSide, roughness: 0.4, metalness: c === COL.gold ? 0.6 : 0 }), 0, 0, 0, s5);
+  m.userData = { a: rand() * Math.PI * 2, v: 2.2 + rand() * 2.6, up: 3.2 + rand() * 2.6, spin: (rand() - 0.5) * 18, d: rand() * 0.25 };
+  m.visible = false; m.castShadow = false; return m;
+});
+
+// ---------- camera ----------
+const KT = [0, ...ST], KX = [-0.6, 0, SPACING, SPACING * 2, SPACING * 3, SPACING * 4];
+function camX(t) {
+  for (let i = 0; i < KT.length - 1; i++) if (t <= KT[i + 1]) {
+    const u = clamp01((t - KT[i]) / (KT[i + 1] - KT[i]));
+    const e = 0.5 * u + 0.5 * (u * u * (3 - 2 * u)); // never fully stops, lingers at stations
+    return KX[i] + (KX[i + 1] - KX[i]) * e;
+  }
+  return KX[KX.length - 1];
+}
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3(), overPos = new THREE.Vector3(), overLook = new THREE.Vector3();
+const off = PORTRAIT ? { y: 6.0, z: 13.0, look: 0 } : { y: 4.3, z: 9.2, look: -1.8 };
+if (PORTRAIT) { overPos.set(SPACING * 2, 30, 56); overLook.set(SPACING * 2, 0, -2); }
+else { overPos.set(SPACING * 2, 15, 30); overLook.set(SPACING * 2, 0, -1.5); }
+
+// ---------- timeline ----------
+function renderAt(t) {
+  // camera: travel, then rise to show the whole journey
+  const x = camX(t), ov = smooth(13.0, 15.0, t);
+  camPos.set(x + (PORTRAIT ? 0 : 0.6), off.y, off.z).lerp(overPos, ov);
+  camLook.set(x + off.look, 0.95, 0).lerp(overLook, ov);
+  camera.position.copy(camPos); camera.lookAt(camLook);
+  sun.position.set(camLook.x - 7, 14, 9); sun.target.position.set(camLook.x, 0, 0);
+  const ext = 7 + 11 * ov; Object.assign(sun.shadow.camera, { left: -ext, right: ext, top: ext, bottom: -ext, near: 1, far: 50 });
+  sun.shadow.camera.updateProjectionMatrix();
+
+  // path draws up to the camera, then completes
+  pathGold.scale.x = Math.max(0.001, Math.min(PATH_TO, x + 1.5 + 4 * ov) - PATH_FROM);
+  stations.forEach((s, i) => {
+    const done = smooth(ST[i] + 0.4, ST[i] + 1.4, t);
+    s.rimMat.emissiveIntensity = 0.55 * done;
+    s.marker.rotation.y = t * 1.2 + i; s.marker.position.y = 3.1 + Math.sin(t * 2 + i) * 0.08;
+    s.marker.material.emissiveIntensity = 0.15 + 0.6 * pulse(ST[i] - 1.2, ST[i] + 1.6, t);
+  });
+
+  // 1 — scan the market and pick targets
+  const sw = smooth(0.25, 1.9, t);
+  sweep.position.x = -0.25 + 2.5 * sw; sweep.material.opacity = 0.28 * pulse(0.2, 2.0, t);
+  bldgs.forEach(b => {
+    const hit = smooth(sweep.position.x - 0.05, sweep.position.x + 0.05, b.x + 0.3) < 0.5 && t > 0.3 ? 1 : 0;
+    const k = b.target ? clamp01((t - (0.3 + (b.x + 0.25) / 2.5 * 1.6)) / 0.35) * hit : 0;
+    b.m.color.set(COL.bldg).lerp(new THREE.Color('#E2C46E'), k); b.m.emissiveIntensity = 0.25 * k;
+    b.ring.scale.setScalar(Math.max(0.001, easeOutBack(k)));
+  });
+  aimArm(p1.armR, new THREE.Vector3(-0.15, 0.15, 1), smooth(0.4, 0.9, t) * (1 - smooth(2.6, 3.0, t)));
+  aimArm(p1.armL, new THREE.Vector3(-0.35, -0.55, 0.75), 1);
+  p1.head.rotation.y = 0.25 * Math.sin(t * 1.5);
+
+  // 2 — call and mail the target company
+  aimArm(p2.armL, new THREE.Vector3(-0.15, 0.95, 0.2), smooth(2.6, 3.1, t) * (1 - smooth(5.4, 5.8, t)));
+  aimArm(p2.armR, new THREE.Vector3(-0.3, -0.6, 0.7), 1);
+  phone.visible = t > 2.6 && t < 5.8;
+  waves.forEach((w, i) => {
+    const u = clamp01((t - 2.9 - i * 0.45) / 1.3);
+    w.position.set(-0.7 + 2.0 * u, 1.55 + 0.3 * u, 0.2 - 0.6 * u); w.scale.setScalar(0.4 + 1.6 * u);
+    w.material.opacity = u > 0 && u < 1 ? 0.95 * (1 - u * u) : 0;
+  });
+  mails.forEach((m, i) => {
+    const u = clamp01((t - 3.3 - i * 0.6) / 0.9);
+    m.visible = u > 0 && u < 1;
+    m.position.set(-0.1 + 1.25 * u, 1.05 + 1.0 * Math.sin(Math.PI * u) + 0.6 * u, 0.2 - 0.7 * u);
+    m.rotation.set(0.2, Math.PI / 2 - 0.4, 0.3 * Math.sin(u * 6));
+  });
+  const lit = smooth(3.9, 4.6, t);
+  winMat.emissiveIntensity = 0.9 * lit; officeMat.emissiveIntensity = 0.12 * lit;
+
+  // 3 — the appointment is set
+  cells.forEach((c, i) => {
+    const k = i === HIT ? smooth(6.0, 6.35, t) : 0;
+    c.m.color.set('#E8E3D6').lerp(new THREE.Color('#E2C46E'), k); c.m.emissiveIntensity = 0.4 * k;
+  });
+  check.scale.setScalar(Math.max(0.001, easeOutBack((t - 6.3) / 0.45)));
+  check.rotation.y = Math.sin(t * 2) * 0.15;
+  const pump = smooth(6.5, 6.8, t) * (1 - smooth(7.9, 8.3, t));
+  aimArm(p3.armR, new THREE.Vector3(0.1, 1, 0.15 + 0.1 * Math.sin(t * 14)), pump);
+  aimArm(p3.armL, new THREE.Vector3(-0.15, 0.95, 0.2), smooth(5.1, 5.5, t) * (1 - smooth(6.3, 6.6, t)));
+  p3.g.position.y = 0.16 + 0.06 * Math.max(0, Math.sin((t - 6.6) * 9)) * pump;
+  sparks3.forEach(s => {
+    const u = clamp01((t - 6.4) / 1.0);
+    s.visible = u > 0 && u < 1;
+    s.position.set(0.55 + Math.cos(s.userData.a) * s.userData.r * (0.4 + u), 2.95 + Math.sin(s.userData.a) * s.userData.r * (0.4 + u), -0.6);
+    s.scale.setScalar(1 - u);
+  });
+
+  // 4 — hearing → proposal → agreement
+  bubC1.scale.setScalar(Math.max(0.001, easeOutBack((t - 8.0) / 0.35) * (1 - smooth(8.75, 8.95, t))));
+  bubS.scale.setScalar(Math.max(0.001, easeOutBack((t - 8.9) / 0.35) * (1 - smooth(9.75, 9.95, t))));
+  bubC2.scale.setScalar(Math.max(0.001, easeOutBack((t - 9.9) / 0.35) * (1 - smooth(10.9, 11.1, t))));
+  bars.forEach((b, i) => { b.scale.y = Math.max(0.001, b.userData.h * easeOutBack((t - 8.8 - i * 0.18) / 0.6)); });
+  aimArm(p4.armL, new THREE.Vector3(-0.55, 0.35, 0.75), smooth(8.8, 9.15, t) * (1 - smooth(9.8, 10.2, t)));
+  aimArm(p4.armR, new THREE.Vector3(-0.3, -0.5, 0.8), 1);
+  aimArm(c4.armR, new THREE.Vector3(-0.3, -0.5, 0.8), 1); aimArm(c4.armL, new THREE.Vector3(0.3, -0.5, 0.8), 1);
+  c4.head.rotation.x = 0.18 * pulse(10.0, 10.8, t) * Math.sin((t - 10) * 14); // nod
+
+  // 5 — stamp the contract, shake hands, celebrate
+  const down = smooth(10.6, 10.95, t), up = smooth(11.0, 11.35, t);
+  stamp.position.set(0.16, 0.93 + 0.55 * (1 - down) + 0.55 * up, -0.58); stamp.visible = t < 11.8;
+  stamp.scale.setScalar(1 - smooth(11.4, 11.8, t) + 0.001);
+  seal.scale.setScalar(t > 10.95 ? 1 : 0.001);
+  const shake = smooth(11.5, 11.95, t) * (1 - smooth(13.4, 13.9, t));
+  const wob = 0.09 * Math.sin((t - 11.9) * 16) * smooth(11.9, 12.1, t) * (1 - smooth(12.9, 13.1, t));
+  const hand = new THREE.Vector3(0.36, -0.42 + wob, 0.46);
+  aimArm(p5.armR, hand, shake); aimArm(c5.armR, hand, shake);
+  p5.head.rotation.x = c5.head.rotation.x = 0.12 * shake;
+  const burst = t - 12.3;
+  confetti.forEach(c => {
+    const u = burst - c.userData.d;
+    c.visible = u > 0 && u < 2.6;
+    if (!c.visible) return;
+    const { a, v, up: vu, spin } = c.userData;
+    c.position.set(Math.cos(a) * v * u * 0.85, 2.4 + vu * u - 4.2 * u * u, 0.3 + Math.sin(a) * v * u * 0.4);
+    c.rotation.set(spin * u, spin * 0.6 * u, spin * 0.3 * u);
+  });
+  const gr = clamp01((t - 12.3) / 1.2);
+  glowRing.scale.setScalar(0.3 + 2.0 * gr); glowRing.material.opacity = gr > 0 && gr < 1 ? 0.8 * (1 - gr) : 0;
+
+  renderer.render(scene, camera);
+}
+window.renderAt = renderAt;
+window.grab = (t, quality) => { renderAt(t); return renderer.domElement.toDataURL('image/jpeg', quality || 0.95); };
+renderAt(0);
+window.__ready = true;
+</script>
+</body>
+</html>

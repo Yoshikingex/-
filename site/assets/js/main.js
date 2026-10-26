@@ -93,14 +93,12 @@
     setLoad(0);
     loadFilm();
     buildFilmTimeline();
+    setupJourney();
   }
 
-  async function loadFilm() {
-    const portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
-    const src = portrait ? 'assets/media/hero-mobile.mp4' : 'assets/media/hero-desktop.mp4';
-    const giveUp = setTimeout(finishLoader, 10000); // never trap the visitor behind the loader
+  // A Blob URL keeps the whole clip in memory, so seeking while scrolling is instant.
+  async function fetchClip(src, onProgress) {
     try {
-      // A Blob URL keeps the whole clip in memory, so seeking while scrolling is instant.
       const res = await fetch(src);
       if (!res.ok) throw new Error(res.status);
       const total = +res.headers.get('content-length') || 0;
@@ -110,16 +108,27 @@
         const { done, value } = await reader.read();
         if (done) break;
         chunks.push(value); got += value.length;
-        if (total) setLoad(Math.min(0.99, got / total));
+        if (total && onProgress) onProgress(Math.min(0.99, got / total));
       }
-      video.src = URL.createObjectURL(new Blob(chunks, { type: 'video/mp4' }));
+      return URL.createObjectURL(new Blob(chunks, { type: 'video/mp4' }));
     } catch (_) {
-      video.src = src; // progressive fallback
+      return src; // progressive fallback
     }
-    video.load();
-    await new Promise(r => video.readyState >= 1 ? r() : video.addEventListener('loadedmetadata', r, { once: true }));
+  }
+
+  async function primeVideo(v, url) {
+    v.src = url;
+    v.load();
+    await new Promise(r => v.readyState >= 1 ? r() : v.addEventListener('loadedmetadata', r, { once: true }));
     // iOS paints seeked frames only after the element has played once
-    try { await video.play(); video.pause(); } catch (_) { /* autoplay blocked: seeking still works */ }
+    try { await v.play(); v.pause(); } catch (_) { /* autoplay blocked: seeking still works */ }
+  }
+
+  async function loadFilm() {
+    const portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
+    const src = portrait ? 'assets/media/hero-mobile.mp4' : 'assets/media/hero-desktop.mp4';
+    const giveUp = setTimeout(finishLoader, 10000); // never trap the visitor behind the loader
+    await primeVideo(video, await fetchClip(src, setLoad));
     video.currentTime = cur;
     video.addEventListener('seeked', () => poster.classList.add('is-hidden'), { once: true });
     videoReady = true;
@@ -163,6 +172,45 @@
       hint.style.opacity = String(1 - Math.min(1, cur / 0.6));
       const k = Math.min(1, Math.max(0, (cur - 9.4) / 1.6));
       miniNums.forEach(n => { n.textContent = formatNum(+n.dataset.to * (1 - Math.pow(1 - k, 3)), n); });
+    });
+  }
+
+  /* ---------- Sales journey film (second scrubbed clip) ---------- */
+  function setupJourney() {
+    const sec = $('#journey'), v = $('#journeyVideo'), jPoster = $('#journeyPoster');
+    const steps = $$('.jstep'), fill = $('#journeyFill'), finale = $('#journeyFinale');
+    const STEP_AT = [0, 2.6, 5.4, 8.2, 11.0];
+    let ready = false, jCur = 0, jTarget = 0, active = -1;
+    // start downloading one screen before the section arrives
+    ScrollTrigger.create({
+      trigger: sec, start: 'top bottom+=100%', once: true, refreshPriority: -1,
+      onEnter: async () => {
+        const portrait = matchMedia('(max-aspect-ratio: 1/1)').matches;
+        const src = portrait ? 'assets/media/sales-mobile.mp4' : 'assets/media/sales-desktop.mp4';
+        await primeVideo(v, await fetchClip(src));
+        v.currentTime = jCur;
+        v.addEventListener('seeked', () => jPoster.classList.add('is-hidden'), { once: true });
+        ready = true;
+      },
+    });
+    ScrollTrigger.create({
+      // refresh after the services pin above, so its spacer is counted
+      trigger: sec, start: 'top top', end: 'bottom bottom', refreshPriority: -1,
+      onUpdate: self => { jTarget = self.progress * DURATION; },
+    });
+    gsap.ticker.add(() => {
+      const d = jTarget - jCur;
+      if (Math.abs(d) < 0.0005 && active >= 0) return;
+      jCur = Math.abs(d) < 0.001 ? jTarget : jCur + d * 0.2;
+      if (ready && !v.seeking && Math.abs(v.currentTime - jCur) > 0.012) v.currentTime = jCur;
+      fill.style.transform = `scaleX(${jCur / DURATION})`;
+      let i = STEP_AT.length - 1;
+      while (i > 0 && jCur < STEP_AT[i]) i--;
+      if (i !== active) {
+        active = i;
+        steps.forEach((s, k) => { s.classList.toggle('is-active', k === i); s.classList.toggle('is-done', k < i); });
+      }
+      finale.classList.toggle('is-on', jCur > 13.2);
     });
   }
 
