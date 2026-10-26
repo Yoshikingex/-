@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
 
-const ROOT = path.resolve(process.argv[2] || path.join(__dirname, '..'));
+const REMOTE = /^https?:\/\//.test(process.argv[2] || '') ? process.argv[2] : null; // test a live URL instead of a local folder
+const ROOT = REMOTE ? null : path.resolve(process.argv[2] || path.join(__dirname, '..'));
 const SHOTS = process.argv[3] || path.join(__dirname, '..', 'test-results');
 fs.mkdirSync(SHOTS, { recursive: true });
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mp4': 'video/mp4', '.jpg': 'image/jpeg' };
@@ -55,8 +56,8 @@ const visibleChapter = page => page.evaluate(() => [...document.querySelectorAll
 const noHScroll = page => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 
 (async () => {
-  await new Promise(r => server.listen(0, r));
-  const base = `http://127.0.0.1:${server.address().port}/`;
+  if (!REMOTE) await new Promise(r => server.listen(0, r));
+  const base = REMOTE || `http://127.0.0.1:${server.address().port}/`;
   const browser = await chromium.launch();
 
   /* ---------- Desktop ---------- */
@@ -89,14 +90,16 @@ const noHScroll = page => page.evaluate(() => document.documentElement.scrollWid
 
     // nav anchor
     await page.evaluate(() => window.scrollTo(0, 0)); await sleep(800);
-    await page.click('.nav a[href="#plans"]'); await sleep(2400);
-    const top = await page.evaluate(() => document.getElementById('plans').getBoundingClientRect().top);
-    check('PC: nav link scrolls to 料金', Math.abs(top - 72) < 40, `top=${top.toFixed(0)}`);
+    await page.click('.nav a[href="#company"]'); await sleep(2400);
+    const top = await page.evaluate(() => document.getElementById('company').getBoundingClientRect().top);
+    check('PC: nav link scrolls to 会社概要', Math.abs(top - 72) < 40, `top=${top.toFixed(0)}`);
 
     // stats count-up
-    await page.evaluate(() => document.querySelector('.stats').scrollIntoView({ block: 'center' })); await sleep(2800);
-    const stat = await page.evaluate(() => document.querySelector('.stats .num').textContent);
-    check('PC: stats count up to 1,200', stat === '1,200', stat);
+    await page.evaluate(() => document.querySelector('.facts__grid').scrollIntoView({ block: 'center' })); await sleep(2800);
+    const stat = await page.evaluate(() => [...document.querySelectorAll('.facts .num')].map(n => n.textContent).join(','));
+    check('PC: facts count up to final values', stat === '2022,3,250,500', stat);
+    check('PC: page is noindex', await page.evaluate(() => /noindex/.test(document.querySelector('meta[name=robots]')?.content || '')));
+    check('PC: unofficial-sample notice present', await page.evaluate(() => /非公式のデザインサンプル/.test(document.querySelector('.footer__notice').textContent) && /送信されません/.test(document.querySelector('.form__demo').textContent)));
 
     // form
     await page.evaluate(() => document.getElementById('contact').scrollIntoView()); await sleep(1200);
@@ -131,8 +134,8 @@ const noHScroll = page => page.evaluate(() => document.documentElement.scrollWid
     await page.evaluate(() => window.scrollBy(0, -120)); await sleep(900); // scrolling up reveals the header
     await page.tap('#burger'); await sleep(600);
     check('SP: burger opens menu', await page.evaluate(() => document.getElementById('nav').classList.contains('is-open')));
-    await page.tap('.nav a[href="#faq"]'); await sleep(2400);
-    check('SP: menu link closes menu & scrolls', await page.evaluate(() => !document.getElementById('nav').classList.contains('is-open') && Math.abs(document.getElementById('faq').getBoundingClientRect().top - 72) < 60));
+    await page.tap('.nav a[href="#news"]'); await sleep(2400);
+    check('SP: menu link closes menu & scrolls', await page.evaluate(() => !document.getElementById('nav').classList.contains('is-open') && Math.abs(document.getElementById('news').getBoundingClientRect().top - 72) < 60));
     await page.evaluate(() => document.getElementById('services').scrollIntoView()); await sleep(1500);
     await page.screenshot({ path: path.join(SHOTS, 'sp-services.png') });
     check('SP: no horizontal scroll', await noHScroll(page));
@@ -152,7 +155,7 @@ const noHScroll = page => page.evaluate(() => document.documentElement.scrollWid
   }
 
   await browser.close();
-  server.close();
+  if (!REMOTE) server.close();
   const failed = results.filter(r => !r.ok).length;
   console.log(`\n${results.length - failed}/${results.length} passed`);
   process.exit(failed ? 1 : 0);

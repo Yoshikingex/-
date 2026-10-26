@@ -178,18 +178,6 @@
     return;
   }
 
-  /* ---------- Ticker (reacts to scroll velocity) ---------- */
-  const ticker = gsap.to('#ticker', { xPercent: -50, duration: 28, ease: 'none', repeat: -1 });
-  ScrollTrigger.create({
-    start: 0, end: 'max',
-    onUpdate: self => {
-      const v = self.getVelocity() / 250;
-      gsap.timeline()
-        .to(ticker, { timeScale: (self.direction || 1) * Math.min(6, 1 + Math.abs(v)), duration: 0.2, overwrite: true })
-        .to(ticker, { timeScale: self.direction || 1, duration: 1.2, ease: 'power2.out' });
-    },
-  });
-
   /* ---------- Services: horizontal scroll (desktop) ---------- */
   const mm = gsap.matchMedia();
   mm.add('(min-width: 900px)', () => {
@@ -213,8 +201,8 @@
 
   /* ---------- Count-up stats ---------- */
   ScrollTrigger.create({
-    trigger: '.stats', start: 'top 80%', once: true,
-    onEnter: () => $$('.stats .num').forEach((n, i) => {
+    trigger: '.facts__grid', start: 'top 85%', once: true,
+    onEnter: () => $$('.facts .num').forEach((n, i) => {
       const o = { v: 0 };
       gsap.to(o, { v: +n.dataset.to, duration: 2, delay: i * 0.12, ease: 'power3.out', onUpdate: () => { n.textContent = formatNum(o.v, n); } });
     }),
@@ -237,16 +225,6 @@
         x((e.clientX - r.left - r.width / 2) * 0.25); y((e.clientY - r.top - r.height / 2) * 0.35);
       });
       btn.addEventListener('pointerleave', () => { x(0); y(0); });
-    });
-    $$('.case').forEach(card => {
-      const rx = gsap.quickTo(card, 'rotationX', { duration: 0.6, ease: 'power3.out' });
-      const ry = gsap.quickTo(card, 'rotationY', { duration: 0.6, ease: 'power3.out' });
-      gsap.set(card, { transformPerspective: 900 });
-      card.addEventListener('pointermove', e => {
-        const r = card.getBoundingClientRect();
-        ry(((e.clientX - r.left) / r.width - 0.5) * 10); rx(-((e.clientY - r.top) / r.height - 0.5) * 10);
-      });
-      card.addEventListener('pointerleave', () => { rx(0); ry(0); });
     });
   }
 

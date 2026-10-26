@@ -27,8 +27,8 @@ const clamp01 = x => Math.min(1, Math.max(0, x));
 const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const easeOutCubic = x => 1 - Math.pow(1 - clamp01(x), 3);
 const C = {
-  ink: new THREE.Color('#05070D'), blue: new THREE.Color('#2F6BFF'), cyan: new THREE.Color('#3FE0D0'),
-  violet: new THREE.Color('#8B5CFF'), coral: new THREE.Color('#FF6B5A'), gold: new THREE.Color('#FFB547'),
+  ink: new THREE.Color('#05070D'), blue: new THREE.Color('#2F6BFF'), cyan: new THREE.Color('#3CC8C8'),
+  violet: new THREE.Color('#6FA8FF'), coral: new THREE.Color('#D6E4FF'), gold: new THREE.Color('#F5C46B'),
 };
 
 function glowTexture(){
