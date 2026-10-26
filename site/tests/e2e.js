@@ -95,7 +95,7 @@ const noHScroll = page => page.evaluate(() => document.documentElement.scrollWid
     check('PC: nav link scrolls to 会社概要', Math.abs(top - 72) < 40, `top=${top.toFixed(0)}`);
 
     // stats count-up
-    await page.evaluate(() => document.querySelector('.facts__grid').scrollIntoView({ block: 'center' })); await sleep(2800);
+    await page.evaluate(() => document.querySelector('.facts').scrollIntoView({ block: 'center' })); await sleep(2800);
     const stat = await page.evaluate(() => [...document.querySelectorAll('.facts .num')].map(n => n.textContent).join(','));
     check('PC: facts count up to final values', stat === '2022,3,250,500', stat);
     check('PC: page is noindex', await page.evaluate(() => /noindex/.test(document.querySelector('meta[name=robots]')?.content || '')));
