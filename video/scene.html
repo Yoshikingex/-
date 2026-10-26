@@ -18,6 +18,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 const q = new URLSearchParams(location.search);
 const W = +(q.get('w') || 1920), H = +(q.get('h') || 1080);
 const DURATION = 15;
+const PORTRAIT = H > W;
 
 // ---------- helpers ----------
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -47,7 +48,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 document.body.appendChild(renderer.domElement);
 const scene = new THREE.Scene(); scene.background = C.ink.clone();
 scene.fog = new THREE.FogExp2(0x05070D, 0.018);
-const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(PORTRAIT ? 58 : 38, W / H, 0.1, 200);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
@@ -139,7 +140,7 @@ const NODES = 130;
 const nodePos = [], nodeDist = new Float32Array(NODES), nodeArr = new Float32Array(NODES * 3), nodeCol = new Float32Array(NODES * 3);
 for (let i = 0; i < NODES; i++) {
   const a = rand() * Math.PI * 2, d = R + 0.5 + Math.pow(rand(), 0.8) * 4.4;
-  const p = new THREE.Vector3(Math.cos(a) * d, Math.sin(a) * d * 0.55, (rand() - 0.5) * 3.2 - 0.6);
+  const p = new THREE.Vector3(Math.cos(a) * d * (PORTRAIT ? 0.62 : 1), Math.sin(a) * d * (PORTRAIT ? 1.35 : 0.55), (rand() - 0.5) * 3.2 - 0.6);
   nodePos.push(p); nodeDist[i] = d; nodeArr.set([p.x, p.y, p.z], i * 3);
   const col = ribbonColors[i % 4].clone().lerp(new THREE.Color(1,1,1), 0.35); nodeCol.set([col.r, col.g, col.b], i * 3);
 }
@@ -182,7 +183,7 @@ const COLS = 17;
 const columns = [];
 const colGroup = new THREE.Group(); colGroup.position.set(0, -3.4, -2.6); scene.add(colGroup);
 for (let i = 0; i < COLS; i++) {
-  const u = i / (COLS - 1), x = (u - 0.5) * 11, hTarget = 0.6 + Math.pow(u, 1.6) * 6.2 + (rand() - 0.5) * 0.5;
+  const u = i / (COLS - 1), x = (u - 0.5) * (PORTRAIT ? 6.6 : 11), hTarget = 0.6 + Math.pow(u, 1.6) * 6.2 + (rand() - 0.5) * 0.5;
   const col = C.blue.clone().lerp(C.cyan, u);
   const mat = new THREE.ShaderMaterial({
     uniforms: { uColor: { value: col }, uInt: { value: 0 }, uGold: { value: 0 } },
@@ -194,7 +195,7 @@ for (let i = 0; i < COLS; i++) {
         gl_FragColor = vec4(c * v * uInt * 0.7, 1.0); }`,
     blending: add, depthWrite: false, transparent: true,
   });
-  const m = new THREE.Mesh(new THREE.BoxGeometry(0.36, 1, 0.36), mat);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(PORTRAIT ? 0.26 : 0.36, 1, PORTRAIT ? 0.26 : 0.36), mat);
   m.position.x = x; colGroup.add(m);
   columns.push({ m, mat, hTarget, delay: u * 0.9 });
 }
@@ -230,6 +231,7 @@ const camPath = new THREE.CatmullRomCurve3([
   new THREE.Vector3(2.8, 0.7, 12.0), new THREE.Vector3(2.4, 1.0, 12.2), new THREE.Vector3(1.0, 2.2, 14.6),
   new THREE.Vector3(0, 3.4, 17.5),
 ], false, 'centripetal');
+if (PORTRAIT) camPath.points.forEach(p => { p.x *= 0.45; p.z *= 1.25; });
 function timeWarp(t){ // ease only at very start / end, constant in between
   const e = 0.9, v = 1 / (DURATION - e);
   if (t < e) return v * t * t / (2 * e);
@@ -242,10 +244,10 @@ const look = new THREE.Vector3();
 function renderAt(t){
   const ringBlue = C.blue.clone(), goldMix = smooth(11.8, 14.2, t);
   // spark 0-3.5
-  const sIn = smooth(0.0, 1.4, t), sFlash = smooth(1.5, 2.15, t) * (1 - smooth(2.15, 3.3, t)), sOut = 1 - smooth(2.6, 3.8, t);
+  const sIn = 0.6 + 0.4 * smooth(0.0, 1.4, t), sFlash = smooth(1.5, 2.15, t) * (1 - smooth(2.15, 3.3, t)), sOut = 1 - smooth(2.6, 3.8, t);
   const pulse = 1 + 0.08 * Math.sin(t * 6.0);
   spark.material.opacity = sIn * sOut; spark.scale.setScalar((0.35 + 0.9 * sFlash) * pulse);
-  sparkHalo.material.opacity = 0.55 * sIn * sOut; sparkHalo.scale.setScalar(2.2 + 3.5 * sFlash);
+  sparkHalo.material.opacity = 0.6 * sIn * sOut; sparkHalo.scale.setScalar(3.2 + 3.5 * sFlash + 0.3 * Math.sin(t * 2.0));
   // ring expansion 2.0-4.6
   const ex = easeOutCubic((t - 2.0) / 2.6);
   ring.scale.setScalar(Math.max(0.001, ex)); ringGlow.scale.copy(ring.scale);

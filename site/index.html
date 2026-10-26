@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CTF GROUP｜ゼロから、事業を動かす総合マーケティング支援（サンプル）</title>
+<meta name="description" content="営業・広告・SNS・採用。事業成長に必要な仕組みを、AIとデータでゼロから設計する総合マーケティング支援。※デザイン提案用のサンプルページです。">
+<meta name="theme-color" content="#05070D">
+<meta property="og:title" content="CTF GROUP｜ゼロから、事業を動かす。">
+<meta property="og:description" content="営業・広告・SNS・採用をまるごと設計する総合マーケティング支援（サンプル）">
+<meta property="og:image" content="assets/media/hero-poster.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305070D'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%232F6BFF' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/media/hero-poster.jpg" media="(min-aspect-ratio: 1/1)">
+<link rel="preload" as="image" href="assets/media/hero-mobile-poster.jpg" media="(max-aspect-ratio: 1/1)">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<!-- Loader -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__ring"><svg viewBox="0 0 120 120"><circle class="loader__track" cx="60" cy="60" r="52"/><circle class="loader__bar" id="loaderBar" cx="60" cy="60" r="52"/></svg></div>
+  <p class="loader__num"><span id="loaderNum">0</span><small>%</small></p>
+  <p class="loader__txt">LOADING THE FILM</p>
+</div>
+
+<!-- Header -->
+<header class="header" id="header">
+  <a class="brand" href="#top" aria-label="CTF GROUP トップへ">
+    <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg>
+    <span class="brand__name">CTF GROUP</span>
+  </a>
+  <nav class="nav" id="nav" aria-label="メインメニュー">
+    <a href="#services">サービス</a>
+    <a href="#results">実績</a>
+    <a href="#flow">導入の流れ</a>
+    <a href="#plans">料金</a>
+    <a href="#faq">よくある質問</a>
+    <a class="btn btn--sm btn--primary nav__cta" href="#contact">無料相談</a>
+  </nav>
+  <button class="burger" id="burger" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="nav"><span></span><span></span></button>
+</header>
+
+<main id="main">
+<!-- ===== Film (scroll-scrubbed video) ===== -->
+<section class="film" id="top" aria-label="CTF GROUPの紹介">
+  <div class="film__stage">
+    <video class="film__video" id="filmVideo" muted playsinline preload="none" aria-hidden="true"></video>
+    <div class="film__poster" id="filmPoster" aria-hidden="true"></div>
+    <div class="film__scrim" aria-hidden="true"></div>
+
+    <div class="chapters">
+      <article class="chapter chapter--left" data-ch="0">
+        <p class="eyebrow"><span class="dot dot--blue"></span>Sales &amp; Marketing Partner</p>
+        <h1 class="display">
+          <span class="line"><span>常識に、</span></span>
+          <span class="line"><span>違和感を。</span></span>
+        </h1>
+        <p class="lead"><span class="line"><span>営業・広告・SNS・採用。事業の成長に必要な仕組みを、</span></span><span class="line"><span>AIとデータでゼロから設計する総合マーケティング支援。</span></span></p>
+        <div class="actions">
+          <a class="btn btn--primary magnetic" href="#contact">無料で相談する<i aria-hidden="true">→</i></a>
+          <a class="btn btn--ghost magnetic" href="#services">サービスを見る</a>
+        </div>
+      </article>
+
+      <article class="chapter chapter--right" data-ch="1">
+        <p class="eyebrow">01 — Philosophy</p>
+        <h2 class="display display--md">
+          <span class="line"><span>すべては、</span></span>
+          <span class="line"><span><em class="grad">ゼロ</em>から。</span></span>
+        </h2>
+        <p class="lead"><span class="line"><span>売れる仕組みは、才能ではなく設計でつくれる。</span></span><span class="line"><span>0→1の立ち上げから1→10の拡大まで、同じチームで伴走します。</span></span></p>
+      </article>
+
+      <article class="chapter chapter--left" data-ch="2">
+        <p class="eyebrow">02 — Services</p>
+        <h2 class="display display--md">
+          <span class="line"><span>4つのZEROで、</span></span>
+          <span class="line"><span>事業を動かす。</span></span>
+        </h2>
+        <ul class="zero-list">
+          <li><span class="dot dot--blue"></span><b>ZERO SALES</b><small>営業代行・インサイドセールス</small></li>
+          <li><span class="dot dot--cyan"></span><b>ZERO MARKETING</b><small>広告運用・インバウンド集客</small></li>
+          <li><span class="dot dot--violet"></span><b>ZERO PROMOTION</b><small>SNS企画・運用代行</small></li>
+          <li><span class="dot dot--coral"></span><b>ZERO RECRUIT</b><small>採用設計・母集団形成</small></li>
+        </ul>
+      </article>
+
+      <article class="chapter chapter--right" data-ch="3">
+        <p class="eyebrow">03 — AI × Data</p>
+        <h2 class="display display--md">
+          <span class="line"><span>つながる仕組みが、</span></span>
+          <span class="line"><span>成果を積み上げる。</span></span>
+        </h2>
+        <dl class="mini-stats">
+          <div><dt>商談化率</dt><dd><span class="num" data-to="2.4" data-dec="1">0</span><small>倍</small></dd></div>
+          <div><dt>CPA改善</dt><dd><span class="num" data-to="38">0</span><small>%</small></dd></div>
+          <div><dt>契約継続率</dt><dd><span class="num" data-to="94">0</span><small>%</small></dd></div>
+        </dl>
+      </article>
+
+      <article class="chapter chapter--center" data-ch="4">
+        <p class="eyebrow eyebrow--gold">04 — Next Growth</p>
+        <h2 class="display display--md">
+          <span class="line"><span>次の成長を、</span></span>
+          <span class="line"><span>ここから。</span></span>
+        </h2>
+        <div class="actions actions--center">
+          <a class="btn btn--gold magnetic" href="#contact">無料で相談する<i aria-hidden="true">→</i></a>
+          <a class="btn btn--ghost magnetic" href="#contact">資料をダウンロード</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="film__hud" aria-hidden="true">
+      <div class="rail"><span class="rail__fill" id="railFill"></span>
+        <ol class="rail__dots"><li></li><li></li><li></li><li></li><li></li></ol>
+      </div>
+      <p class="timecode"><span id="timecode">00:00</span> / 00:15</p>
+    </div>
+    <div class="scroll-hint" id="scrollHint" aria-hidden="true"><span>SCROLL</span><i></i></div>
+  </div>
+</section>
+
+<!-- ===== Ticker ===== -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker__track" id="ticker">
+    <span>ZERO SALES</span><b>✦</b><span>ZERO MARKETING</span><b>✦</b><span>ZERO PROMOTION</span><b>✦</b><span>ZERO RECRUIT</span><b>✦</b>
+    <span>ZERO SALES</span><b>✦</b><span>ZERO MARKETING</span><b>✦</b><span>ZERO PROMOTION</span><b>✦</b><span>ZERO RECRUIT</span><b>✦</b>
+  </div>
+</div>
+
+<!-- ===== Services (horizontal) ===== -->
+<section class="services" id="services" aria-labelledby="services-title">
+  <div class="services__pin">
+    <div class="section-head services__head">
+      <p class="eyebrow">Services</p>
+      <h2 class="h2 reveal" id="services-title">売上をつくる工程を、<br>ひとつのチームで。</h2>
+      <p class="muted reveal">営業・集客・発信・採用は、本来つながっているもの。<br class="pc">分断されがちな4つの機能を、同じデータで動かします。</p>
+    </div>
+    <div class="services__track" id="servicesTrack">
+      <article class="svc" style="--c:#2F6BFF">
+        <p class="svc__no">01</p>
+        <h3 class="svc__name">ZERO SALES</h3>
+        <p class="svc__jp">営業代行・インサイドセールス</p>
+        <p class="svc__desc">ターゲット設計からリスト作成、トーク設計、アポイント獲得、商談まで。営業の勝ちパターンを0から構築し、社内に残します。</p>
+        <ul class="svc__tags"><li>新規開拓</li><li>テレアポ/フォーム営業</li><li>SFA設計</li></ul>
+      </article>
+      <article class="svc" style="--c:#3FE0D0">
+        <p class="svc__no">02</p>
+        <h3 class="svc__name">ZERO MARKETING</h3>
+        <p class="svc__jp">広告運用・インバウンド集客</p>
+        <p class="svc__desc">業種と商材に合わせて媒体を選定。広告運用からLP改善までを一気通貫で行い、問い合わせの「量」と「質」を同時に高めます。</p>
+        <ul class="svc__tags"><li>Google/Meta広告</li><li>LP制作・改善</li><li>CPA最適化</li></ul>
+      </article>
+      <article class="svc" style="--c:#8B5CFF">
+        <p class="svc__no">03</p>
+        <h3 class="svc__name">ZERO PROMOTION</h3>
+        <p class="svc__jp">SNS企画・運用代行</p>
+        <p class="svc__desc">企画・撮影・投稿・分析までを丸ごと代行。ブランドの世界観をつくりながら、指名検索と来店・予約につながる発信を設計します。</p>
+        <ul class="svc__tags"><li>Instagram/TikTok</li><li>ショート動画</li><li>インフルエンサー</li></ul>
+      </article>
+      <article class="svc" style="--c:#FF6B5A">
+        <p class="svc__no">04</p>
+        <h3 class="svc__name">ZERO RECRUIT</h3>
+        <p class="svc__jp">採用設計・母集団形成</p>
+        <p class="svc__desc">採用要件の言語化から求人原稿、スカウト、面接設計まで。クラウドワーカーも活用し、採用単価を抑えながら母集団を広げます。</p>
+        <ul class="svc__tags"><li>採用広報</li><li>スカウト代行</li><li>面接設計</li></ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Results ===== -->
+<section class="results" id="results" aria-labelledby="results-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Results</p>
+      <h2 class="h2 reveal" id="results-title">数字で語れる支援を。</h2>
+    </div>
+    <dl class="stats">
+      <div class="stat reveal"><dt>累計支援企業数</dt><dd><span class="num" data-to="1200" data-sep="1">0</span><small>社+</small></dd></div>
+      <div class="stat reveal"><dt>平均商談化率</dt><dd><span class="num" data-to="2.4" data-dec="1">0</span><small>倍</small></dd></div>
+      <div class="stat reveal"><dt>契約継続率</dt><dd><span class="num" data-to="94">0</span><small>%</small></dd></div>
+      <div class="stat reveal"><dt>対応業種</dt><dd><span class="num" data-to="80">0</span><small>業種+</small></dd></div>
+    </dl>
+
+    <div class="cases">
+      <article class="case reveal" style="--c:#2F6BFF">
+        <p class="case__tag">ZERO SALES ／ IT・SaaS</p>
+        <h3 class="case__title">月間商談数が<br><b>12件 → 41件</b>に</h3>
+        <p class="case__body">ターゲットを3業種に絞り直し、トークとリストを再設計。インサイドセールス体制を3ヶ月で立ち上げました。</p>
+      </article>
+      <article class="case reveal" style="--c:#8B5CFF">
+        <p class="case__tag">ZERO PROMOTION ／ 美容サロン</p>
+        <h3 class="case__title">SNS経由の予約が<br><b>3.2倍</b>に</h3>
+        <p class="case__body">ショート動画中心の運用に切り替え、投稿から予約までの導線を整備。指名検索も前年比180%に伸長しました。</p>
+      </article>
+      <article class="case reveal" style="--c:#FF6B5A">
+        <p class="case__tag">ZERO RECRUIT ／ 物流</p>
+        <h3 class="case__title">採用単価を<br><b>46%削減</b></h3>
+        <p class="case__body">求人原稿とスカウト文面をデータで改善。応募数を保ちながら、媒体費を大きく圧縮しました。</p>
+      </article>
+    </div>
+    <p class="note">※掲載している数値・事例はデザイン提案用のサンプルです。</p>
+  </div>
+</section>
+
+<!-- ===== Flow ===== -->
+<section class="flow" id="flow" aria-labelledby="flow-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Flow</p>
+      <h2 class="h2 reveal" id="flow-title">ご相談から、最短2週間で始動。</h2>
+    </div>
+    <div class="steps-wrap" id="steps">
+    <svg class="steps__line" viewBox="0 0 4 100" preserveAspectRatio="none" aria-hidden="true"><line x1="2" y1="0" x2="2" y2="100"/></svg>
+    <ol class="steps">
+      <li class="step"><span class="step__no">STEP 01</span><h3>無料相談</h3><p>オンラインで60分。現状の課題と目標をお聞きします。</p></li>
+      <li class="step"><span class="step__no">STEP 02</span><h3>現状診断</h3><p>営業・広告・SNS・採用のデータを分析し、ボトルネックを可視化します（最短3営業日）。</p></li>
+      <li class="step"><span class="step__no">STEP 03</span><h3>設計・ご提案</h3><p>KPIと体制、施策の優先順位をまとめた実行プランをご提案します。</p></li>
+      <li class="step"><span class="step__no">STEP 04</span><h3>実行・改善</h3><p>専任チームが実行。週次レポートで数字を共有し、改善を回し続けます。</p></li>
+    </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Plans ===== -->
+<section class="plans" id="plans" aria-labelledby="plans-title">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Plans</p>
+      <h2 class="h2 reveal" id="plans-title">必要なぶんだけ、組み合わせて。</h2>
+    </div>
+    <div class="plan-grid">
+      <article class="plan reveal">
+        <h3 class="plan__name">ライト</h3>
+        <p class="plan__price"><small>月額</small>15<span>万円〜</span></p>
+        <p class="plan__desc">1サービスから始めたい企業に。</p>
+        <ul><li>4サービスから1つ選択</li><li>月次レポート</li><li>専任ディレクター</li></ul>
+        <a class="btn btn--ghost btn--block" href="#contact">相談する</a>
+      </article>
+      <article class="plan plan--feature reveal">
+        <p class="plan__badge">いちばん人気</p>
+        <h3 class="plan__name">スタンダード</h3>
+        <p class="plan__price"><small>月額</small>30<span>万円〜</span></p>
+        <p class="plan__desc">集客から商談までを、まとめて強化。</p>
+        <ul><li>2サービスを組み合わせ</li><li>週次ミーティング</li><li>ダッシュボード提供</li><li>LP改善1本/月</li></ul>
+        <a class="btn btn--primary btn--block" href="#contact">相談する</a>
+      </article>
+      <article class="plan reveal">
+        <h3 class="plan__name">フルサポート</h3>
+        <p class="plan__price"><span class="plan__ask">要相談</span></p>
+        <p class="plan__desc">営業組織ごと、ゼロからつくる。</p>
+        <ul><li>4サービスすべて</li><li>営業・採用の内製化支援</li><li>経営会議への同席</li></ul>
+        <a class="btn btn--ghost btn--block" href="#contact">相談する</a>
+      </article>
+    </div>
+    <p class="note">※料金はサンプルです。表示価格は税別。</p>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="faq" id="faq" aria-labelledby="faq-title">
+  <div class="container container--narrow">
+    <div class="section-head">
+      <p class="eyebrow">FAQ</p>
+      <h2 class="h2 reveal" id="faq-title">よくある質問</h2>
+    </div>
+    <div class="faq__list">
+      <details class="qa"><summary>最低契約期間はありますか？</summary><p>成果を出すための検証期間として、3ヶ月からのご契約をお願いしています。以降は1ヶ月単位で更新できます。</p></details>
+      <details class="qa"><summary>1つのサービスだけでも依頼できますか？</summary><p>はい。ライトプランで1サービスから始め、成果を見ながら組み合わせを広げる企業様が多くいらっしゃいます。</p></details>
+      <details class="qa"><summary>どの業種に対応していますか？</summary><p>BtoB・BtoCを問わず、IT、製造、不動産、美容、飲食、物流など80業種以上の支援実績があります。</p></details>
+      <details class="qa"><summary>社内にノウハウは残りますか？</summary><p>トークスクリプト、広告の勝ちパターン、運用マニュアルなどはすべて納品物としてお渡しします。内製化の支援も可能です。</p></details>
+      <details class="qa"><summary>相談だけでも大丈夫ですか？</summary><p>もちろんです。無料相談では現状の整理と改善の方向性をお伝えします。無理な営業は一切いたしません。</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Contact ===== -->
+<section class="contact" id="contact" aria-labelledby="contact-title">
+  <div class="contact__glow" aria-hidden="true"></div>
+  <div class="container contact__grid">
+    <div class="contact__copy">
+      <p class="eyebrow eyebrow--gold">Contact</p>
+      <h2 class="h2 reveal" id="contact-title">まずは60分、<br>無料で話しませんか。</h2>
+      <p class="muted reveal">「何から手をつければいいか分からない」段階でも大丈夫です。現状をお聞きし、最初の一手を一緒に考えます。</p>
+      <ul class="checks reveal"><li>ご相談・お見積りは無料</li><li>最短翌営業日にご連絡</li><li>オンライン対応（全国）</li></ul>
+    </div>
+    <form class="form" id="contactForm" novalidate>
+      <div class="form__row"><label for="f-company">会社名<em>必須</em></label><input id="f-company" name="company" type="text" autocomplete="organization" required></div>
+      <div class="form__row"><label for="f-name">お名前<em>必須</em></label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
+      <div class="form__row"><label for="f-email">メールアドレス<em>必須</em></label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+      <div class="form__row"><label for="f-tel">電話番号<span>任意</span></label><input id="f-tel" name="tel" type="tel" autocomplete="tel"></div>
+      <fieldset class="form__row">
+        <legend>興味のあるサービス<span>任意・複数可</span></legend>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="svc[]" value="sales"><span>ZERO SALES</span></label>
+          <label class="chip"><input type="checkbox" name="svc[]" value="marketing"><span>ZERO MARKETING</span></label>
+          <label class="chip"><input type="checkbox" name="svc[]" value="promotion"><span>ZERO PROMOTION</span></label>
+          <label class="chip"><input type="checkbox" name="svc[]" value="recruit"><span>ZERO RECRUIT</span></label>
+        </div>
+      </fieldset>
+      <div class="form__row"><label for="f-msg">ご相談内容<span>任意</span></label><textarea id="f-msg" name="message" rows="4"></textarea></div>
+      <label class="agree"><input type="checkbox" name="agree" required> プライバシーポリシーに同意する</label>
+      <p class="form__error" id="formError" role="alert"></p>
+      <button class="btn btn--gold btn--block" type="submit">無料相談を申し込む<i aria-hidden="true">→</i></button>
+      <p class="note">※サンプルページのため、実際には送信されません。</p>
+    </form>
+    <div class="thanks" id="thanks" hidden tabindex="-1">
+      <p class="eyebrow eyebrow--gold">Thank you</p>
+      <h3 class="h2">お申し込みありがとうございます。</h3>
+      <p class="muted">担当者より1営業日以内にご連絡いたします。（サンプル表示）</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="container footer__grid">
+    <div>
+      <a class="brand" href="#top"><svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="16" cy="16" r="3" fill="currentColor"/></svg><span class="brand__name">CTF GROUP</span></a>
+      <p class="muted footer__lead">創造で、事業の未来をデザインする。</p>
+    </div>
+    <nav class="footer__nav" aria-label="フッターメニュー">
+      <a href="#services">サービス</a><a href="#results">実績</a><a href="#flow">導入の流れ</a><a href="#plans">料金</a><a href="#faq">よくある質問</a><a href="#contact">お問い合わせ</a>
+    </nav>
+    <dl class="footer__info">
+      <div><dt>会社名</dt><dd>株式会社CTF GROUP（サンプル）</dd></div>
+      <div><dt>所在地</dt><dd>東京都港区（サンプル）</dd></div>
+      <div><dt>設立</dt><dd>2022年</dd></div>
+    </dl>
+  </div>
+  <p class="footer__copy container">© CTF GROUP ／ 本ページはデザイン提案用のサンプルです。</p>
+</footer>
+
+<script src="assets/vendor/gsap.min.js" defer></script>
+<script src="assets/vendor/ScrollTrigger.min.js" defer></script>
+<script src="assets/vendor/lenis.min.js" defer></script>
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
